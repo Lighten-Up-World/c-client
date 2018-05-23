@@ -55,6 +55,36 @@ typedef enum {
 } opcode_t;
 
 typedef enum {
+  //// DATA PROCESSING ////
+  M_ADD, // Rd := Rn + Op2
+  M_SUB, // Rd := Rn - Op2
+  M_RSB, // Rd := Op2 - Rn
+  M_AND, // Rd := Rn && Op2
+  M_EOR, // Rd := Rn XOR Op2
+  M_ORR, // Rd := Rn || Op2
+  M_MOV, // Rd := Op2
+  M_TST, // CPSR := Rn && Op2
+  M_TEQ, // CPSR := Rn XOR Op2
+  M_CMP, // CPSR := Rn - Op2
+  //// MULTIPLY ////
+  M_MUL, // Rd := Rm x Rs
+  M_MLA, // Rd := (Rm x Rs) = Rn
+  //// SINGLE DATA TRANSFER ////
+  M_LDR, // Rd := (address)
+  M_STR, // (address) := Rd
+  //// BRANCH ////
+  M_BEQ, // PC := address
+  M_BNE, // PC := address
+  M_BLT, // PC := address
+  M_BGT, // PC := address
+  M_BLE, // PC := address
+  M_B,   // PC := address
+  //// SPECIAL ////
+  M_LSL,  // Rd := Rd <<
+  M_ANDEQ // Halt
+} mnemonic_t;
+
+typedef enum {
   LSL = 0x0, // Logical left
   LSR = 0x1, // Logical right
   ASR = 0x2, // Arithmetic right
