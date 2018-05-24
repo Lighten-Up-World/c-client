@@ -117,6 +117,7 @@ typedef struct {
           // 0 -> Word is stored into memory
 } flags_t;
 
+//TODO: Add bitfield for compacting.
 typedef struct {
   instruction_type_t type;
   byte_t cond;
