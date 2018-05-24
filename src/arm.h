@@ -117,22 +117,21 @@ typedef struct {
           // 0 -> Word is stored into memory
 } flags_t;
 
-//TODO: Add bitfield for compacting.
 typedef struct {
   instruction_type_t type;
   byte_t cond;
-  opcode_t operation;
+  opcode_t operation : 4;
 
   val_t immediate_value;
 
-  reg_address_t rn;
-  reg_address_t rd;
-  reg_address_t rs;
-  reg_address_t rm;
+  reg_address_t rn : 4;
+  reg_address_t rd : 4;
+  reg_address_t rs : 4;
+  reg_address_t rm : 4;
 
   flags_t flags;
 
-  shift_type_t shift_type;
+  shift_type_t shift_type : 2;
   byte_t shift_amount;
 
 } instruction_t;
