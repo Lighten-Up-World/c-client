@@ -3,6 +3,11 @@
 #ignore temp files
 *~
 
+#ignore CLion files
+CMakeLists.txt
+.idea/
+cmake-build-debug/
+
 ##ignore pdf files (just keep source files)
 #*.pdf
 
