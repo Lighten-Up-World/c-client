@@ -35,6 +35,16 @@ See `test` directory.
 6. Wrap the body at 72 characters
 7. Use the body to explain what and why vs. how
 
+### Branching Checklist
+To create a new feature branch
+1. `git status` - Make sure you are in develop branch and all pre-requisite features have been merged. `git checkou develop` if not.
+2. `git checkout -b myfeature develop`
+To incorporate finished feature on develop.
+1. `git status`
+2. `git checkout develop`
+3. `git merge --no-ff myfeature`
+4. `git push origin develop`
+
 ### Quick checklist
 1. `git status`
 2. `git add -A`
