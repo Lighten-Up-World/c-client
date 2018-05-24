@@ -1,3 +1,8 @@
+/*
+* Breaksdown ARM format into internal representation for state and registers
+* into datastructures and constants
+*/
+
 #ifndef ARM_H
 #define ARM_H
 #include <stdint.h>
