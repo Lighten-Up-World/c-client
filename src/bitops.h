@@ -2,6 +2,9 @@
 // Created by Matt Malarkey on 24/05/2018.
 //
 
+// TODO: Extract bits x to y from 32 bit instruction
+// TODO: Make 32 bit integer from 8 bit for shifting
+
 #ifndef ARM11_22_BITOPS_H
 #define ARM11_22_BITOPS_H
 
