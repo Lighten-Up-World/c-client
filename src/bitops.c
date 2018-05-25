@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
   assert(15 == lShiftRight(sixtyThree, 2));
   assert(7 == lShiftRight(sixtyThree, 3));
 
+  //TODO
   // Arithmetic shift right
   assert(zero == aShiftRight(zero, 0));
   assert(zero == aShiftRight(zero, 4));
@@ -42,6 +43,7 @@ int main(int argc, char **argv) {
   assert(max - 1 == aShiftRight(max - 2, 1));
   assert(max == aShiftRight(max - 2, 2));
 
+  //TODO
   // Rotate right
   assert(zero == rotateRight(zero, 0));
   assert(zero == rotateRight(zero, 4));
@@ -50,6 +52,7 @@ int main(int argc, char **argv) {
   assert(max == rotateRight(max, 1));
   assert(max == rotateRight(max, 3));
 
+  //TODO
   // Left pad zeros
   assert(0 == leftPadZeros(0));
   assert(242 == leftPadZeros(242));
@@ -64,10 +67,14 @@ int main(int argc, char **argv) {
 }
 
 /*
- * TODO: doc
+ *  Get the specified interval of bits from an instruction, left padding with zeros
+ *  @param inst: the instruction to get bits from
+ *  @param x: the MSb of interval to return
+ *  @param y: the LSb of interval to return
  */
 word_t getBits(word_t inst, byte_t x, byte_t y) {
-  return lShiftRight(inst, y);
+  //TODO: check this works with endian-nes of inst. given
+  //return rShiftRight(inst, y);
 }
 
 /*
@@ -101,10 +108,10 @@ word_t lShiftRight(word_t value, byte_t shift) {
  *  @return the shifted value
  */
 word_t aShiftRight(word_t value, byte_t shift) {
-  // Logic shift right then copy the original MSb into the first (shift) bits
   word_t msb = (value >> (sizeof(word_t) * 8 - 1)) & ((uint8_t) 0x1);
 
   if (msb == 0) {
+    // Since >> fills with zeros we can just return this
     return value >> shift;
   }
 
