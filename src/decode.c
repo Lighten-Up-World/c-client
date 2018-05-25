@@ -10,6 +10,48 @@
 
 //// MUL ////
 
+/**
+ * Decode Multiplication Instruction
+ *
+ * @param - instruction_t* instructionPtr is the pointer to the instruction
+ * @param - word_t word is the binary instruction
+ * @return - void, changes made to the instruction pointed to by instructionPtr
+ */
+
+void decodeMul(instruction_t* instructionPtr, word_t word){
+
+    assert(instructionPtr != NULL);
+    assert(word != NULL);
+
+    mul_instruction_t mul;
+
+    byte_t conditionBits = (byte_t) getBits(word, COND_START, COND_END);
+    mul.cond = conditionBits;
+
+    mul.pad0 = 0x0;
+
+    flag_t accBit = (flag_t) getBits(word, 21, 21);
+    mul.A = accBit;
+
+    flag_t setCondBit = (flag_t) getBits(word, 20, 20);
+    mul.S = setCondBit;
+
+    byte_t regDest = (byte_t) getBits(word, 19, 16);
+    mul.Rd = regDest;
+
+    byte_t regN = (byte_t) getBits(word, 15, 12);
+    mul.Rn = regN;
+
+    byte_t regS = (byte_t) getBits(word, 11, 8);
+    mul.Rs = regS;
+
+    mul.pad9 = 0x9;
+
+    byte_t regM = (byte_t) getBits(word,3,0);
+    mul.Rm = regM;
+
+    instructionPtr->i.mul = mul;
+}
 
 //// SDT ////
 
@@ -22,7 +64,7 @@
 
 //// INSTRUCTION TYPE ////
 
-/*
+/**
  * Decode Instruction Type
  *
  * @param - instruction_t* instructionPtr is a pointer to the instruction_t
@@ -44,10 +86,12 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                     instruction_type = DP;
                 } else {
                     instruction_type = MUL;
+                    decodeMul(instructionPtr, word);
                 }
                 break;
             case 0x1:
                 instruction_type = MUL;
+                decodeMul(instructionPtr, word);
                 break;
             case 0x5:
                 instruction_type = BRN;
@@ -63,10 +107,10 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
 
 //// DECODE ENTRY ////
 
-/*
+/**
  * Decode Word (entry point to file)
  *
- * @params - word_t word is the binary instruction to decode
+ * @param - word_t word is the binary instruction to decode
  * @return - instruction_t is the returned decoded instruction.
  */
 
@@ -77,7 +121,6 @@ instruction_t decodeWord(word_t word){
     instruction_t* instructionPtr = &instruction;
 
     decodeInstructionType(instructionPtr, word);
-    //Call functions to decode instruction
 
     return instruction;
 }
