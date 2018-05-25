@@ -73,7 +73,12 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
  */
 
 void decodeInstructionType(instruction_t* instructionPtr, word_t word){
+
+    assert(instructionPtr != NULL);
+    assert(word != NULL);
+
     instruction_type_t instruction_type;
+
     if (word == 0x0){
         instruction_type = HAL;
     }else {
@@ -101,6 +106,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 break;
         }
     }
+
     instructionPtr->type = instruction_type;
 }
 
@@ -115,6 +121,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
  */
 
 instruction_t decodeWord(word_t word){
+
     assert(word != NULL);
 
     instruction_t instruction;
