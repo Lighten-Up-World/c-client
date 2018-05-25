@@ -9,27 +9,71 @@
 int main(int argc, char **argv) {
 
   word_t zero = 0;
-  word_t num = 5;
+  word_t five = 5;
+  word_t sixtyThree = 63;
 
-  assert(zero == logicalShiftLeft(zero, 0));
-  assert(zero == logicalShiftLeft(zero, 4));
-  assert(zero == logicalShiftLeft(zero, 72));
+  // Logical shift left
+  assert(zero == lShiftLeft(zero, 0));
+  assert(zero == lShiftLeft(zero, 4));
+  assert(zero == lShiftLeft(zero, 72));
+  assert(five == lShiftLeft(five, 0));
+  assert(10 == lShiftLeft(five, 1));
+  assert(40 == lShiftLeft(five, 3));
 
-  assert(num == logicalShiftLeft(num, 0));
-  assert(10 == logicalShiftLeft(num, 1));
-  assert(40 == logicalShiftLeft(num, 3));
+  // Logical shift right
+  assert(zero == lShiftRight(zero, 0));
+  assert(zero == lShiftRight(zero, 4));
+  assert(zero == lShiftRight(zero, 72));
+  assert(five == lShiftRight(five, 0));
+  assert(2 == lShiftRight(five, 1));
+  assert(0 == lShiftRight(five, 3));
+  assert(31 == lShiftRight(sixtyThree, 1));
+  assert(15 == lShiftRight(sixtyThree, 2));
+  assert(7 == lShiftRight(sixtyThree, 3));
 
   return 0;
 }
 
-
-//zero fill from right, discard carry
-word_t logicalShiftLeft(word_t value, byte_t shift) {
+/*
+ *  Logical shift left
+ *
+ *  @param value: The value to shift
+ *  @param shift: The amount to shift by
+ *  @return the shifted value
+ */
+word_t lShiftLeft(word_t value, byte_t shift) {
   return value << shift;
 }
 
-word_t logicalShiftRight(word_t value, byte_t shift);
+/*
+ *  Logical shift right
+ *
+ *  @param value: The value to shift
+ *  @param shift: The amount to shift by
+ *  @return the shifted value
+ */
+word_t lShiftRight(word_t value, byte_t shift) {
+  return value >> shift;
+}
 
-word_t arithShiftRight(word_t value, byte_t shift);
+/*
+ *  Arithmetic shift right
+ *
+ *  @param value: The value to shift
+ *  @param shift: The amount to shift by
+ *  @return the shifted value
+ */
+word_t aShiftRight(word_t value, byte_t shift) {
+  return 0;
+}
 
-word_t rotateRight(word_t value, byte_t shift);
+/*
+ *  Rotate right
+ *
+ *  @param value: The value to shift
+ *  @param rotate: The amount to rotate by
+ *  @return the shifted value
+ */
+word_t rotateRight(word_t value, byte_t rotate) {
+  return 0;
+}
