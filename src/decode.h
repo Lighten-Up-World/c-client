@@ -7,6 +7,6 @@
 #define COND_START 31
 #define COND_END 28
 
-instruction_t* decodeWord(word_t word);
+instruction_t decodeWord(word_t word);
 
 #endif

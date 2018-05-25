@@ -67,10 +67,10 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
  * Decode Word (entry point to file)
  *
  * @params - word_t word is the binary instruction to decode
- * @return - instruction_t* is a pointer to the decoded instruction
+ * @return - instruction_t is the returned decoded instruction.
  */
 
-instruction_t* decodeWord(word_t word){
+instruction_t decodeWord(word_t word){
     assert(word != NULL);
 
     instruction_t instruction;
@@ -79,6 +79,6 @@ instruction_t* decodeWord(word_t word){
     decodeInstructionType(instructionPtr, word);
     //Call functions to decode instruction
 
-    return instructionPtr;
+    return instruction;
 }
 
