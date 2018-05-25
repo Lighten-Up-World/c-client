@@ -11,7 +11,7 @@
 
 #include "arm.h"
 
-word_t getBits(word_t inst, int x, int y);
+word_t getBits(word_t inst, byte_t x, byte_t y);
 
 word_t lShiftLeft(word_t value, byte_t shift);
 
