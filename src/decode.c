@@ -30,24 +30,24 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
 
     mul.pad0 = 0x0;
 
-    flag_t accBit = (flag_t) getBits(word, 21, 21);
+    flag_t accBit = (flag_t) getBits(word, MUL_ACC, MUL_ACC);
     mul.A = accBit;
 
-    flag_t setCondBit = (flag_t) getBits(word, 20, 20);
+    flag_t setCondBit = (flag_t) getBits(word, MUL_SET, MUL_SET);
     mul.S = setCondBit;
 
-    reg_address_t regDest = (reg_address_t) getBits(word, 19, 16);
+    reg_address_t regDest = (reg_address_t) getBits(word, REG_1_START, REG_1_END);
     mul.Rd = regDest;
 
-    reg_address_t regN = (reg_address_t) getBits(word, 15, 12);
+    reg_address_t regN = (reg_address_t) getBits(word, REG_2_START, REG_2_END);
     mul.Rn = regN;
 
-    reg_address_t regS = (reg_address_t) getBits(word, 11, 8);
+    reg_address_t regS = (reg_address_t) getBits(word, REG_S_START, REG_S_END);
     mul.Rs = regS;
 
     mul.pad9 = 0x9;
 
-    reg_address_t regM = (reg_address_t) getBits(word,3,0);
+    reg_address_t regM = (reg_address_t) getBits(word,REG_M_START,REG_M_END);
     mul.Rm = regM;
 
     instructionPtr->i.mul = mul;
@@ -82,11 +82,11 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
     if (word == 0x0){
         instruction_type = HAL;
     }else {
-        word_t selectionBits = getBits(word, 27, 25);
+        word_t selectionBits = getBits(word, INSTR_TYPE_START, INSTR_TYPE_END);
         word_t pad9;
         switch (selectionBits) {
             case 0x0:
-                pad9 = getBits(word, 7, 4);
+                pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
                 if (pad9 ^ 0x9) {
                     instruction_type = DP;
                 } else {
