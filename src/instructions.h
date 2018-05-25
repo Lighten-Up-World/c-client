@@ -1,3 +1,8 @@
+#ifndef INSTRUCTIONS_H
+#define INSTRUCTIONS_H
+
+#include "arm.h"
+
 
 typedef enum {
   LSL = 0x0, // Logical left
@@ -113,3 +118,5 @@ typedef struct {
   instruction_type_t type;
   instructions_t i;
 } instruction_t;
+
+#endif
