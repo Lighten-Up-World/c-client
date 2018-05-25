@@ -36,18 +36,18 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
     flag_t setCondBit = (flag_t) getBits(word, 20, 20);
     mul.S = setCondBit;
 
-    byte_t regDest = (byte_t) getBits(word, 19, 16);
+    reg_address_t regDest = (reg_address_t) getBits(word, 19, 16);
     mul.Rd = regDest;
 
-    byte_t regN = (byte_t) getBits(word, 15, 12);
+    reg_address_t regN = (reg_address_t) getBits(word, 15, 12);
     mul.Rn = regN;
 
-    byte_t regS = (byte_t) getBits(word, 11, 8);
+    reg_address_t regS = (reg_address_t) getBits(word, 11, 8);
     mul.Rs = regS;
 
     mul.pad9 = 0x9;
 
-    byte_t regM = (byte_t) getBits(word,3,0);
+    reg_address_t regM = (reg_address_t) getBits(word,3,0);
     mul.Rm = regM;
 
     instructionPtr->i.mul = mul;
