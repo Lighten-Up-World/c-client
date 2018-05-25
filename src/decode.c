@@ -1,9 +1,16 @@
 #include "arm.h"
+#include "instructions.h"
 #include <assert.h>
 #include <stdio.h>
 
 //// DP ////
 
+/*
+ * @params -
+ *
+ */
+
+void decodeDp(instruction_t* instructionPtr, word_t word);
 
 //// MUL ////
 
@@ -27,7 +34,7 @@
  * @return - instruction_t* is a pointer to the decoded instruction
  */
 
-instruction_t* decodeWord(word_t word){
+instruction_t* decodeWord(word_t word) {
     assert(word != NULL);
 
     instruction_t instruction;
