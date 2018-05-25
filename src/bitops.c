@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   word_t zero = 0;
   word_t five = 5;
   word_t sixtyThree = 63;
-  word_t max = 0b1011;
+  word_t max = UINT32_MAX;
 
   // Logical shift left
   assert(zero == lShiftLeft(zero, 0));
@@ -34,31 +34,21 @@ int main(int argc, char **argv) {
   assert(zero == aShiftRight(zero, 0));
   assert(zero == aShiftRight(zero, 4));
   assert(zero == aShiftRight(zero, 72));
-
   assert(five == aShiftRight(five, 0));
   assert(2 == aShiftRight(five, 1));
   assert(0 == aShiftRight(five, 3));
-
-  // these fail
-  /*
-   * printf("err: %d\n", aShiftRight(max, 1));
   assert(max == aShiftRight(max, 1));
   assert(max == aShiftRight(max, 22));
   assert(max - 1 == aShiftRight(max - 2, 1));
   assert(max == aShiftRight(max - 2, 2));
-   */
 
   // Rotate right
   assert(zero == rotateRight(zero, 0));
   assert(zero == rotateRight(zero, 4));
   assert(zero == rotateRight(zero, 72));
-
-  // these fail
-  /*
   assert(max == rotateRight(max, 0));
   assert(max == rotateRight(max, 1));
   assert(max == rotateRight(max, 3));
-  */
 
   // Left pad zeros
   assert(0 == leftPadZeros(0));
@@ -102,6 +92,7 @@ word_t lShiftRight(word_t value, byte_t shift) {
   return value >> shift;
 }
 
+//TODO: test
 /*
  *  Arithmetic shift right
  *
@@ -111,21 +102,20 @@ word_t lShiftRight(word_t value, byte_t shift) {
  */
 word_t aShiftRight(word_t value, byte_t shift) {
   // Logic shift right then copy the original MSb into the first (shift) bits
-  word_t msb = (value >> (sizeof(word_t) * 8 - 1)) & 0x1;
-
-  word_t shifted = value >> shift;
+  word_t msb = (value >> (sizeof(word_t) * 8 - 1)) & ((uint8_t) 0x1);
 
   if (msb == 0) {
-    return shifted;
+    return value >> shift;
   }
 
-  for (int i = 0; i <= shift; i++) {
-    shifted = shifted + (msb << ((sizeof(word_t) * 8 - 1) - 1));
+  for (int i = 0; i < shift; i++) {
+    value = value >> ((uint8_t) 1);
+    value = value | (msb << ((sizeof(word_t) * 8) - 1));
   }
-
-  return shifted;
+  return value;
 }
 
+//TODO: test
 /*
  *  Rotate right
  *
@@ -135,17 +125,20 @@ word_t aShiftRight(word_t value, byte_t shift) {
  */
 word_t rotateRight(word_t value, byte_t rotate) {
   word_t lsb;
-  for (int i = 0; i <= rotate; i++) {
-    lsb = value & 0x1;
-    value = value << 1;
-    value = value + (lsb << ((sizeof(word_t) * 8) - 1));
+  for (int i = 0; i < rotate; i++) {
+    lsb = value & ((uint8_t) 0x1);
+    value = value >> ((uint8_t) 1);
+    value = value | (lsb << ((sizeof(word_t) * 8) - 1));
   }
   return value;
 }
 
-
+//TODO: test
 /*
- * TODO: doc
+ *  Pad out a byte value to a word value, with zeros
+ *
+ *    @param value: the value to zero extend
+ *    @return the zero extended value
  */
 word_t leftPadZeros(byte_t value) {
   return value;
