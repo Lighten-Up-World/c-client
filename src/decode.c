@@ -19,10 +19,6 @@
  */
 
 void decodeMul(instruction_t* instructionPtr, word_t word){
-
-    assert(instructionPtr != NULL);
-    assert(word != NULL);
-
     mul_instruction_t mul;
 
     byte_t conditionBits = (byte_t) getBits(word, COND_START, COND_END);
@@ -57,25 +53,25 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
 operand_t decodeOperand(flag_t I, word_t word){
   operand_t op;
   if(I){ //Immediate
-    op.immediate = {.rotate = getBits(word, 11, 8),
-                    .immediate = getBits(word, 7, 0)};
+    op.immediate = (op_immediate_t){.rotate = getNibble(word, 11),
+                                    .immediate = getByte(word, 7)};
   }
   else { //Register
-    op.shiftreg.shiftBy = getBit(word, 4, 4);
+    op.shiftreg.shiftBy = getFlag(word, 4);
     if(op.shiftreg.shiftBy){ //Shift by register
-      op.shiftreg.shift.shiftreg = {
-        .Rs = getBits(word, 11, 8);
-        .zeroPad = 0x0;
-        .type = getBits(word, 6, 5);
-      }
+      op.shiftreg.shift.shiftreg = (op_shift_register_t){
+        .Rs = getNibble(word, 11),
+        .zeroPad = 0x0,
+        .type = getBits(word, 6, 5)
+      };
     }
     else{ // Shift by constant
-      op.shiftreg.shift.constant = {
-        .integer = getBits(word, 11, 7);
-        .type = getBits(word, 6, 5);
-      }
+      op.shiftreg.shift.constant = (op_shift_const_t){
+        .integer = getBits(word, 11, 7),
+        .type = getBits(word, 6, 5)
+      };
     }
-    op.shiftreg.rm = getBits(word, 3, 0);
+    op.shiftreg.rm = getNibble(word, 3);
   }
   return op;
 }
@@ -87,20 +83,17 @@ operand_t decodeOperand(flag_t I, word_t word){
  * @return - void, changes made to the instruction pointed to by instructionPtr
  */
 void decodeSdt(instruction_t *i, word_t word){
-  assert(i != NULL);
-  assert(word != NULL);
-
   sdt_instruction_t sdt;
 
-  sdt.cond = getBits(word, COND_START, COND_END);
+  sdt.cond = getNibble(word, COND_START);
   sdt.pad1 = 0x1;
-  sdt.I = getBits(word, 25, 25);
-  sdt.P = getBits(word, 24, 24);
-  sdt.U = getBits(word, 23, 23);
+  sdt.I = getFlag(word, 25);
+  sdt.P = getFlag(word, 24);
+  sdt.U = getFlag(word, 23);
   sdt.pad0 = 0x0;
-  sdt.L = getBits(word, 20, 20);
-  sdt.Rn = getBits(word, REG_1_START, REG_1_END);
-  sdt.Rd = getBits(word, REG_2_START, REG_2_END);
+  sdt.L = getFlag(word, 20);
+  sdt.Rn = getNibble(word, REG_1_START);
+  sdt.Rd = getNibble(word, REG_2_START);
   sdt.offset = decodeOperand(sdt.I, word);
 
   i->i.sdt = sdt;
@@ -125,7 +118,6 @@ void decodeSdt(instruction_t *i, word_t word){
 void decodeInstructionType(instruction_t* instructionPtr, word_t word){
 
     assert(instructionPtr != NULL);
-    assert(word != NULL);
 
     instruction_type_t instruction_type;
 
@@ -171,8 +163,6 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
  */
 
 instruction_t decodeWord(word_t word){
-
-    assert(word != NULL);
 
     instruction_t instruction;
     instruction_t* instructionPtr = &instruction;
