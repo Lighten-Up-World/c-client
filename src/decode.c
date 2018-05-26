@@ -54,7 +54,57 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
 }
 
 //// SDT ////
+operand_t decodeOperand(flag_t I, word_t word){
+  operand_t op;
+  if(I){ //Immediate
+    op.immediate = {.rotate = getBits(word, 11, 8),
+                    .immediate = getBits(word, 7, 0)};
+  }
+  else { //Register
+    op.shiftreg.shiftBy = getBit(word, 4, 4);
+    if(op.shiftreg.shiftBy){ //Shift by register
+      op.shiftreg.shift.shiftreg = {
+        .Rs = getBits(word, 11, 8);
+        .zeroPad = 0x0;
+        .type = getBits(word, 6, 5);
+      }
+    }
+    else{ // Shift by constant
+      op.shiftreg.shift.constant = {
+        .integer = getBits(word, 11, 7);
+        .type = getBits(word, 6, 5);
+      }
+    }
+    op.shiftreg.rm = getBits(word, 3, 0);
+  }
+  return op;
+}
+/**
+ * Decode Single Data transfer Instruction
+ *
+ * @param - instruction_t* instructionPtr is the pointer to the instruction
+ * @param - word_t word is the binary instruction
+ * @return - void, changes made to the instruction pointed to by instructionPtr
+ */
+void decodeSdt(instruction_t *i, word_t word){
+  assert(i != NULL);
+  assert(word != NULL);
 
+  sdt_instruction_t sdt;
+
+  sdt.cond = getBits(word, COND_START, COND_END);
+  sdt.pad1 = 0x1;
+  sdt.I = getBits(word, 25, 25);
+  sdt.P = getBits(word, 24, 24);
+  sdt.U = getBits(word, 23, 23);
+  sdt.pad0 = 0x0;
+  sdt.L = getBits(word, 20, 20);
+  sdt.Rn = getBits(word, REG_1_START, REG_1_END);
+  sdt.Rd = getBits(word, REG_2_START, REG_2_END);
+  sdt.offset = decodeOperand(sdt.I, word);
+
+  i->i.sdt = sdt;
+}
 
 //// BRN ////
 
@@ -131,4 +181,3 @@ instruction_t decodeWord(word_t word){
 
     return instruction;
 }
-
