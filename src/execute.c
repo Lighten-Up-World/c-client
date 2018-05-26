@@ -35,37 +35,37 @@ int condition(state_t *state, byte_t cond){
   }
 }
 
-void execute(state_t *state);
-void executeDPI(state_t *state);
-void executeMUL(state_t *state);
-void executeBRN(state_t *state);
-void executeSDT(state_t *state);
-void executeHAL(state_t *state);
-
-
-//// DP ////
-
-
-//// MUL ////
-
-
-//// SDT ////
-
-
-//// BRN ////
-
-
-//// HAL ////
-
-
-//// EXECUTE ENTRY FUNCTION ////
-
-// switch (opcode) {
-//   case AND:
-//   case TST:
-//     res = op1 & op2
-//   break;
-//   case EOR
-// }
-//
-//
+/**
+*
+*/
+void execute(state_t *state){
+  instruction_t *decoded = state->pipeline.decoded_instruction;
+  if(decoded->type == HAL){
+    executeHAL(state);
+    return;
+  }
+  if(condition(state, decoded->cond)){
+    switch(decoded->type){
+      case DP:
+        executeDP(state, decoded->i);
+        break;
+      case MUL:
+        executeMUL(state, decoded->i);
+        break;
+      case SDT:
+        executeSDT(state, decoded->i);
+        break;
+      case BRN:
+        executeBRN(state, decoded->i);
+        break;
+      default:
+        fprintf(stderr, "Invalid cond flag %x\n", cond);
+        //free_state();
+    }
+  }
+}
+void executeDP(state_t *state, dp_instruction_t   instr);
+void executeMUL(state_t *state, mul_instruction_t instr);
+void executeBRN(state_t *state, brn_instruction_t instr);
+void executeSDT(state_t *state, sdt_instruction_t instr);
+void executeHAL(state_t *state, hal_instruction_t instr);
