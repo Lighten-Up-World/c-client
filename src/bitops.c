@@ -5,6 +5,17 @@
 
 const uint8_t U_ONE = 1;
 
+//TODO: test, docs, add to header
+//change bool to flag_t after testing
+bool getFlag(word_t inst, byte_t pos) {
+  return (bool) getBits(inst, pos, pos);
+}
+
+//TODO: test, docs, header, check if -8 is the right idea
+byte_t getByte(word_t inst, byte_t pos) {
+  return (byte_t) getBits(inst, pos, (byte_t) (pos - 8));
+}
+
 /*
  *  Get the specified interval of bits from an instruction, left padding with zeros
  *  Limits are inclusive.
