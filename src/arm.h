@@ -97,8 +97,6 @@ typedef struct {
 
 typedef struct {
   word_t r[NUM_GENERAL_REGISTERS];
-  word_t sp;
-  word_t lr;
   word_t pc;
   word_t cpsr;
 } registers_t;
