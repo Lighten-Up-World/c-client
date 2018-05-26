@@ -5,6 +5,13 @@
 #include <assert.h>
 #include <stdio.h>
 
+/**
+ *  Get the operand_t by decoding the word instruction
+ *
+ *  @param I: the immediate flag on how to decode the operand
+ *  @param word: the instruction word
+ *  @return A fully populated operand type based on data in word
+ */
 operand_t decodeOperand(flag_t I, word_t word){
   operand_t op;
   if(I){ //Immediate
@@ -80,7 +87,7 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
  *
  * @param - instruction_t* instructionPtr is the pointer to the instruction
  * @param - word_t word is the binary instruction
- * @return - void, changes made to the instruction pointed to by instructionPtr
+ * @return - void, changes made to the instruction pointed to by i
  */
 void decodeSdt(instruction_t *i, word_t word){
   sdt_instruction_t sdt;
