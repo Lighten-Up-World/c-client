@@ -6,7 +6,7 @@
 int condition(state_t *state, byte_t cond);
 
 void execute(state_t *state);
-void executeDPI(state_t *state, dp_instruction_t  instr);
+void executeDP(state_t *state, dp_instruction_t   instr);
 void executeMUL(state_t *state, mul_instruction_t instr);
 void executeBRN(state_t *state, brn_instruction_t instr);
 void executeSDT(state_t *state, sdt_instruction_t instr);
