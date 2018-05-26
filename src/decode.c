@@ -15,25 +15,25 @@
 operand_t decodeOperand(flag_t I, word_t word){
   operand_t op;
   if(I){ //Immediate
-    op.immediate = (op_immediate_t){.rotate = getNibble(word, 11),
-                                    .immediate = getByte(word, 7)};
+    op.immediate = (op_immediate_t){.rotate = getNibble(word, OP_START),
+                                    .immediate = getByte(word, OP_IMM_START)};
   }
   else { //Register
-    op.shiftreg.shiftBy = getFlag(word, 4);
+    op.shiftreg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
     if(op.shiftreg.shiftBy){ //Shift by register
       op.shiftreg.shift.shiftreg = (op_shift_register_t){
-        .Rs = getNibble(word, 11),
+        .Rs = getNibble(word, OP_START),
         .zeroPad = 0x0,
-        .type = getBits(word, 6, 5)
+        .type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END)
       };
     }
     else{ // Shift by constant
       op.shiftreg.shift.constant = (op_shift_const_t){
-        .integer = getBits(word, 11, 7),
-        .type = getBits(word, 6, 5)
+        .integer = getBits(word, OP_START, OP_IMM_START),
+        .type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END)
       };
     }
-    op.shiftreg.rm = getNibble(word, 3);
+    op.shiftreg.rm = getNibble(word, REG_M_START);
   }
   return op;
 }
@@ -94,11 +94,11 @@ void decodeSdt(instruction_t *i, word_t word){
 
   sdt.cond = getNibble(word, COND_START);
   sdt.pad1 = 0x1;
-  sdt.I = getFlag(word, 25);
-  sdt.P = getFlag(word, 24);
-  sdt.U = getFlag(word, 23);
+  sdt.I = getFlag(word, I_FLAG);
+  sdt.P = getFlag(word, P_FLAG);
+  sdt.U = getFlag(word, U_FLAG);
   sdt.pad0 = 0x0;
-  sdt.L = getFlag(word, 20);
+  sdt.L = getFlag(word, L_FLAG);
   sdt.Rn = getNibble(word, REG_1_START);
   sdt.Rd = getNibble(word, REG_2_START);
   sdt.offset = decodeOperand(sdt.I, word);
