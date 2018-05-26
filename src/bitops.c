@@ -3,8 +3,11 @@
 #include <printf.h>
 #include "bitops.h"
 
+const uint8_t U_ONE = 1;
+
 /*
  *  Get the specified interval of bits from an instruction, left padding with zeros
+ *  Limits are inclusive.
  *
  *  @param inst: the instruction to get bits from
  *  @param x: the MSb of interval to return
@@ -12,18 +15,21 @@
  *  @return
  */
 word_t getBits(word_t inst, byte_t x, byte_t y) {
+  assert(31 >= x);
+  assert(x >= y);
+  assert(y >= 0);
 
-  //shift down so that x is base
+  // Logical shift right so that y is the base
+  inst = lShiftRight(inst, y);
 
-  //mask so that everything after y is zero
+  // Mask so that everything after x is zero
+  word_t mask = 1;
+  for (int i = 0; i < (x - y); i++) {
+    mask = mask << U_ONE;
+    mask = mask | U_ONE;
+  }
 
-
-
-
-  //TODO: assertions
-  //TODO: check this works with endian-nes of inst. given
-  //return rShiftRight(inst, y);
-  return 0;
+  return inst & mask;
 }
 
 /*
@@ -67,7 +73,7 @@ word_t aShiftRight(word_t value, byte_t shift) {
 
   word_t msbOnly = msb << ((sizeof(word_t) * 8) - 1);
   for (int i = 0; i < shift; i++) {
-    value = value >> ((uint8_t) 1);
+    value = value >> U_ONE;
     value = value | msbOnly;
   }
   return value;
@@ -84,8 +90,8 @@ word_t rotateRight(word_t value, byte_t rotate) {
   assert(rotate >= 0);
   word_t lsb;
   for (int i = 0; i < rotate; i++) {
-    lsb = value & ((uint8_t) 0x1);
-    value = value >> ((uint8_t) 1);
+    lsb = value & U_ONE;
+    value = value >> U_ONE;
     value = value | (lsb << ((sizeof(word_t) * 8) - 1));
   }
   return value;
@@ -112,6 +118,29 @@ int main(int argc, char **argv) {
   word_t max2MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 2);
   word_t max3MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 3);
 
+
+  // Get bits
+  assert(zero == getBits(zero, 0, 0));
+  assert(zero == getBits(zero, 1, 0));
+  assert(zero == getBits(zero, 17, 6));
+
+  assert(five == getBits(five, 31, 0));
+  assert(zero == getBits(five, 31, 21));
+  assert(2 == getBits(five, 2, 1));
+  assert(1 == getBits(five, 2, 2));
+
+  assert(sixtyThree == getBits(sixtyThree, 31, 0));
+  assert(zero == getBits(sixtyThree, 31, 29));
+  assert(15 == getBits(sixtyThree, 4, 1));
+  assert(1 == getBits(sixtyThree, 5, 5));
+  assert(3 == getBits(sixtyThree, 7, 4));
+
+  assert(max == getBits(max, 31, 0));
+  assert(2047 == getBits(max, 31, 21));
+  assert(3 == getBits(max, 2, 1));
+  assert(31 == getBits(max, 6, 2));
+
+
   // Logical shift left
   assert(zero == lShiftLeft(zero, 0));
   assert(zero == lShiftLeft(zero, 4));
@@ -131,6 +160,7 @@ int main(int argc, char **argv) {
   assert(max - 3 == lShiftLeft(max, 2));
   assert(max - 7 == lShiftLeft(max, 3));
 
+
   // Logical shift right
   assert(zero == lShiftRight(zero, 0));
   assert(zero == lShiftRight(zero, 4));
@@ -149,6 +179,7 @@ int main(int argc, char **argv) {
   assert(max - maxMSb == lShiftRight(max, 1));
   assert(max - maxMSb - max2MSb == lShiftRight(max, 2));
   assert(max - maxMSb - max2MSb - max3MSb == lShiftRight(max, 3));
+
 
   // Arithmetic shift right
   assert(zero == aShiftRight(zero, 0));
@@ -170,6 +201,7 @@ int main(int argc, char **argv) {
   assert(max - 1 == aShiftRight(max - 2, 1));
   assert(max == aShiftRight(max - 2, 2));
 
+
   // Rotate right
   assert(zero == rotateRight(zero, 0));
   assert(zero == rotateRight(zero, 4));
@@ -188,12 +220,13 @@ int main(int argc, char **argv) {
   assert(max == rotateRight(max, 1));
   assert(max == rotateRight(max, 3));
 
+
   // Left pad zeros
   assert(0 == leftPadZeros(0));
   assert(242 == leftPadZeros(242));
   assert(1 == leftPadZeros(1));
   assert(UINT8_MAX == leftPadZeros(UINT8_MAX));
 
+
   return 0;
 }
-
