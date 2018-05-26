@@ -38,14 +38,6 @@ typedef enum {
 } cpsr_flag_t;
 
 typedef enum {
-  DP,  // Data processing
-  MUL, // Multiply instruction
-  SDT, // Single data transfer
-  BRN, // Branch instruction
-  HAL  // Halt instruction
-} instruction_type_t;
-
-typedef enum {
   AND = 0x0, // Rn AND op2
   EOR = 0x1, // Rn EOR op2
   SUB = 0x2, // Rn - op2
