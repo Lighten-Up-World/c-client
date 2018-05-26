@@ -20,6 +20,11 @@ typedef uint16_t address_t;
 typedef uint32_t word_t;
 typedef bool flag_t;
 
+typedef struct {
+  word_t value;
+  flag_t carry;
+} shift_result_t;
+
 typedef enum {
   EQ = 0x0, // Equal
   NE = 0x1, // Not Equal
