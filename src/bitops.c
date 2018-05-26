@@ -29,11 +29,11 @@ byte_t getByte(word_t inst, byte_t pos) {
 }
 
 /*
- *  Get the byte at a given position
+ *  Get the nibble at a given position (left pad by cast to byte_t)
  *
- *  @param inst: the instruction to get byte from
- *  @param pos: the start of the byte
- *  @return a byte containing the 8 bits downwards from pos, in inst
+ *  @param inst: the instruction to get nibble from
+ *  @param pos: the start of the nibble
+ *  @return a byte containing the 4 bits downwards from pos, in inst
  */
 byte_t getNibble(word_t inst, byte_t pos) {
   assert(pos >= 3);
