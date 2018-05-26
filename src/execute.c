@@ -47,16 +47,16 @@ void execute(state_t *state){
   if(condition(state, decoded->cond)){
     switch(decoded->type){
       case DP:
-        executeDP(state, decoded->i);
+        executeDP(state, decoded->i.dp);
         break;
       case MUL:
-        executeMUL(state, decoded->i);
+        executeMUL(state, decoded->i.mul);
         break;
       case SDT:
-        executeSDT(state, decoded->i);
+        executeSDT(state, decoded->i.sdt);
         break;
       case BRN:
-        executeBRN(state, decoded->i);
+        executeBRN(state, decoded->i.brn);
         break;
       default:
         fprintf(stderr, "Invalid cond flag %x\n", cond);
