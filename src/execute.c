@@ -59,7 +59,7 @@ void execute(state_t *state){
         executeBRN(state, decoded->i.brn);
         break;
       default:
-        fprintf(stderr, "Invalid cond flag %x\n", cond);
+        fprintf(stderr, "Invalid type%x\n", decoded->type);
         //free_state();
     }
   }
