@@ -5,6 +5,32 @@
 #include <assert.h>
 #include <stdio.h>
 
+operand_t decodeOperand(flag_t I, word_t word){
+  operand_t op;
+  if(I){ //Immediate
+    op.immediate = (op_immediate_t){.rotate = getNibble(word, 11),
+                                    .immediate = getByte(word, 7)};
+  }
+  else { //Register
+    op.shiftreg.shiftBy = getFlag(word, 4);
+    if(op.shiftreg.shiftBy){ //Shift by register
+      op.shiftreg.shift.shiftreg = (op_shift_register_t){
+        .Rs = getNibble(word, 11),
+        .zeroPad = 0x0,
+        .type = getBits(word, 6, 5)
+      };
+    }
+    else{ // Shift by constant
+      op.shiftreg.shift.constant = (op_shift_const_t){
+        .integer = getBits(word, 11, 7),
+        .type = getBits(word, 6, 5)
+      };
+    }
+    op.shiftreg.rm = getNibble(word, 3);
+  }
+  return op;
+}
+
 //// DP ////
 
 
@@ -49,32 +75,6 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
     instructionPtr->i.mul = mul;
 }
 
-//// SDT ////
-operand_t decodeOperand(flag_t I, word_t word){
-  operand_t op;
-  if(I){ //Immediate
-    op.immediate = (op_immediate_t){.rotate = getNibble(word, 11),
-                                    .immediate = getByte(word, 7)};
-  }
-  else { //Register
-    op.shiftreg.shiftBy = getFlag(word, 4);
-    if(op.shiftreg.shiftBy){ //Shift by register
-      op.shiftreg.shift.shiftreg = (op_shift_register_t){
-        .Rs = getNibble(word, 11),
-        .zeroPad = 0x0,
-        .type = getBits(word, 6, 5)
-      };
-    }
-    else{ // Shift by constant
-      op.shiftreg.shift.constant = (op_shift_const_t){
-        .integer = getBits(word, 11, 7),
-        .type = getBits(word, 6, 5)
-      };
-    }
-    op.shiftreg.rm = getNibble(word, 3);
-  }
-  return op;
-}
 /**
  * Decode Single Data transfer Instruction
  *
