@@ -44,7 +44,6 @@ typedef union {
 } operand_t;
 
 typedef struct {
-  byte_t cond : 4;
   byte_t padding : 2;
   // Immediate Operand
   flag_t I : 1;  //DPI: 1 -> Operand2 is an immediate constant
@@ -60,7 +59,6 @@ typedef struct {
 } dp_instruction_t;
 
 typedef struct {
-  byte_t cond : 4;
   byte_t pad0 : 6; // == 000000
   flag_t A : 1; // Accumulate
   flag_t S : 1; // Set conditions codes
@@ -72,7 +70,6 @@ typedef struct {
 } mul_instruction_t;
 
 typedef struct {
-  byte_t cond : 4;
   byte_t pad1 : 2; // == 01
   //SDT: 1 -> Offset is a shifted register
   //     0 -> = interpreted as an unsigned 12 bit immediate offset
@@ -95,7 +92,6 @@ typedef struct {
 } sdt_instruction_t;
 
 typedef struct {
-  byte_t cond : 4;
   byte_t pad5 : 3; // == 101
   byte_t pad0 : 1; // == 00
   word_t offset : 24;
@@ -115,6 +111,7 @@ typedef union {
 
 typedef struct {
   instruction_type_t type;
+  byte_t cond : 4;
   instructions_t i;
 } instruction_t;
 
