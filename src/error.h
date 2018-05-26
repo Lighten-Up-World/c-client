@@ -6,6 +6,7 @@
 typedef enum {
   EC_OK,
   EC_INVALID_PARAM,
+  EC_NULL_POINTER,
   EC_SYS
 } error_code;
 
@@ -16,6 +17,7 @@ typedef struct {
 
 const error_str error_strs[] = {
   {EC_OK, "No error encountered."},
+  {EC_NULL_POINTER, "Passed a null pointer"},
   {EC_INVALID_PARAM, "Invalid parameter."}
 };
 
