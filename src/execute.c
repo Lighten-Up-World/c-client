@@ -19,13 +19,13 @@ int condition(state_t *state, byte_t cond){
     case NE:
       return !(flags & Z);
     case GE:
-      return (flags & V) == lShiftRight(flags & N, 3);
+      return (flags & V) == ((flags & N) >> 3);
     case LT:
-      return (flags & V) != lShiftRight(flags & N, 3);
+      return (flags & V) != ((flags & N) >> 3);
     case GT:
-      return !(flags & Z) && ((flags & V) == lShiftRight(flags & N, 3));
+      return !(flags & Z) && ((flags & V) == ((flags & N) >> 3));
     case LE:
-      return (flags & Z) || ((flags & V) != lShiftRight(flags & N, 3));
+      return (flags & Z) || ((flags & V) != ((flags & N) >> 3));
     case AL:
       return 1;
     default:
