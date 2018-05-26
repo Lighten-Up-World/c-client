@@ -5,15 +5,27 @@
 
 const uint8_t U_ONE = 1;
 
-//TODO: test, docs, add to header
-//change bool to flag_t after testing
-bool getFlag(word_t inst, byte_t pos) {
-  return (bool) getBits(inst, pos, pos);
+/*
+ *  Get the bit at a given position, return it as a boolean flag
+ *
+ *  @param inst: the instruction to get flag from
+ *  @param pos: the position of the flag
+ *  @return a flag_t that is true iff the bit at pos is not 0
+ */
+flag_t getFlag(word_t inst, byte_t pos) {
+  return (flag_t) getBits(inst, pos, pos);
 }
 
-//TODO: test, docs, header, check if -8 is the right idea
+/*
+ *  Get the byte at a given position
+ *
+ *  @param inst: the instruction to get byte from
+ *  @param pos: the start of the byte
+ *  @return a byte containing the 8 bits downwards from pos, in inst
+ */
 byte_t getByte(word_t inst, byte_t pos) {
-  return (byte_t) getBits(inst, pos, (byte_t) (pos - 8));
+  assert(pos >= 7);
+  return (byte_t) getBits(inst, pos, (byte_t) (pos - 7));
 }
 
 /*
@@ -23,7 +35,7 @@ byte_t getByte(word_t inst, byte_t pos) {
  *  @param inst: the instruction to get bits from
  *  @param x: the MSb of interval to return
  *  @param y: the LSb of interval to return
- *  @return
+ *  @return a word containing the specified bits, right aligned
  */
 word_t getBits(word_t inst, byte_t x, byte_t y) {
   assert(31 >= x);
@@ -111,8 +123,8 @@ word_t rotateRight(word_t value, byte_t rotate) {
 /*
  *  Pad out a byte value to a word value, with zeros
  *
- *    @param value: the value to zero extend
- *    @return the zero extended value
+ *  @param value: the value to zero extend
+ *  @return the zero extended value
  */
 word_t leftPadZeros(byte_t value) {
   return value;
@@ -150,6 +162,40 @@ int main(int argc, char **argv) {
   assert(2047 == getBits(max, 31, 21));
   assert(3 == getBits(max, 2, 1));
   assert(31 == getBits(max, 6, 2));
+
+
+  // Get flag
+  assert(!getFlag(zero, 0));
+  assert(!getFlag(zero, 30));
+
+  assert(getFlag(five, 0));
+  assert(!getFlag(five, 1));
+  assert(getFlag(five, 2));
+
+  assert(getFlag(sixtyThree, 0));
+  assert(getFlag(sixtyThree, 5));
+  assert(!getFlag(sixtyThree, 6));
+
+  assert(getFlag(max, 0));
+  assert(getFlag(max, 8));
+
+
+  // Get byte
+  assert(zero == getByte(zero, 7));
+  assert(zero == getByte(zero, 14));
+  assert(zero == getByte(zero, 31));
+
+  assert(five == getByte(five, 7));
+  assert(2 == getByte(five, 8));
+  assert(zero == getByte(five, 31));
+
+  assert(sixtyThree == getByte(sixtyThree, 7));
+  assert(31 == getByte(sixtyThree, 8));
+  assert(zero == getByte(sixtyThree, 31));
+
+  assert(UINT8_MAX == getByte(max, 7));
+  assert(UINT8_MAX == getByte(max, 8));
+  assert(UINT8_MAX == getByte(max, 19));
 
 
   // Logical shift left
