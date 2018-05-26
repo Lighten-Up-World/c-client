@@ -15,7 +15,7 @@
 #define MEM_SIZE 65536
 
 typedef uint8_t byte_t;
-typedef int8_t reg_address_t;
+typedef uint8_t reg_address_t;
 typedef uint16_t address_t;
 typedef uint32_t word_t;
 typedef bool flag_t;
