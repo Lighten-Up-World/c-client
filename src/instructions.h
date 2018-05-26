@@ -50,6 +50,11 @@ typedef union {
   op_shiftreg_t shiftreg;
 } operand_t;
 
+///// DATA PROCESSING INSTRUCTION FORMAT        /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 0| 0| I|   OPCODE  | S|     Rn    |//
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|     Rd    |             OPERAND               |//
 typedef struct {
   byte_t padding : 2;
   // Immediate Operand
@@ -65,6 +70,12 @@ typedef struct {
 
 } dp_instruction_t;
 
+
+///// MULTIPLY INSTRUCTION FORMAT               /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 0| 0| 0| 0| 0| 0| A| S|     Rd    |//
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|     Rn    |     Rs    | 1| 0| 0| 1|     Rm    |//
 typedef struct {
   byte_t pad0 : 6; // == 000000
   flag_t A : 1; // Accumulate
@@ -76,6 +87,11 @@ typedef struct {
   reg_address_t Rm : 4;
 } mul_instruction_t;
 
+///// SINGLE DATA TRANSFER INSTRUCTION FORMAT    /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 0| 1| I| P| U| 0| 0| L|     Rn    |//
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|     Rd    |             OFFSET                |//
 typedef struct {
   byte_t pad1 : 2; // == 01
   //SDT: 1 -> Offset is a shifted register
@@ -98,6 +114,11 @@ typedef struct {
   operand_t offset;
 } sdt_instruction_t;
 
+///// BRANCH INSTRUCTION FORMAT                 /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 1| 0| 1| 0|         OFFSET-        //
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|           -OFFSET                             |//
 typedef struct {
   byte_t pad5 : 3; // == 101
   byte_t pad0 : 1; // == 00
