@@ -29,7 +29,7 @@ int condition(state_t *state, byte_t cond){
     case AL:
       return 1;
     default:
-      fprintf(stderr, "Incorrect cond flag %x\n", cond);
+      fprintf(stderr, "Invalid cond flag %x\n", cond);
       //free_state();
       return 0;
   }
