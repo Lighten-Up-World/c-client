@@ -29,6 +29,18 @@ byte_t getByte(word_t inst, byte_t pos) {
 }
 
 /*
+ *  Get the byte at a given position
+ *
+ *  @param inst: the instruction to get byte from
+ *  @param pos: the start of the byte
+ *  @return a byte containing the 8 bits downwards from pos, in inst
+ */
+byte_t getNibble(word_t inst, byte_t pos) {
+  assert(pos >= 3);
+  return (byte_t) getBits(inst, pos, (byte_t) (pos - 3));
+}
+
+/*
  *  Get the specified interval of bits from an instruction, left padding with zeros
  *  Limits are inclusive.
  *

@@ -11,6 +11,8 @@ flag_t getFlag(word_t inst, byte_t pos);
 
 byte_t getByte(word_t inst, byte_t pos);
 
+byte_t getNibble(word_t inst, byte_t pos);
+
 word_t getBits(word_t inst, byte_t x, byte_t y);
 
 word_t lShiftLeft(word_t value, byte_t shift);
