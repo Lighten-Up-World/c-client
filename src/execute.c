@@ -1,30 +1,33 @@
+#include <stdio.h>
 #include "arm.h"
 #include "bitops.h"
+
 /**
 * Checks if the condition on the decoded instruction is met using the current
 * state of the flags register (CPSR).
 *
-* @param state The current VM state
+* @param state: The current VM state
+* @param cond: The condition extracted from the instructionn
 * @returns 1 when condition is met, 0 if not.
 */
-int condition(state_t *state, condition_t cond){
+int condition(state_t *state, byte_t cond){
   byte_t flags = getNibble(state->registers.cpsr, sizeof(word_t));
 
   switch(cond){
     case EQ:
-      return ;
+      return flags & Z;
     case NE:
-      return ;
+      return !(flags & Z);
     case GE:
-      return ;
+      return (flags & V) == lShiftRight(flags & N, 3);
     case LT:
-      return ;
+      return (flags & V) != lShiftRight(flags & N, 3);
     case GT:
-      return ;
+      return !(flags & Z) && ((flags & V) == lShiftRight(flags & N, 3));
     case LE:
-      return ;
+      return (flags & Z) || ((flags & V) != lShiftRight(flags & N, 3));
     case AL:
-      return ;
+      return 1;
     default:
       fprintf(stderr, "Incorrect cond flag %x\n", cond);
       //free_state();

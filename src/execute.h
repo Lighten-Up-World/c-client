@@ -3,7 +3,7 @@
 
 #include "arm.h"
 
-int condition(state_t *state, condition_t cond);
+int condition(state_t *state, byte_t cond);
 
 void execute(state_t *state);
 void executeDPI(state_t *state, dp_instruction_t  instr);
