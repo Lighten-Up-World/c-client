@@ -99,23 +99,6 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
     instructionPtr->type = instruction_type;
 }
 
-//// INSTRUCTION CONDITION ////
-
-/**
- * Decode Instruction Condition
- *
- * @param - instruction_t* instructionPtr is a pointer to the instruction_t
- * @param - word_t word is the binary instruction to decode
- * @return - void, all changes occur directly to instruction_t in memory.
- */
-
-void decodeCondition(instruction_t* instructionPtr, word_t word){
-
-    instructionPtr->cond = getNibble(word, COND_START);
-
-}
-
-
 //// DECODE ENTRY ////
 
 /**
@@ -128,10 +111,9 @@ void decodeCondition(instruction_t* instructionPtr, word_t word){
 instruction_t decodeWord(word_t word){
 
     instruction_t instruction;
-    instruction_t* instructionPtr = &instruction;
 
-    decodeCondition(instructionPtr, word);
-    decodeInstructionType(instructionPtr, word);
+    instruction.cond = getNibble(word, COND_START);
+    decodeInstructionType(&instruction, word);
 
     return instruction;
 }
@@ -180,5 +162,3 @@ int main(void){
 
     return 0;
 }
-
-
