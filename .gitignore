@@ -34,6 +34,9 @@ assemble
 #ignore junk files from compiling Java code
 *.class
 
+#Ignore test outputs
+src/test/build/*
+
 #ignore other junk files
 *.backup
 *.kate-swp
@@ -42,4 +45,3 @@ assemble
 *.vrb
 *.nav
 *.toc
-
