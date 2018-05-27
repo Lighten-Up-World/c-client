@@ -5,6 +5,7 @@
 #include "register.h"
 #include "io.h"
 #include "instructions.h"
+#include "arm.h"
 
 /**
 * Checks if the condition on the decoded instruction is met using the current
@@ -39,6 +40,48 @@ int condition(state_t *state, byte_t cond){
   }
 }
 
+/**
+ * Evaluates the value of shifted reg and stores result.
+ * Called from evaluateOperand or from evaluateOffset
+ *
+ * @param - state_t *state is pointer to state of program
+ * @param - operand_t op is the operand/offset from evaluateOperand or from evaluateOffset
+ * @param - shift_result_t *result is the pointer to the result, so that changes can be made directly to it.
+ */
+
+void evaluateShiftedReg(state_t *state, operand_t op, shift_result_t *result){
+  word_t rm = getRegister(state, op.reg.rm);
+  byte_t shiftAmount = 0;
+  if (op.reg.shiftBy){ //Shift by register
+    shiftAmount = getByte(getRegister(state, op.reg.shift.shiftreg.rs), 7);
+  }else{ //Shift by constant
+    shiftAmount = op.reg.shift.constant.integer;
+  }
+  switch(op.reg.type){
+    case LSL:
+      *result = lShiftLeftC(rm, shiftAmount);
+      break;
+    case LSR:
+      *result = lShiftRightC(rm, shiftAmount);
+      break;
+    case ASR:
+      *result = aShiftRightC(rm, shiftAmount);
+      break;
+    case ROR:
+      *result = rotateRightC(rm, shiftAmount);
+      break;
+    default:
+      //TODO: Add proper error handling code
+      exit(EXIT_FAILURE);
+  }
+}
+
+/**
+ * Evaluates the operand and returns the result from
+ *
+ * @param - state_t *state is pointer to the
+ */
+
 shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
@@ -46,31 +89,18 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
     result.value = rotateRight(result.value, op.imm.rotated.rotate);
   }
   else{//register value
-    word_t rm = getRegister(state, op.reg.rm);
-    byte_t shiftAmount = 0;
-    if(op.reg.shiftBy){ //Shift by register
-      shiftAmount = getByte(getRegister(state, op.reg.shift.shiftreg.rs), 7);
-    }
-    else{ //Shift by constnat
-      shiftAmount = op.reg.shift.constant.integer;
-    }
-    switch(op.reg.type){
-      case LSL:
-        result = lShiftLeftC(rm, shiftAmount);
-        break;
-      case LSR:
-        result = lShiftRightC(rm, shiftAmount);
-        break;
-      case ASR:
-        result = aShiftRightC(rm, shiftAmount);
-        break;
-      case ROR:
-        result = rotateRightC(rm, shiftAmount);
-        break;
-      default:
-        //TODO: Add proper error handling code
-        exit(EXIT_FAILURE);
-    }
+    evaluateShiftedReg(state, op, &result);
+  }
+  return result;
+}
+
+shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op){
+  shift_result_t result;
+  if (I){
+    evaluateShiftedReg(state, op, &result);
+  }else{
+    result.carry = 0;
+    result.value = op.imm.fixed;
   }
   return result;
 }
@@ -169,8 +199,42 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   return;
 }
 void executeSDT(state_t *state, sdt_instruction_t instr){
-  return;
+  shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
+  word_t offset = barrel.value;
+  flag_t carry = barrel.carry;
+  word_t rn = getRegister(state, instr.rn);
+
+  if (instr.P){ //Pre-indexing
+
+    if (instr.U){ //Add offset
+      rn += offset;
+    }else{  //Subtract offset
+      rn -= offset;
+    }
+
+    if (instr.L){ //Load from memory at address rn into reg rd.
+      setRegister(state, instr.rd, getMemWord(state, rn));
+    }else{ //Store contents of reg rd in memory at address rn.
+      setMemWord(state, rn, getRegister(state, instr.rd));
+    }
+
+  }else{ //Post-indexing
+
+    if (instr.L){ //Load from memory at address rn into reg rd.
+      setRegister(state, instr.rd, getMemWord(state, rn));
+    }else{ //Store contents of reg rd in memory at address rn.
+      setMemWord(state, rn, getRegister(state, instr.rd));
+    }
+    if (instr.U){ //Add offset
+      rn += offset;
+    }else{ //Subtract offset
+      rn -= offset;
+    }
+    //Change contents of reg rn (the base register)
+    setRegister(state, instr.rn, rn);
+  }
 }
+
 void executeHAL(state_t *state){
   printState(state);
 }
