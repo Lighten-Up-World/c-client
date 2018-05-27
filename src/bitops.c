@@ -189,7 +189,23 @@ word_t rotateRight(word_t value, byte_t rotate) {
   return rotateRightC(value, rotate).value;
 }
 
+/**
+* Checks if 2s complement word is negative.
+* @param word The value to check sign.
+* @returns True iff value is negative in 2s complement
+*/
+flag_t isNegative(word_t word){
+  return word >> 31;
+}
 
+/**
+* Negates a 2s Complement word.
+* @param word The value to be negated
+* @returns The negated word
+*/
+word_t negate(word_t word){
+  return (~word) + 1;
+}
 /*
  *  Pad out a byte value to a word value, with zeros
  *
