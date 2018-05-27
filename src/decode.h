@@ -25,9 +25,9 @@
 
 #define OPCODE_START 24
 
-#define RN_START 19
+#define DP_RN_START 19
 
-#define RD_START 15
+#define DP_RD_START 15
 
 
 //// MUL DEFINITIONS ////
@@ -35,9 +35,9 @@
 
 #define MUL_SET 20
 
-#define REG_1_START 19
+#define MUL_RD_START 19
 
-#define REG_2_START 15
+#define MUL_RN_START 15
 
 #define REG_S_START 11
 
@@ -52,6 +52,14 @@
 #define OP_SHIFT_TYPE_START 6
 #define OP_SHIFT_TYPE_END 5
 
+//// SDT DEFINITIONS ////
+
+#define SDT_RN_START 19
+
+#define SDT_RD_START 15
+
+
 instruction_t decodeWord(word_t word);
+
 
 #endif

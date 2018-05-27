@@ -74,7 +74,6 @@ operand_t decodeOperand(flag_t I, word_t word){
 void decodeDp(instruction_t* instructionPtr, word_t word) {
 
   assert(instructionPtr != NULL);
-  assert(word != NULL);
 
   dp_instruction_t dp; // create dp instruction
   dp_instruction_t* dpPtr = &dp; // create pointer to dp instruction
@@ -83,8 +82,8 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
   dp.I = getFlag(word, I_FLAG);
   dp.opcode = getNibble(word, OPCODE_START);
   dp.S = getFlag(word, S_FLAG);
-  dp.rn = getNibble(word, RN_START);
-  dp.rd = getNibble(word, RD_START);
+  dp.rn = getNibble(word, DP_RN_START);
+  dp.rd = getNibble(word, DP_RD_START);
   dp.operand2 = decodeOperand(dp.I, word);
 
   instructionPtr->i.dp = dp; // set decoded instruction to value of the
@@ -107,8 +106,8 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
     mul.pad0 = 0x0;
     mul.A = getFlag(word, A_FLAG);
     mul.S = getFlag(word, S_FLAG);
-    mul.rd = getNibble(word, REG_1_START);
-    mul.rn = getNibble(word, REG_2_START);
+    mul.rd = getNibble(word, MUL_RD_START);
+    mul.rn = getNibble(word, MUL_RN_START);
     mul.rs = getNibble(word, REG_S_START);
     mul.pad9 = 0x9;
     mul.rm = getNibble(word, REG_M_START);
@@ -132,8 +131,8 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
   sdt.U = getFlag(word, U_FLAG);
   sdt.pad0 = 0x0;
   sdt.L = getFlag(word, L_FLAG);
-  sdt.rn = getNibble(word, REG_1_START);
-  sdt.rd = getNibble(word, REG_2_START);
+  sdt.rn = getNibble(word, SDT_RN_START);
+  sdt.rd = getNibble(word, SDT_RD_START);
   sdt.offset = decodeOperand(sdt.I, word);
 
   instructionPtr->i.sdt = sdt;
@@ -153,7 +152,6 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
 void decodeHalt(instruction_t* instructionPtr, word_t word) {
 
   assert(instructionPtr != NULL);
-  assert(word != NULL);
   assert(word == 0x0000);
 
   hal_instruction_t hal;
