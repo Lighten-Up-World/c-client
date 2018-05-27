@@ -54,19 +54,12 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
     mul_instruction_t mul;
 
     mul.pad0 = 0x0;
-
     mul.A = getFlag(word, A_FLAG);
-
     mul.S = getFlag(word, S_FLAG);
-
     mul.rd = getNibble(word, REG_1_START);
-
     mul.rn = getNibble(word, REG_2_START);
-
     mul.rs = getNibble(word, REG_S_START);
-
     mul.pad9 = 0x9;
-
     mul.rm = getNibble(word, REG_M_START);
 
     instructionPtr->i.mul = mul;
@@ -79,7 +72,7 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
  * @param - word_t word is the binary instruction
  * @return - void, changes made to the instruction pointed to by i
  */
-void decodeSdt(instruction_t *i, word_t word){
+void decodeSdt(instruction_t *instructionPtr, word_t word){
   sdt_instruction_t sdt;
 
   sdt.pad1 = 0x1;
@@ -92,7 +85,7 @@ void decodeSdt(instruction_t *i, word_t word){
   sdt.rd = getNibble(word, REG_2_START);
   sdt.offset = decodeOperand(sdt.I, word);
 
-  i->i.sdt = sdt;
+  instructionPtr->i.sdt = sdt;
 }
 
 //// BRN ////
