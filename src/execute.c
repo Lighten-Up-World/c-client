@@ -133,10 +133,29 @@ void executeDP(state_t *state, dp_instruction_t instr){
       break;
   }
   if(instr.S){
-    //V unaffected
-    //C bit set to the carrout from any shift op
-    //C 1 if addition lead to unisgned overflow
-    //Z
+    word_t flags = 0x0;
+    switch(instr.opcode){
+      case AND:
+      case TST:
+      case EOR:
+      case TEQ:
+      case ORR:
+      case MOV:
+        flags |= C * barrel.carry;
+        break;
+      case SUB:
+      case RSB:
+      case CMP:
+      case ADD:
+        flags |= C * ((isNegative(rn) == isNegative(op2))
+                      != isNegative(result));
+        break;
+    }
+    flags |= (N * isNegative(result));
+    flags |= (Z * (result == 0));
+  }
+  if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
+    setRegister(state, instr.rd, result);
   }
 }
 void executeMUL(state_t *state, mul_instruction_t instr);
