@@ -28,7 +28,7 @@ typedef struct {
 } op_shift_const_t;
 
 typedef struct {
-  reg_address_t Rs : 4;
+  reg_address_t rs : 4;
   byte_t zeroPad : 1;
 } op_shift_register_t;
 
@@ -79,11 +79,11 @@ typedef struct {
   byte_t pad0 : 6; // == 000000
   flag_t A : 1; // Accumulate
   flag_t S : 1; // Set conditions codes
-  reg_address_t Rd : 4;
-  reg_address_t Rn : 4;
-  reg_address_t Rs : 4;
+  reg_address_t rd : 4;
+  reg_address_t rn : 4;
+  reg_address_t rs : 4;
   byte_t pad9 : 4; // == 1001
-  reg_address_t Rm : 4;
+  reg_address_t rm : 4;
 } mul_instruction_t;
 
 ///// SINGLE DATA TRANSFER INSTRUCTION FORMAT    /////
@@ -108,8 +108,8 @@ typedef struct {
   //Load/Store 1 -> Word loaded from memory
   // 0 -> Word is stored into memory
   flag_t L : 1;
-  reg_address_t Rn : 4;
-  reg_address_t Rd : 4;
+  reg_address_t rn : 4;
+  reg_address_t rd : 4;
   operand_t offset;
 } sdt_instruction_t;
 
