@@ -124,7 +124,7 @@ int main(void){
 
     //Halt
 
-    word_t halt_word = 0b00000000000000000000000000000000;
+    word_t halt_word = 0x0;
     instruction_t halt = decodeWord(halt_word);
 
     assert(halt.type == HAL);
@@ -132,33 +132,33 @@ int main(void){
 
     //DP
 
-    word_t dp_word = 0b10100010000100011001100001110001;
+    word_t dp_word = 0xA2119871;
     instruction_t dp = decodeWord(dp_word);
 
     assert(dp.type == DP);
-    assert(dp.cond == 0b1010);
+    assert(dp.cond == 0xA);
 
-    word_t dp_word_2 = 0b00010001001010010011001011001001;
+    word_t dp_word_2 = 0x112932C9;
     instruction_t dp_2 = decodeWord(dp_word_2);
 
     assert(dp_2.type == DP);
-    assert(dp_2.cond == 0b0001);
+    assert(dp_2.cond == 0x1);
 
     //MUL
 
-    word_t mul_word = 0b11000000001100110101010110011100;
+    word_t mul_word = 0xC033559C;
     instruction_t mul = decodeWord(mul_word);
 
     assert(mul.type == MUL);
-    assert(mul.cond == 0b1100);
+    assert(mul.cond == 0xC);
 
     //BRANCH
 
-    word_t brn_word = 0b10111010000011110000111100001111;
+    word_t brn_word = 0xBA0F0F0F;
     instruction_t brn = decodeWord(brn_word);
 
     assert(brn.type == BRN);
-    assert(brn.cond == 0b1011);
+    assert(brn.cond == 0xB);
 
     return 0;
 }
