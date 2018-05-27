@@ -66,7 +66,7 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
         break;
       default:
         //TODO: Add proper error handling code
-        exit();
+        exit(EXIT_FAILURE);
     }
   }
   return result;
