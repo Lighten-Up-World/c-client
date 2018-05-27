@@ -21,6 +21,7 @@ int setMemWord(state_t* state, int byteAddr, word_t word){
   for (size_t i = 1; i < 5; i++){
     state->memory[byteAddr + i]) = getByte(word, (i * 8));
   }
+  return 0;
 }
 
 /* Takes as an argument the pointer to the register contents and register
