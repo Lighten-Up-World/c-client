@@ -19,7 +19,7 @@ word_t getMemWord(state_t* state, int byteAddr) {
 int setMemWord(state_t* state, int byteAddr, word_t word){
   assert(state != NULL);
   for (size_t i = 1; i < 5; i++){
-    state->memory[byteAddr + i]) = getByte(word, (i * 8));
+    state->memory[byteAddr + i] = getByte(word, (i * 8));
   }
   return 0;
 }
