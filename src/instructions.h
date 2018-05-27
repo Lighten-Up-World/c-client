@@ -20,7 +20,7 @@ typedef enum {
 
 typedef struct {
   byte_t rotate : 4;
-  byte_t immediate : 8;
+  byte_t value : 8;
 } op_immediate_t;
 
 typedef struct {
