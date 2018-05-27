@@ -20,6 +20,11 @@ typedef uint16_t address_t;
 typedef uint32_t word_t;
 typedef bool flag_t;
 
+typedef struct {
+  word_t value;
+  flag_t carry;
+} shift_result_t;
+
 typedef enum {
   EQ = 0x0, // Equal
   NE = 0x1, // Not Equal
@@ -36,14 +41,6 @@ typedef enum {
   C = 0x2, // Carried out
   V = 0x1  // Overflowed
 } cpsr_flag_t;
-
-typedef enum {
-  DP,  // Data processing
-  MUL, // Multiply instruction
-  SDT, // Single data transfer
-  BRN, // Branch instruction
-  HAL  // Halt instruction
-} instruction_type_t;
 
 typedef enum {
   AND = 0x0, // Rn AND op2
@@ -97,8 +94,6 @@ typedef struct {
 
 typedef struct {
   word_t r[NUM_GENERAL_REGISTERS];
-  word_t sp;
-  word_t lr;
   word_t pc;
   word_t cpsr;
 } registers_t;

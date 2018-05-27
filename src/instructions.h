@@ -3,6 +3,13 @@
 
 #include "arm.h"
 
+typedef enum {
+  DP,  // Data processing
+  MUL, // Multiply instruction
+  SDT, // Single data transfer
+  BRN, // Branch instruction
+  HAL  // Halt instruction
+} instruction_type_t;
 
 typedef enum {
   LSL = 0x0, // Logical left
@@ -13,18 +20,16 @@ typedef enum {
 
 typedef struct {
   byte_t rotate : 4;
-  byte_t immediate : 8;
+  byte_t value : 8;
 } op_immediate_t;
 
 typedef struct {
   byte_t integer : 5;
-  shift_type_t type : 2;
 } op_shift_const_t;
 
 typedef struct {
-  reg_address_t Rs : 4;
+  reg_address_t rs : 4;
   byte_t zeroPad : 1;
-  shift_type_t type : 2;
 } op_shift_register_t;
 
 typedef union {
@@ -34,17 +39,22 @@ typedef union {
 
 typedef struct {
   op_shift_t shift;
+  shift_type_t type : 2;
   flag_t shiftBy;
   reg_address_t rm : 4;
 } op_shiftreg_t;
 
 typedef union {
-  op_immediate_t immediate;
-  op_shiftreg_t shiftreg;
+  op_immediate_t imm;
+  op_shiftreg_t reg;
 } operand_t;
 
+///// DATA PROCESSING INSTRUCTION FORMAT        /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 0| 0| I|   OPCODE  | S|     Rn    |//
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|     Rd    |             OPERAND               |//
 typedef struct {
-  byte_t cond : 4;
   byte_t padding : 2;
   // Immediate Operand
   flag_t I : 1;  //DPI: 1 -> Operand2 is an immediate constant
@@ -59,20 +69,29 @@ typedef struct {
 
 } dp_instruction_t;
 
+
+///// MULTIPLY INSTRUCTION FORMAT               /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 0| 0| 0| 0| 0| 0| A| S|     Rd    |//
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|     Rn    |     Rs    | 1| 0| 0| 1|     Rm    |//
 typedef struct {
-  byte_t cond : 4;
   byte_t pad0 : 6; // == 000000
   flag_t A : 1; // Accumulate
   flag_t S : 1; // Set conditions codes
-  reg_address_t Rd : 4;
-  reg_address_t Rn : 4;
-  reg_address_t Rs : 4;
+  reg_address_t rd : 4;
+  reg_address_t rn : 4;
+  reg_address_t rs : 4;
   byte_t pad9 : 4; // == 1001
-  reg_address_t Rm : 4;
+  reg_address_t rm : 4;
 } mul_instruction_t;
 
+///// SINGLE DATA TRANSFER INSTRUCTION FORMAT    /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 0| 1| I| P| U| 0| 0| L|     Rn    |//
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|     Rd    |             OFFSET                |//
 typedef struct {
-  byte_t cond : 4;
   byte_t pad1 : 2; // == 01
   //SDT: 1 -> Offset is a shifted register
   //     0 -> = interpreted as an unsigned 12 bit immediate offset
@@ -89,13 +108,17 @@ typedef struct {
   //Load/Store 1 -> Word loaded from memory
   // 0 -> Word is stored into memory
   flag_t L : 1;
-  reg_address_t Rn : 4;
-  reg_address_t Rd : 4;
+  reg_address_t rn : 4;
+  reg_address_t rd : 4;
   operand_t offset;
 } sdt_instruction_t;
 
+///// BRANCH INSTRUCTION FORMAT                 /////
+//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
+//|   COND    | 1| 0| 1| 0|         OFFSET-        //
+//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
+//|           -OFFSET                             |//
 typedef struct {
-  byte_t cond : 4;
   byte_t pad5 : 3; // == 101
   byte_t pad0 : 1; // == 00
   word_t offset : 24;
@@ -115,6 +138,7 @@ typedef union {
 
 typedef struct {
   instruction_type_t type;
+  byte_t cond : 4;
   instructions_t i;
 } instruction_t;
 
