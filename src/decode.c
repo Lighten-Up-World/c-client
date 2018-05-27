@@ -5,6 +5,38 @@
 #include <assert.h>
 #include <stdio.h>
 
+/**
+ *  Get the operand_t by decoding the word instruction
+ *
+ *  @param I: the immediate flag on how to decode the operand
+ *  @param word: the instruction word
+ *  @return A fully populated operand type based on data in word
+ */
+operand_t decodeOperand(flag_t I, word_t word){
+  operand_t op;
+  if(I){ //Immediate
+    op.imm = (op_immediate_t){.rotated.rotate = getNibble(word, OP_START),
+                                    .rotated.value = getByte(word, OP_IMM_START)};
+  }
+  else { //Register
+    op.reg.type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
+    op.reg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
+    if(op.reg.shiftBy){ //Shift by register
+      op.reg.shift.shiftreg = (op_shift_register_t){
+        .rs = getNibble(word, OP_START),
+        .zeroPad = 0x0
+      };
+    }
+    else{ // Shift by constant
+      op.reg.shift.constant = (op_shift_const_t){
+        .integer = getBits(word, OP_START, OP_IMM_START)
+      };
+    }
+    op.reg.rm = getNibble(word, REG_M_START);
+  }
+  return op;
+}
+
 //// DP ////
 
 /**
@@ -139,25 +171,7 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
   dp_instruction_t dp; // create dp instruction
   dp_instruction_t* dpPtr = &dp; // create pointer to dp instruction
 
-  byte_t conditionBits = (byte_t) getBits(word, COND_START, COND_END);
-  dp.cond = conditionBits;
-
-  dp.padding = 0x0;
-
-  flag_t immBit = (flag_t) getBits(word, DP_I, DP_I);
-  dp.I = immBit;
-
-  byte_t opcode = (byte_t) getBits(word, OPCODE_START, OPCODE_END);
-  dp.opcode = opcode; // can you create this enum from the byte??
-
-  flag_t sBit = (flag_t) getBits(word, DP_S, DP_S);
-  dp.S = sBit;
-
-  byte_t rn = (byte_t) getBits(word, RN_START, RN_END);
-  dp.rn = rn;
-
-  byte_t rd = (byte_t) getBits(word, RD_START, RD_END);
-  dp.rd = rd;
+  dp.
 
   decodeOperand2(dpPtr, word);
 
@@ -176,42 +190,42 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
  */
 
 void decodeMul(instruction_t* instructionPtr, word_t word){
-
-    assert(instructionPtr != NULL);
-    assert(word != NULL);
-
     mul_instruction_t mul;
 
-    byte_t conditionBits = (byte_t) getBits(word, COND_START, COND_END);
-    mul.cond = conditionBits;
-
     mul.pad0 = 0x0;
-
-    flag_t accBit = (flag_t) getBits(word, MUL_ACC, MUL_ACC);
-    mul.A = accBit;
-
-    flag_t setCondBit = (flag_t) getBits(word, MUL_SET, MUL_SET);
-    mul.S = setCondBit;
-
-    reg_address_t regDest = (reg_address_t) getBits(word, REG_1_START, REG_1_END);
-    mul.Rd = regDest;
-
-    reg_address_t regN = (reg_address_t) getBits(word, REG_2_START, REG_2_END);
-    mul.Rn = regN;
-
-    reg_address_t regS = (reg_address_t) getBits(word, REG_S_START, REG_S_END);
-    mul.Rs = regS;
-
+    mul.A = getFlag(word, A_FLAG);
+    mul.S = getFlag(word, S_FLAG);
+    mul.rd = getNibble(word, REG_1_START);
+    mul.rn = getNibble(word, REG_2_START);
+    mul.rs = getNibble(word, REG_S_START);
     mul.pad9 = 0x9;
-
-    reg_address_t regM = (reg_address_t) getBits(word,REG_M_START,REG_M_END);
-    mul.Rm = regM;
+    mul.rm = getNibble(word, REG_M_START);
 
     instructionPtr->i.mul = mul;
 }
 
-//// SDT ////
+/**
+ * Decode Single Data transfer Instruction
+ *
+ * @param - instruction_t* instructionPtr is the pointer to the instruction
+ * @param - word_t word is the binary instruction
+ * @return - void, changes made to the instruction pointed to by i
+ */
+void decodeSdt(instruction_t *instructionPtr, word_t word){
+  sdt_instruction_t sdt;
 
+  sdt.pad1 = 0x1;
+  sdt.I = getFlag(word, I_FLAG);
+  sdt.P = getFlag(word, P_FLAG);
+  sdt.U = getFlag(word, U_FLAG);
+  sdt.pad0 = 0x0;
+  sdt.L = getFlag(word, L_FLAG);
+  sdt.rn = getNibble(word, REG_1_START);
+  sdt.rd = getNibble(word, REG_2_START);
+  sdt.offset = decodeOperand(sdt.I, word);
+
+  instructionPtr->i.sdt = sdt;
+}
 
 //// BRN ////
 
@@ -243,13 +257,11 @@ void decodeHalt(instruction_t* instructionPtr, word_t word) {
 
 void decodeInstructionType(instruction_t* instructionPtr, word_t word){
 
-    assert(instructionPtr != NULL);
-    assert(word != NULL);
-
     instruction_type_t instruction_type;
 
     if (word == 0x0){
         instruction_type = HAL;
+        //decodeHalt(instructionPtr, word);
     }else {
         word_t selectionBits = getBits(word, INSTR_TYPE_START, INSTR_TYPE_END);
         word_t pad9;
@@ -258,27 +270,29 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
                 if (pad9 ^ 0x9) {
                     instruction_type = DP;
+                    //decodeDp(instructionPtr, word);
                 } else {
                     instruction_type = MUL;
                     decodeMul(instructionPtr, word);
                 }
                 break;
             case 0x1:
-                instruction_type = MUL;
-                decodeMul(instructionPtr, word);
+                instruction_type = DP;
+                //decodeDp(instructionPtr, word);
                 break;
             case 0x5:
                 instruction_type = BRN;
+                //decodeBrn(instructionPtr, word);
                 break;
             default:
                 instruction_type = SDT;
+                decodeSdt(instructionPtr, word);
                 break;
         }
     }
 
     instructionPtr->type = instruction_type;
 }
-
 
 //// DECODE ENTRY ////
 
@@ -291,13 +305,10 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
 
 instruction_t decodeWord(word_t word){
 
-    assert(word != NULL);
-
     instruction_t instruction;
-    instruction_t* instructionPtr = &instruction;
 
-    decodeInstructionType(instructionPtr, word);
+    instruction.cond = getNibble(word, COND_START);
+    decodeInstructionType(&instruction, word);
 
     return instruction;
 }
-
