@@ -144,7 +144,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 break;
             default:
                 instruction_type = SDT;
-                //decodeSdt(instructionPtr, word);
+                decodeSdt(instructionPtr, word);
                 break;
         }
     }
