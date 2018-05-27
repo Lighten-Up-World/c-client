@@ -2,9 +2,16 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "io.h"
+#include "bitops.h"
 
-/* gets the 32 bit word from memory given a byte by shifting the 4 respective
- * bytes and OR-ing them together */
+
+/**
+ * Read the 32 bit word from memory and return it
+ *
+ * @param state - pointer to the state of the ARM machine.
+ * @param byteAddr - byte address to read from.
+ * @return word_t word - word read from memory at byte address.
+ */
 word_t getMemWord(state_t* state, int byteAddr) {
   assert(state != NULL);
   word_t word = 0;
@@ -16,6 +23,14 @@ word_t getMemWord(state_t* state, int byteAddr) {
   return word;
 }
 
+/**
+ * Write a word at a specified byte address in memory
+ *
+ * @param state - pointer to the state of the ARM machine.
+ * @param byteAddr - byte address to be written into.
+ * @param word - word to write into byte address.
+ * @return - returns 0 if the process succeeds
+ */
 int setMemWord(state_t* state, int byteAddr, word_t word){
   assert(state != NULL);
   for (size_t i = 1; i < 5; i++){
@@ -24,10 +39,15 @@ int setMemWord(state_t* state, int byteAddr, word_t word){
   return 0;
 }
 
-/* Takes as an argument the pointer to the register contents and register
- * address to print and outputs it's contents. */
+/**
+ *  Print the values stored in a specified register
+ *
+ * @param state - pointer to the state of the ARM machine.
+ * @param reg -
+ * @return void - only prits to the console
+ */
 void printReg(state_t* state, reg_address_t reg) {
-  assert(reg >= 0 && reg < REG_N); /* only prints general purpose registers. */
+  assert(reg >= 0 && reg < REG_N);
   assert(state != NULL);
   if(reg == REG_N_LR || reg == REG_N_SP){
     return;
@@ -44,9 +64,13 @@ void printReg(state_t* state, reg_address_t reg) {
   printf("%11d (0x%08x)\n", getRegister(state, reg), getRegister(state, reg));
 }
 
-
-/* prints the values stored in memory until the instruction is 0 or we run
- * out of memory.  */
+/**
+ * print the values stored in memory until the instruction is 0 or we run
+ * out of memory.
+ *
+ * @param state - pointer to the state of the ARM machine.
+ * @return void - only prints to the console
+ */
 void printMem(state_t *state) {
   assert(state != NULL);
   word_t memWord;
@@ -59,7 +83,12 @@ void printMem(state_t *state) {
     printf("0x%08x: 0x%08x\n", addr, memWord);
   }
 }
-
+/**
+ * print to the screen all data stored in registers and memory.
+ *
+ * @param state - pointer to the state of the ARM machine.
+ * @return void - only prints to the console.
+ */
 void printState(state_t* state) {
   assert(state != NULL);
 
@@ -130,11 +159,3 @@ int readFile(const char *path, byte_t *buffer, size_t buffer_size){
   return 0;
 }
 
-// int main(void){
-//   state_t *state = calloc(1, sizeof(state_t));
-//   if(state == NULL){
-//     return EXIT_FAILURE;
-//   }
-//   readFile("../test/test_cases/add01", state->memory, MEM_SIZE);
-//   printState(state);
-// }
