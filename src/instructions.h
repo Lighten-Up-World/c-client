@@ -25,13 +25,11 @@ typedef struct {
 
 typedef struct {
   byte_t integer : 5;
-  shift_type_t type : 2;
 } op_shift_const_t;
 
 typedef struct {
   reg_address_t Rs : 4;
   byte_t zeroPad : 1;
-  shift_type_t type : 2;
 } op_shift_register_t;
 
 typedef union {
@@ -41,6 +39,7 @@ typedef union {
 
 typedef struct {
   op_shift_t shift;
+  shift_type_t type : 2;
   flag_t shiftBy;
   reg_address_t rm : 4;
 } op_shiftreg_t;
