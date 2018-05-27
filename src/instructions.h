@@ -62,8 +62,8 @@ typedef union {
 typedef struct {
   byte_t padding : 2;
   // Immediate Operand
-  flag_t I : 1;  //DPI: 1 -> Operand2 is an immediate constant
-                      //     0 -> Operand2 is a shifted register
+  flag_t I : 1;  // DPI: 1 -> Operand2 is an immediate constant
+                 //      0 -> Operand2 is a shifted register
   opcode_t opcode : 4;
   // Set conditions codes
   flag_t S : 1; // CPSR flags updated during execution
