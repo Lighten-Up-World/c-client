@@ -4,6 +4,7 @@
 #include "bitops.h"
 #include "register.h"
 #include "io.h"
+#include "instructions.h"
 
 /**
 * Checks if the condition on the decoded instruction is met using the current
@@ -41,8 +42,8 @@ int condition(state_t *state, byte_t cond){
 shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
-    result.value = leftPadZeros(op.imm.value);
-    result.value = rotateRight(result.value, op.imm.rotate);
+    result.value = leftPadZeros(op.imm.rotated.value);
+    result.value = rotateRight(result.value, op.imm.rotated.rotate);
   }
   else{//register value
     word_t rm = getRegister(state, op.reg.rm);
