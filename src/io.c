@@ -31,10 +31,9 @@ word_t getMemWord(state_t* state, int byteAddr) {
   assert(state != NULL);
   word_t word = 0;
 
-  word |= state->memory[byteAddr] << 32;
-  word |= state->memory[byteAddr+1] << 24;
-  word |= state->memory[byteAddr+2] << 16;
-  word |= state->memory[byteAddr+3] << 8;
+  for (size_t i = 0; i < 4; i++){
+    word |= ((word_t) state->memory[byteAddr + i]) << (i * 8);
+  }
 
   return word;
 }
