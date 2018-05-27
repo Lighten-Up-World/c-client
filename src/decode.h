@@ -13,7 +13,7 @@
 #define INSTR_TYPE_START 27
 #define INSTR_TYPE_END 25
 
-#define A_FLAG 23
+#define A_FLAG 21
 #define S_FLAG 20
 
 #define I_FLAG 25
@@ -31,9 +31,6 @@
 
 
 //// MUL DEFINITIONS ////
-#define MUL_ACC 23
-
-#define MUL_SET 20
 
 #define MUL_RD_START 19
 

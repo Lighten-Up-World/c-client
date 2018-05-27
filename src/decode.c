@@ -178,7 +178,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
 
     if (word == 0x0){
         instruction_type = HAL;
-        //decodeHalt(instructionPtr, word);
+        decodeHalt(instructionPtr, word);
     }else {
         word_t selectionBits = getBits(word, INSTR_TYPE_START, INSTR_TYPE_END);
         word_t pad9;
@@ -187,7 +187,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
                 if (pad9 ^ 0x9) {
                     instruction_type = DP;
-                    //decodeDp(instructionPtr, word);
+                    decodeDp(instructionPtr, word);
                 } else {
                     instruction_type = MUL;
                     decodeMul(instructionPtr, word);
@@ -195,7 +195,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 break;
             case 0x1:
                 instruction_type = DP;
-                //decodeDp(instructionPtr, word);
+                decodeDp(instructionPtr, word);
                 break;
             case 0x5:
                 instruction_type = BRN;
