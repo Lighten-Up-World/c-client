@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "execute.h"
 #include "bitops.h"
+#include "register.h"
 
 /**
 * Checks if the condition on the decoded instruction is met using the current
