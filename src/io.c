@@ -46,9 +46,6 @@ void printMem(state_t *state) {
   assert(state != NULL);
   word_t memWord;
 
-  // header
-  printf("memory addr:   value:");
-
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
     memWord = getMemWord(state, addr);
     if (memWord == 0) { // halt when memory instr is 0.
@@ -60,21 +57,14 @@ void printMem(state_t *state) {
 
 void printPipeline(state_t* state);
 
-
-//TODO: Print state
 void printState(state_t* state) {
   assert(state != NULL);
 
-  printf("Main Memory");
-  printMem(state);
-
-  printf("Registers");
-  for (int i = 0; i < NUM_GENERAL_REGISTERS; ++i) {
-    printReg(&(state->registers), i);
+  printf("Registers:\n");
+  for (int i = 0; i < REG_N; ++i) {
+    printReg(state, i);
   }
-  printf("PC: 0x%08x\n", state->registers.pc);
-  printf("CPSR: 0x%08x\n", state->registers.cpsr);
 
-  printf("Pipeline");
-  printPipeline(state);
+  printf("Non-zero memory:");
+  printMem(state);
 }
