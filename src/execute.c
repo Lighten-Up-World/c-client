@@ -133,7 +133,7 @@ void executeDP(state_t *state, dp_instruction_t instr){
       break;
   }
   if(instr.S){
-    word_t flags = 0x0;
+    byte_t flags = 0x0;
     switch(instr.opcode){
       case AND:
       case TST:
@@ -153,7 +153,7 @@ void executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
-    setCPSR(state, flags << (sizeof(word) - 4));
+    setFlags(state, flags);
   }
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);
