@@ -3,9 +3,6 @@
 #include <assert.h>
 #include "arm.h"
 
-//TODO: File reader
-//TODO: File writer
-
 /* Takes as an argument the pointer to the register contents and register
  * address to print and outputs it's contents. */
 void printReg(registers_t* registers, reg_address_t reg) {

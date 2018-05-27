@@ -3,6 +3,11 @@
 #ignore temp files
 *~
 
+#Matt files to ignore
+out/
+car.sh
+temp.c
+
 #ignore CLion files
 CMakeLists.txt
 .idea/
