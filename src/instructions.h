@@ -13,20 +13,16 @@ typedef enum {
 
 typedef struct {
   byte_t rotate : 4;
-  byte_t immediate : 8;
+  byte_t value : 8;
 } op_immediate_t;
 
 typedef struct {
   byte_t integer : 5;
-  shift_type_t type : 2;
-  byte_t padding : 1;
 } op_shift_const_t;
 
 typedef struct {
   reg_address_t Rs : 4;
   byte_t zeroPad : 1;
-  shift_type_t type : 2;
-  byte_t onePad : 1;
 } op_shift_register_t;
 
 typedef union {
@@ -36,12 +32,14 @@ typedef union {
 
 typedef struct {
   op_shift_t shift;
+  shift_type_t type : 2;
+  flag_t shiftBy : 1;
   reg_address_t rm : 4;
 } op_shiftreg_t;
 
 typedef union {
-  op_immediate_t immediate;
-  op_shiftreg_t shiftreg;
+  op_immediate_t imm;
+  op_shiftreg_t reg; //TODO: rename to register
 } operand_t;
 
 typedef struct {

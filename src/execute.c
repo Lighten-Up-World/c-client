@@ -35,6 +35,41 @@ int condition(state_t *state, byte_t cond){
   }
 }
 
+word_t evaluateOperand(state_t *state, flag_t I, operand_t op){
+  word_t result = 0;
+  if(I){ //Immediate value
+    result = leftPadZeros(op.imm.value);
+    result = rotateRight(result, op.imm.rotate);
+  }
+  else{//register value
+    word_t rm = getRegister(state, op.reg.rm);
+    byte_t shiftAmount = 0;
+    if(op.reg.shiftBy){ //Shift by register
+      shiftAmount = getByte(getRegister(state, op.reg.shift.shiftreg.Rs), 7);
+    }
+    else{ //Shift by constnat
+      shiftAmount = op.reg.shift.constant.integer;
+    }
+    switch(op.shiftreg.type){
+      case LSL:
+        result = lShiftLeft(rm, shiftAmount);
+        break;
+      case LSR:
+        result = lShiftRight(rm, shiftAmount);
+        break;
+      case ASR:
+        result = aShiftRight(rm, shiftAmount);
+        break;
+      case ROR:
+        result = rotateRight(rm, shiftAmount);
+        break;
+      default:
+        //TODO: Add proper error handling code
+        exit();
+    }
+  }
+  return result;
+}
 /**
 *
 */
