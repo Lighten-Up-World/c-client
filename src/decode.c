@@ -88,8 +88,27 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
   instructionPtr->i.sdt = sdt;
 }
 
-//// BRN ////
+/*
+ *  Decode Single Data transfer Instruction
+ *
+ *  @param - instruction_t* instructionPtr is the pointer to the instruction
+ *  @param - word_t word is the binary instruction
+ *  @return - void, changes made to the instruction pointed to by i
+ */
+void decodeBrn(instruction_t *instructionPtr, word_t word) {
+  brn_instruction_t brn;
 
+  brn.pad5 = 0b101;
+  brn.pad0 = 0b0; // in instructions.h this is 00?
+  brn.offset = getBits(word, 23, 0); //this is a signed offset but I guess we can still store as an unsigned word
+
+  // do I need the next 2 lines?
+  // looks as if these are already set but maybe they shouldn't be yet?
+  instructionPtr -> type = BRN;
+  instructionPtr -> cond =  (byte_t) getBits((word_t) instructionPtr, 31, 28);
+
+  instructionPtr -> i.brn = brn;
+}
 
 //// HAL ////
 
