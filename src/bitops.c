@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <printf.h>
 #include "bitops.h"
@@ -50,7 +51,7 @@ byte_t getNibble(word_t inst, byte_t pos) {
  *  @return a word containing the specified bits, right aligned
  */
 word_t getBits(word_t inst, byte_t x, byte_t y) {
-  assert(31 >= x);
+  assert(x <= 31);
   assert(x >= y);
   assert(y >= 0);
 
@@ -77,7 +78,7 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
 shift_result_t lShiftLeftC(word_t value, byte_t shift) {
   assert(shift >= 0);
   shift_result_t res = {value << shift,
-                        getFlag(value, sizeof(word_t) - shift - 1)};
+                        (value >> (sizeof(word_t) - shift)) & 0x1};
   return res;
 }
 
@@ -91,7 +92,7 @@ shift_result_t lShiftLeftC(word_t value, byte_t shift) {
 shift_result_t lShiftRightC(word_t value, byte_t shift) {
   assert(shift >= 0);
   shift_result_t res = {value >> shift,
-                        getFlag(value, shift - 1)};
+                        (value << (sizeof(word_t) - shift)) & 0x80000000};
   return res;
 }
 
@@ -110,7 +111,7 @@ shift_result_t aShiftRightC(word_t value, byte_t shift) {
     return lShiftRightC(value, shift);
   }
   shift_result_t res;
-  res.carry = getFlag(value, shift - 1);
+  res.carry = (value << (sizeof(word_t) - shift)) & 0x80000000;
   word_t msbOnly = msb << ((sizeof(word_t) * 8) - 1);
   for (int i = 0; i < shift; i++) {
     value = value >> U_ONE;
@@ -130,7 +131,7 @@ shift_result_t aShiftRightC(word_t value, byte_t shift) {
 shift_result_t rotateRightC(word_t value, byte_t rotate) {
   assert(rotate >= 0);
   shift_result_t res;
-  res.carry = getFlag(value, rotate - 1);
+  res.carry = (value << (sizeof(word_t) - rotate)) & 0x80000000;
   word_t lsb;
   for (int i = 0; i < rotate; i++) {
     lsb = value & U_ONE;
@@ -226,7 +227,6 @@ int main(int argc, char **argv) {
   word_t maxMSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 1);
   word_t max2MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 2);
   word_t max3MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 3);
-
 
   // Get bits
   assert(zero == getBits(zero, 0, 0));
