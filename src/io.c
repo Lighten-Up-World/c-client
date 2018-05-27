@@ -25,7 +25,7 @@ void printReg(state_t* state, reg_address_t reg) {
     return;
   }
   if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
-    printf("$%-4u:", reg);
+    printf("$%-3u:", reg);
   }
   else if(reg == REG_N_PC){
     printf("PC  :");
@@ -48,7 +48,7 @@ void printMem(state_t *state) {
     if (memWord == 0) { // halt when memory instr is 0.
       break;
     }
-    printf("0x%08x:     0x%08x\n", addr, memWord);
+    printf("0x%08x: 0x%08x\n", addr, memWord);
   }
 }
 
@@ -60,7 +60,7 @@ void printState(state_t* state) {
     printReg(state, i);
   }
 
-  printf("Non-zero memory:");
+  printf("Non-zero memory:\n");
   printMem(state);
 }
 
