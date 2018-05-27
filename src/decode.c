@@ -99,13 +99,8 @@ void decodeBrn(instruction_t *instructionPtr, word_t word) {
   brn_instruction_t brn;
 
   brn.pad5 = 0b101;
-  brn.pad0 = 0b0; // in instructions.h this is 00?
-  brn.offset = getBits(word, 23, 0); //this is a signed offset but I guess we can still store as an unsigned word
-
-  // do I need the next 2 lines?
-  // looks as if these are already set but maybe they shouldn't be yet?
-  instructionPtr -> type = BRN;
-  instructionPtr -> cond =  (byte_t) getBits((word_t) instructionPtr, 31, 28);
+  brn.pad0 = 0b0;                     // in instructions.h this is 00?
+  brn.offset = getBits(word, 23, 0);  //this is a signed offset but I guess we can still store as an unsigned word
 
   instructionPtr -> i.brn = brn;
 }
@@ -150,7 +145,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 break;
             case 0x5:
                 instruction_type = BRN;
-                //decodeBrn(instructionPtr, word);
+                decodeBrn(instructionPtr, word);
                 break;
             default:
                 instruction_type = SDT;
@@ -180,3 +175,42 @@ instruction_t decodeWord(word_t word){
 
     return instruction;
 }
+
+
+/*int main() {
+  instruction_t inst;
+  word_t w1 = 0b10101010111111111111111111111111;
+  word_t w2 = 0b11111010111111111111111111111111;
+  word_t w3 = 0b00001010000000000000000000000000;
+  word_t w4 = 0b00111010100000000000000000000001;
+
+  inst = decodeWord(w1);
+  assert(inst.type == BRN);
+  assert(inst.cond == 0b1010);
+  assert(inst.i.brn.offset == 0b111111111111111111111111);
+  assert(inst.i.brn.pad5 == 0b101);
+  assert(inst.i.brn.pad0 == 0b0);
+
+  inst = decodeWord(w2);
+  assert(inst.type == BRN);
+  assert(inst.cond == 0b1111);
+  assert(inst.i.brn.offset == 0b111111111111111111111111);
+  assert(inst.i.brn.pad5 == 0b101);
+  assert(inst.i.brn.pad0 == 0b0);
+
+  inst = decodeWord(w3);
+  assert(inst.type == BRN);
+  assert(inst.cond == 0b0000);
+  assert(inst.i.brn.offset == 0b000000000000000000000000);
+  assert(inst.i.brn.pad5 == 0b101);
+  assert(inst.i.brn.pad0 == 0b0);
+
+  inst = decodeWord(w4);
+  assert(inst.type == BRN);
+  assert(inst.cond == 0b0011);
+  assert(inst.i.brn.offset == 0b100000000000000000000001);
+  assert(inst.i.brn.pad5 == 0b101);
+  assert(inst.i.brn.pad0 == 0b0);
+
+  return 0;
+}*/
