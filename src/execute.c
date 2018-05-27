@@ -36,11 +36,12 @@ int condition(state_t *state, byte_t cond){
   }
 }
 
-word_t evaluateOperand(state_t *state, flag_t I, operand_t op){
-  word_t result = 0;
+shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
+  shift_result_t result;
   if(I){ //Immediate value
-    result = leftPadZeros(op.imm.value);
     result = rotateRight(result, op.imm.rotate);
+    result.value = leftPadZeros(op.imm.value);
+    result.value = rotateRight(result.value, op.imm.rotate);
   }
   else{//register value
     word_t rm = getRegister(state, op.reg.rm);
@@ -53,16 +54,16 @@ word_t evaluateOperand(state_t *state, flag_t I, operand_t op){
     }
     switch(op.shiftreg.type){
       case LSL:
-        result = lShiftLeft(rm, shiftAmount);
+        result = lShiftLeftC(rm, shiftAmount);
         break;
       case LSR:
-        result = lShiftRight(rm, shiftAmount);
+        result = lShiftRightC(rm, shiftAmount);
         break;
       case ASR:
-        result = aShiftRight(rm, shiftAmount);
+        result = aShiftRightC(rm, shiftAmount);
         break;
       case ROR:
-        result = rotateRight(rm, shiftAmount);
+        result = rotateRightC(rm, shiftAmount);
         break;
       default:
         //TODO: Add proper error handling code
@@ -101,8 +102,9 @@ void execute(state_t *state){
   }
 }
 
-void executeDP(state_t *state, dp_instruction_t   instr){
-  word_t op2 = evaluateOperand(state, instr.I, instr.operand2);
+void executeDP(state_t *state, dp_instruction_t instr){
+  shift_result_t barrel = evaluateOperand(state, instr.I, instr.operand2);
+  word_t op2 = barrel.value;
   word_t result = 0;
   word_t rn = getRegister(state, instr.rn);
   switch(instr.opcode){
