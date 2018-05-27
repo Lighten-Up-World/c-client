@@ -20,9 +20,6 @@
 
 void decodeMul(instruction_t* instructionPtr, word_t word){
 
-    assert(instructionPtr != NULL);
-    assert(word != NULL);
-
     mul_instruction_t mul;
 
     mul.pad0 = 0x0;
