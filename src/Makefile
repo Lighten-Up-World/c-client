@@ -11,6 +11,8 @@ assemble: assemble.o
 
 emulate: emulate.o
 
+error: error.o
+
 clean:
 	rm -f $(wildcard *.o)
 	rm -f assemble
