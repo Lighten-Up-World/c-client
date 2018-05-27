@@ -5,6 +5,39 @@
 #include <assert.h>
 #include <stdio.h>
 
+/**
+ *  Get the operand_t by decoding the word instruction
+ *
+ *  @param I: the immediate flag on how to decode the operand
+ *  @param word: the instruction word
+ *  @return A fully populated operand type based on data in word
+ */
+operand_t decodeOperand(flag_t I, word_t word){
+  operand_t op;
+  if(I){ //Immediate
+    op.immediate = (op_immediate_t){.rotate = getNibble(word, OP_START),
+                                    .immediate = getByte(word, OP_IMM_START)};
+  }
+  else { //Register
+    op.shiftreg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
+    if(op.shiftreg.shiftBy){ //Shift by register
+      op.shiftreg.shift.shiftreg = (op_shift_register_t){
+        .Rs = getNibble(word, OP_START),
+        .zeroPad = 0x0,
+        .type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END)
+      };
+    }
+    else{ // Shift by constant
+      op.shiftreg.shift.constant = (op_shift_const_t){
+        .integer = getBits(word, OP_START, OP_IMM_START),
+        .type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END)
+      };
+    }
+    op.shiftreg.rm = getNibble(word, REG_M_START);
+  }
+  return op;
+}
+
 //// DP ////
 
 
@@ -19,7 +52,6 @@
  */
 
 void decodeMul(instruction_t* instructionPtr, word_t word){
-
     mul_instruction_t mul;
 
     mul.pad0 = 0x0;
@@ -41,8 +73,29 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
     instructionPtr->i.mul = mul;
 }
 
-//// SDT ////
+/**
+ * Decode Single Data transfer Instruction
+ *
+ * @param - instruction_t* instructionPtr is the pointer to the instruction
+ * @param - word_t word is the binary instruction
+ * @return - void, changes made to the instruction pointed to by i
+ */
+void decodeSdt(instruction_t *i, word_t word){
+  sdt_instruction_t sdt;
 
+  sdt.cond = getNibble(word, COND_START);
+  sdt.pad1 = 0x1;
+  sdt.I = getFlag(word, I_FLAG);
+  sdt.P = getFlag(word, P_FLAG);
+  sdt.U = getFlag(word, U_FLAG);
+  sdt.pad0 = 0x0;
+  sdt.L = getFlag(word, L_FLAG);
+  sdt.Rn = getNibble(word, REG_1_START);
+  sdt.Rd = getNibble(word, REG_2_START);
+  sdt.offset = decodeOperand(sdt.I, word);
+
+  i->i.sdt = sdt;
+}
 
 //// BRN ////
 
@@ -91,7 +144,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 break;
             default:
                 instruction_type = SDT;
-                //decodeSdt(instructionPtr, word);
+                decodeSdt(instructionPtr, word);
                 break;
         }
     }
@@ -116,49 +169,4 @@ instruction_t decodeWord(word_t word){
     decodeInstructionType(&instruction, word);
 
     return instruction;
-}
-
-int main(void){
-
-    //TEST DECODE INSTRUCTION TYPE AND COND
-
-    //Halt
-
-    word_t halt_word = 0x0;
-    instruction_t halt = decodeWord(halt_word);
-
-    assert(halt.type == HAL);
-    assert(halt.cond == 0);
-
-    //DP
-
-    word_t dp_word = 0xA2119871;
-    instruction_t dp = decodeWord(dp_word);
-
-    assert(dp.type == DP);
-    assert(dp.cond == 0xA);
-
-    word_t dp_word_2 = 0x112932C9;
-    instruction_t dp_2 = decodeWord(dp_word_2);
-
-    assert(dp_2.type == DP);
-    assert(dp_2.cond == 0x1);
-
-    //MUL
-
-    word_t mul_word = 0xC033559C;
-    instruction_t mul = decodeWord(mul_word);
-
-    assert(mul.type == MUL);
-    assert(mul.cond == 0xC);
-
-    //BRANCH
-
-    word_t brn_word = 0xBA0F0F0F;
-    instruction_t brn = decodeWord(brn_word);
-
-    assert(brn.type == BRN);
-    assert(brn.cond == 0xB);
-
-    return 0;
 }
