@@ -89,7 +89,7 @@ typedef enum {
 
 typedef struct {
   word_t fetched;
-  instruction_t *decoded_instruction;
+  instruction_t *decoded;
 } pipeline_t;
 
 typedef struct {
