@@ -1,6 +1,8 @@
 #include "unity.h"
 #include "../bitops.h"
 
+word_t minus42 = -42;
+word_t minus1 = -1;
 word_t zero = 0;
 word_t five = 5;
 word_t sixtyThree = 63;
@@ -108,6 +110,7 @@ void test_lShift(void){
   TEST_ASSERT_EQUAL(max - maxMSb - max2MSb, lShiftRight(max, 2));
   TEST_ASSERT_EQUAL(max - maxMSb - max2MSb - max3MSb, lShiftRight(max, 3));
 }
+
 void test_aShift(void){
 
 
@@ -160,4 +163,22 @@ void test_leftPadZeros(void){
     TEST_ASSERT_EQUAL(242, leftPadZeros(242));
     TEST_ASSERT_EQUAL(1, leftPadZeros(1));
     TEST_ASSERT_EQUAL(UINT8_MAX, leftPadZeros(UINT8_MAX));
+}
+
+void test_carry(void){
+
+}
+
+void test_negate(void){
+  TEST_ASSERT_EQUAL(42, negate(minus42));
+  TEST_ASSERT_EQUAL(1, negate(minus1));
+  TEST_ASSERT_EQUAL((word_t) -63, negate(sixtyThree));
+}
+
+void test_isNegative(void){
+  TEST_ASSERT_TRUE(isNegative(minus1));
+  TEST_ASSERT_TRUE(isNegative(minus42));
+  TEST_ASSERT_FALSE(isNegative(zero));
+  TEST_ASSERT_FALSE(isNegative(sixtyThree));
+  TEST_ASSERT_TRUE(isNegative(UINT32_MAX));
 }
