@@ -66,7 +66,7 @@ word_t getPC(state_t *state){
 * @param value: A word_t which PC is set to
 */
 void setPC(state_t *state, word_t value){
-  return setRegister(state, REG_N_PC, value);
+  setRegister(state, REG_N_PC, value);
 }
 /**
 * Convenience function for incrementing PC
@@ -74,7 +74,7 @@ void setPC(state_t *state, word_t value){
 * @param state: A non-null state_t pointer
 */
 void incrementPC(state_t *state){
-  return setRegister(state, REG_N_PC, getPC(state)+4);
+  setRegister(state, REG_N_PC, getPC(state)+4);
 }
 /**
 * Convenience function for getting Flags
@@ -83,7 +83,7 @@ void incrementPC(state_t *state){
 * @return A byte with the 4 LSB set to the flag values
 */
 byte_t getFlags(state_t *state){
-  return getRegister(state, REG_N_CPSR) >> (sizeof(word_t) - 4));
+  return (getRegister(state, REG_N_CPSR) >> (sizeof(word_t) - 4));
 }
 /**
 * Convenience function for setting Flags
@@ -92,5 +92,5 @@ byte_t getFlags(state_t *state){
 * @param value: A byte with the 4 LSB set to the flag values;
 */
 void setFlags(state_t *state, byte_t value){
-  return setRegister(state, REG_N_CPSR, value << (sizeof(word_t) - 4));
+  setRegister(state, REG_N_CPSR, value << (sizeof(word_t) - 4));
 }
