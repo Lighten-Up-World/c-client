@@ -215,7 +215,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     if (instr.L){ //Load from memory at address rn into reg rd.
       setRegister(state, instr.rd, getMemWord(state, rn));
     }else{ //Store contents of reg rd in memory at address rn.
-      //setMemWord(state, rn, getRegister(state, instr.rd));
+      setMemWord(state, rn, getRegister(state, instr.rd));
     }
 
   }else{ //Post-indexing
@@ -223,7 +223,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     if (instr.L){ //Load from memory at address rn into reg rd.
       setRegister(state, instr.rd, getMemWord(state, rn));
     }else{ //Store contents of reg rd in memory at address rn.
-      //setMemWord(state, rn, getRegister(state, instr.rd));
+      setMemWord(state, rn, getRegister(state, instr.rd));
     }
     if (instr.U){ //Add offset
       rn += offset;
@@ -234,6 +234,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     setRegister(state, instr.rn, rn);
   }
 }
+
 void executeHAL(state_t *state){
   printState(state);
 }
