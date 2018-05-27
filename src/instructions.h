@@ -45,8 +45,8 @@ typedef struct {
 } op_shiftreg_t;
 
 typedef union {
-  op_immediate_t immediate;
-  op_shiftreg_t shiftreg;
+  op_immediate_t imm;
+  op_shiftreg_t reg;
 } operand_t;
 
 ///// DATA PROCESSING INSTRUCTION FORMAT        /////
