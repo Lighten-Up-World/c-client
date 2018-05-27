@@ -2,13 +2,26 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "arm.h"
+#include "register.h"
 
 /* Takes as an argument the pointer to the register contents and register
  * address to print and outputs it's contents. */
-void printReg(registers_t* registers, reg_address_t reg) {
-  assert(reg >= 0 && reg < 13); /* only prints general purpose registers. */
-  assert(registers != NULL);
-  printf("r%d: 0x%08x\n", reg, registers->r[reg]);
+void printReg(state_t* state, reg_address_t reg) {
+  assert(reg >= 0 && reg < REG_N); /* only prints general purpose registers. */
+  assert(state != NULL);
+  if(reg == REG_N_LR || reg == REG_N_SP){
+    return;
+  }
+  if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
+    printf("$%-4u:", reg);
+  }
+  else if(reg == REG_N_PC){
+    printf("PC  :");
+  }
+  else if(reg == REG_N_CPSR){
+    printf("CPSR:");
+  }
+  printf("%11d (0x%8x)\n", getRegister(state, reg), getRegister(state, reg));
 }
 
 
