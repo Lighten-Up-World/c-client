@@ -16,13 +16,13 @@ int main(int argc, char **argv) {
 
   //Setup Pipeline
   setPC(state, 0x8);
-  state->pipeline.decoded = decode(state->memory[0]);
-  state->pipeline.fetched = state->memory[1];
+  state->pipeline.decoded = decode(getMemWord(state, 0));
+  state->pipeline.fetched = getMemWord(state, 0x4);
 
   while(state->pipeline.decoded->type != HAL){
     execute(state);
     state->pipeline.decoded = decode(state->pipeline.fetched);
-    state->pipeline.fetched = state->memory[getPC(state) >> 2];
+    state->pipeline.fetched = getMemWord(state, getPC(state));
     incrementPC(state);
   }
   execute(state); // Execute HAL instruction
