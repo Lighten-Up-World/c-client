@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "execute.h"
 #include "bitops.h"
 #include "register.h"
+#include "io.h"
 
 /**
 * Checks if the condition on the decoded instruction is met using the current
@@ -46,12 +48,12 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
     word_t rm = getRegister(state, op.reg.rm);
     byte_t shiftAmount = 0;
     if(op.reg.shiftBy){ //Shift by register
-      shiftAmount = getByte(getRegister(state, op.reg.shift.shiftreg.Rs), 7);
+      shiftAmount = getByte(getRegister(state, op.reg.shift.shiftreg.rs), 7);
     }
     else{ //Shift by constnat
       shiftAmount = op.reg.shift.constant.integer;
     }
-    switch(op.shiftreg.type){
+    switch(op.reg.type){
       case LSL:
         result = lShiftLeftC(rm, shiftAmount);
         break;
@@ -75,7 +77,7 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
 *
 */
 void execute(state_t *state){
-  instruction_t *decoded = state->pipeline.decoded_instruction;
+  instruction_t *decoded = state->pipeline.decoded;
   if(decoded->type == HAL){
     executeHAL(state);
     return;
@@ -159,7 +161,15 @@ void executeDP(state_t *state, dp_instruction_t instr){
     setRegister(state, instr.rd, result);
   }
 }
-void executeMUL(state_t *state, mul_instruction_t instr);
-void executeBRN(state_t *state, brn_instruction_t instr);
-void executeSDT(state_t *state, sdt_instruction_t instr);
-void executeHAL(state_t *state);
+void executeMUL(state_t *state, mul_instruction_t instr){
+  return;
+}
+void executeBRN(state_t *state, brn_instruction_t instr){
+  return;
+}
+void executeSDT(state_t *state, sdt_instruction_t instr){
+  return;
+}
+void executeHAL(state_t *state){
+  printState(state);
+}
