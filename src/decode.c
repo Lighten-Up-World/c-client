@@ -61,6 +61,26 @@ operand_t decodeOperand(flag_t I, word_t word){
   return op;
 }
 
+/**
+ *  Get the offset (operand) by decoding the word instruction
+ *
+ *  @param flag_t I - the immediate flag on how to decode the operand
+ *  @param word_t word - the instruction word
+ *  @return A fully populated operand type based on data in word
+ */
+
+operand_t decodeOffset(flag_t I, word_t word){
+  operand_t op;
+  operand_t* opPtr = &op;
+  if(I){ //Register
+    decodeShiftedReg(opPtr, word);
+  }
+  else { //Immediate
+    op.imm.fixed = getBits(word, OP_START,0);
+  }
+  return op;
+}
+
 
 /**
  * Decode Data Processing instruction
@@ -133,7 +153,7 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
   sdt.L = getFlag(word, L_FLAG);
   sdt.rn = getNibble(word, SDT_RN_START);
   sdt.rd = getNibble(word, SDT_RD_START);
-  sdt.offset = decodeOperand(sdt.I, word);
+  sdt.offset = decodeOffset(sdt.I, word);
 
   instructionPtr->i.sdt = sdt;
 }
