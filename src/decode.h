@@ -10,19 +10,15 @@
 #define INSTR_TYPE_END 25
 
 #define COND_START 31
-#define COND_END 28
 
-#define MUL_ACC 23
-#define MUL_SET 20
+#define A_FLAG 23
+#define S_FLAG 20
 
 #define REG_1_START 19
-#define REG_1_END 16
 
 #define REG_2_START 15
-#define REG_2_END 12
 
 #define REG_S_START 11
-#define REG_S_END 8
 
 #define MUL_TYPE_START 7
 #define MUL_TYPE_END 4
@@ -30,6 +26,16 @@
 #define REG_M_START 3
 #define REG_M_END 0
 
+#define I_FLAG 25
+#define P_FLAG 24
+#define U_FLAG 23
+#define L_FLAG 20
+
+#define OP_START 11
+#define OP_IMM_START 7
+#define OP_SHIFTBY_FLAG 4
+#define OP_SHIFT_TYPE_START 6
+#define OP_SHIFT_TYPE_END 5
 
 instruction_t decodeWord(word_t word);
 

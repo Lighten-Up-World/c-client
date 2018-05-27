@@ -23,6 +23,17 @@ word_t aShiftRight(word_t value, byte_t shift);
 
 word_t rotateRight(word_t value, byte_t shift);
 
+shift_result_t lShiftLeftC(word_t value, byte_t shift);
+
+shift_result_t lShiftRightC(word_t value, byte_t shift);
+
+shift_result_t aShiftRightC(word_t value, byte_t shift);
+
+shift_result_t rotateRightC(word_t value, byte_t shift);
+
+flag_t isNegative(word_t word);
+word_t negate(word_t word)
+
 word_t leftPadZeros(byte_t value);
 
 #endif

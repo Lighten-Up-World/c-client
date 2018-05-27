@@ -1,6 +1,68 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "arm.h"
+#include <assert.h>
+#include "io.h"
+
+/* gets the 32 bit word from memory given a byte by shifting the 4 respective
+ * bytes and OR-ing them together */
+word_t getMemWord(state_t* state, int byteAddr) {
+  assert(state != NULL);
+  word_t word = 0;
+
+  for (size_t i = 0; i < 4; i++){
+    word |= ((word_t) state->memory[byteAddr + i]) << (i * 8);
+  }
+
+  return word;
+}
+
+/* Takes as an argument the pointer to the register contents and register
+ * address to print and outputs it's contents. */
+void printReg(state_t* state, reg_address_t reg) {
+  assert(reg >= 0 && reg < REG_N); /* only prints general purpose registers. */
+  assert(state != NULL);
+  if(reg == REG_N_LR || reg == REG_N_SP){
+    return;
+  }
+  if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
+    printf("$%-3u:", reg);
+  }
+  else if(reg == REG_N_PC){
+    printf("PC  :");
+  }
+  else if(reg == REG_N_CPSR){
+    printf("CPSR:");
+  }
+  printf("%11d (0x%08x)\n", getRegister(state, reg), getRegister(state, reg));
+}
+
+
+/* prints the values stored in memory until the instruction is 0 or we run
+ * out of memory.  */
+void printMem(state_t *state) {
+  assert(state != NULL);
+  word_t memWord;
+
+  for (int addr = 0; addr < MEM_SIZE; addr+=4) {
+    memWord = getMemWord(state, addr);
+    if (memWord == 0) { // halt when memory instr is 0.
+      break;
+    }
+    printf("0x%08x: 0x%08x\n", addr, memWord);
+  }
+}
+
+void printState(state_t* state) {
+  assert(state != NULL);
+
+  printf("Registers:\n");
+  for (int i = 0; i < REG_N; ++i) {
+    printReg(state, i);
+  }
+
+  printf("Non-zero memory:\n");
+  printMem(state);
+}
 
 /**
 * Writes the entire file into the buffer (or throws an error)
@@ -60,72 +122,11 @@ int readFile(const char *path, byte_t *buffer, size_t buffer_size){
   return 0;
 }
 
-/**
-* Loads a single byte from the address given in the binary file.
-*
-* @param path - A string to the binary file to read.
-* @param byte - A pointer to a byte
-* @param address - the address at which the byte is read from
-* @return a status code for the result
-*/
-int readByte(const char *path, byte_t *byte, address_t address){
-  FILE *fp = fopen(path, "rb");
-  if(fp == NULL){
-    perror("fopen failed at path");
-    return 1;
-  }
-  if(fseek(fp, address, SEEK_SET) != 0){
-    perror("fseek failed to get address");
-    return 2;
-  }
-  *byte = fgetc(fp);
-  if(fclose(fp) != 0){
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
-}
-
-/**
-* Loads a single word from the address given in the binary file.
-*
-* @param path - A string to the binary file to read.
-* @param byte - A pointer to a word
-* @param address - the address at which the byte is read from
-* @return a status code for the result
-*/
-int readWord(const char *path, word_t *word, address_t address){
-  FILE *fp = fopen(path, "rb");
-  if(fp == NULL){
-    perror("fopen failed at path");
-    return 1;
-  }
-  if(fseek(fp, address, SEEK_SET) != 0){
-    perror("fseek failed to get address");
-    return 2;
-  }
-  fread(word, sizeof(word_t) / sizeof(byte_t), sizeof(byte_t), fp);
-  if(fclose(fp) != 0){
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
-}
-
 int main(void){
-  byte_t *buffer = malloc(MEM_SIZE);
-  if(buffer == NULL){
+  state_t *state = calloc(1, sizeof(state_t));
+  if(state == NULL){
     return EXIT_FAILURE;
   }
-  readFile("../test/test_cases/add01", buffer, MEM_SIZE);
-  printf("[ ");
-  for(size_t i = 0; i < MEM_SIZE; i++)
-  {
-    if(buffer[i]==0){
-      break;
-    }
-    printf("%02x ", buffer[i]);
-    //ompare with xxd
-  }
-  printf("]\n");
+  readFile("../test/test_cases/add01", state->memory, MEM_SIZE);
+  printState(state);
 }
