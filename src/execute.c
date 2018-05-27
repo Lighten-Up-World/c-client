@@ -5,6 +5,7 @@
 #include "register.h"
 #include "io.h"
 #include "instructions.h"
+#include "arm.h"
 
 /**
 * Checks if the condition on the decoded instruction is met using the current
@@ -198,7 +199,40 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   return;
 }
 void executeSDT(state_t *state, sdt_instruction_t instr){
-  return;
+  shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
+  word_t offset = barrel.value;
+  flag_t carry = barrel.carry;
+  word_t rn = getRegister(state, instr.rn);
+
+  if (instr.P){ //Pre-indexing
+
+    if (instr.U){ //Add offset
+      rn += offset;
+    }else{  //Subtract offset
+      rn -= offset;
+    }
+
+    if (instr.L){ //Load from memory at address rn into reg rd.
+      setRegister(state, instr.rd, getMemWord(state, rn));
+    }else{ //Store contents of reg rd in memory at address rn.
+      //setMemWord(state, rn, getRegister(state, instr.rd));
+    }
+
+  }else{ //Post-indexing
+
+    if (instr.L){ //Load from memory at address rn into reg rd.
+      setRegister(state, instr.rd, getMemWord(state, rn));
+    }else{ //Store contents of reg rd in memory at address rn.
+      //setMemWord(state, rn, getRegister(state, instr.rd));
+    }
+    if (instr.U){ //Add offset
+      rn += offset;
+    }else{ //Subtract offset
+      rn -= offset;
+    }
+    //Change contents of reg rn (the base register)
+    setRegister(state, instr.rn, rn);
+  }
 }
 void executeHAL(state_t *state){
   printState(state);
