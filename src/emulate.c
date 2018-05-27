@@ -9,7 +9,9 @@ int main(int argc, char **argv) {
   assert(argc > 1);
 
   state_t *state = calloc(1, sizeof(state_t));
+  assert(state != NULL);
   state.pipeline.decoded = calloc(1, sizeof(instruction_t));
+  assert(state.pipeline.decoded != NULL);
   readFile(argv[1], state->memory, MEM_SIZE);
 
   //Setup Pipeline
