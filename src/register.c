@@ -1,10 +1,5 @@
-#include 'arm.h'
-#include 'register.h'
-
-#define REG_N_SP 13
-#define REG_N_LR 14
-#define REG_N_PC 15
-#define REG_N_CPSR 16
+#include "arm.h"
+#include "register.h"
 
 /**
 * Gets a register from its register number.

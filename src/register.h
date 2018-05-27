@@ -1,7 +1,13 @@
 #ifndef REGISTER_H
 #define REGISTER_H
 
-#include 'arm.h'
+#define REG_N 17
+#define REG_N_SP 13
+#define REG_N_LR 14
+#define REG_N_PC 15
+#define REG_N_CPSR 16
+
+#include "arm.h"
 
 word_t getRegister(state_t *state, reg_address_t reg);
 void setRegister(state_t *state, reg_address_t reg, word_t value);
