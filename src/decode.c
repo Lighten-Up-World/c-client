@@ -5,38 +5,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-/**
- *  Get the operand_t by decoding the word instruction
- *
- *  @param I: the immediate flag on how to decode the operand
- *  @param word: the instruction word
- *  @return A fully populated operand type based on data in word
- */
-operand_t decodeOperand(flag_t I, word_t word){
-  operand_t op;
-  if(I){ //Immediate
-    op.imm = (op_immediate_t){.rotated.rotate = getNibble(word, OP_START),
-                                    .rotated.value = getByte(word, OP_IMM_START)};
-  }
-  else { //Register
-    op.reg.type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
-    op.reg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
-    if(op.reg.shiftBy){ //Shift by register
-      op.reg.shift.shiftreg = (op_shift_register_t){
-        .rs = getNibble(word, OP_START),
-        .zeroPad = 0x0
-      };
-    }
-    else{ // Shift by constant
-      op.reg.shift.constant = (op_shift_const_t){
-        .integer = getBits(word, OP_START, OP_IMM_START)
-      };
-    }
-    op.reg.rm = getNibble(word, REG_M_START);
-  }
-  return op;
-}
-
 //// DP ////
 
 /**
@@ -47,120 +15,60 @@ operand_t decodeOperand(flag_t I, word_t word){
  */
 
 /**
- * @param operand_t* operand2Ptr - is a pointer to operand_2 of the dp instr.
- * @param word_t word - the 32 bit memory word that comprises of the
- * instruction in binary
- * @return void - we alter the value of operand2 (in dp) using it's pointer.
- */
-void decodeImm(operand_t* operand2Ptr, word_t word) {
-
-  assert(operand2Ptr != NULL);
-  assert(word != NULL);
-
-  op_immediate_t opImm;
-
-  byte_t rotate = (byte_t) getBits(word,OP2_ROTATE_ST, OP2_ROTATE_END);
-  opImm.rotate = rotate;
-
-  byte_t immVal = (byte_t) getBits(word, OP2_IMM_START, OP2_IMM_END);
-  opImm.immediate = immVal;
-
-  operand2Ptr->immediate = opImm;
-}
-
-void decodeShiftByReg(op_shiftreg_t* opShiftregPtr, word_t word) {
-  //TODO ADD assertions
-
-  op_shift_register_t shiftByReg;
-  op_shift_register_t* shiftByRegPtr = &shiftByReg;
-
-  byte_t rs = (byte_t) getBits(word, RS_START, RS_END);
-  shiftByReg.Rs = rs;
-
-  shiftByReg.zeroPad = 0x0;
-
-  shift_type_t shiftType = (shift_type_t) getBits(word, SHIFT_TYPE_START,
-                                                  SHIFT_TYPE_END);
-  shiftByReg.type = shiftType;
-
-  shiftByReg.onePad = 0x1;
-
-  opShiftregPtr->shift.shiftreg = shiftByReg;
-}
-
-void decodeShiftByConst(op_shiftreg_t* opShiftregPtr, word_t word) {
-  //TODO Add assertions
-
-  op_shift_const_t shiftByConst;
-  op_shift_const_t* shiftByConstPtr = &shiftByConst;
-
-  byte_t integer = (byte_t) getBits(word, SHFT_VAL_START, SHIFT_VAL_END);
-  shiftByConst.integer = integer;
-
-  shift_type_t shiftType = (shift_type_t) getBits(word, SHIFT_TYPE_START,
-                                                  SHIFT_TYPE_END);
-  shiftByConst.type = shiftType;
-
-  shiftByConst.padding = 0x0;
-
-  opShiftregPtr->shift.constant = shiftByConst;
-}
-
-/**
- * @param operand_t* operand2Ptr - is a pointer to operand_2 of the dp instr.
- * @param word_t word - the 32 bit memory word that comprises of the
- * instruction in binary
- * @return void - we alter the value of operand2 (in dp) using it's pointer.
- */
-void decodeShiftReg(operand_t* operand2Ptr, word_t word) {
- //TODO Add assertions
-
- op_shiftreg_t opShiftreg;
- op_shiftreg_t* opShiftregPtr = &opShiftreg;
-
- byte_t rm = (byte_t) getBits(word, OP2_RM_START, OP2_RM_END);
- opShiftreg.rm = rm;
-
- byte_t shiftSelectBit = (byte_t) getBits(word, SHIFT_SELECT, SHIFT_SELECT);
- if (shiftSelectBit) {
-   decodeShiftByReg(opShiftregPtr, word);
- } else {
-   decodeShiftByConst(opShiftregPtr, word);
- }
-
- operand2Ptr->shiftreg = opShiftreg;
-
-}
-/**
- * @param - dp_instruction_t* dp is a pointer to the data
- * processing instruction to decode. The method will need to determine
- * whether operand2 is an immediate value or not.
- * @return - void, the method will modify the value of dp in memory using
- * it's pointer.
+ * set the value of the operand when I is 0.
  *
+ * @param opPtr - pointer to the operand
+ * @param word - the instruction word
+ * @return void - modifies the operand value of the instruction
  */
-void decodeOperand2(dp_instruction_t* dpPtr, word_t word) {
+void decodeShiftedReg(operand_t* opPtr, word_t word) {
 
-  assert(dpPtr != NULL);
-  assert(word != NULL);
+  opPtr->reg.type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
+  opPtr->reg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
 
-  operand_t operand2;
-  operand_t* operand2Ptr = &operand2;
-
-  if (dpPtr->I) {
-    decodeImm(operand2Ptr, word);
-  } else {
-    decodeShiftReg(operand2Ptr, word);
+  if(opPtr->reg.shiftBy){ //Shift by register
+    opPtr->reg.shift.shiftreg = (op_shift_register_t){
+        .rs = getNibble(word, OP_START),
+        .zeroPad = 0x0
+    };
   }
-
-  dpPtr->operand2 = operand2;
+  else{ // Shift by constant
+    opPtr->reg.shift.constant = (op_shift_const_t){
+        .integer = getBits(word, OP_START, OP_IMM_START)
+    };
+  }
+  opPtr->reg.rm = getNibble(word, REG_M_START);
 }
 
+
 /**
- * @param - instruction_t* instructionPtr is a pointer to the instruction to
+ *  Get the operand_t by decoding the word instruction
+ *
+ *  @param flag_t I - the immediate flag on how to decode the operand
+ *  @param word_t word - the instruction word
+ *  @return A fully populated operand type based on data in word
+ */
+operand_t decodeOperand(flag_t I, word_t word){
+  operand_t op;
+  operand_t* opPtr = &op;
+  if(I){ //Immediate
+    op.imm = (op_immediate_t){.rotated.rotate = getNibble(word, OP_START),
+        .rotated.value = getByte(word, OP_IMM_START)};
+  }
+  else { //Register
+    decodeShiftedReg(opPtr, word);
+  }
+  return op;
+}
+
+
+/**
+ * Decode Data Processing instruction
+ *
+ * @param instruction_t* instructionPtr - a pointer to the instruction to
  * be decoded.
- * @param -  word_t word is the binary instruction.
- * @return - void, we modify the value of the instruction using the pointer.
+ * @param word_t word - the binary instruction.
+ * @return void - we modify the value of the instruction using the pointer.
  */
 
 void decodeDp(instruction_t* instructionPtr, word_t word) {
@@ -171,9 +79,13 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
   dp_instruction_t dp; // create dp instruction
   dp_instruction_t* dpPtr = &dp; // create pointer to dp instruction
 
-  dp.
-
-  decodeOperand2(dpPtr, word);
+  dp.padding = 0x0;
+  dp.I = getFlag(word, I_FLAG);
+  dp.opcode = getNibble(word, OPCODE_START);
+  dp.S = getFlag(word, S_FLAG);
+  dp.rn = getNibble(word, RN_START);
+  dp.rd = getNibble(word, RD_START);
+  dp.operand2 = decodeOperand(dp.I, word);
 
   instructionPtr->i.dp = dp; // set decoded instruction to value of the
                              // instruction of the pointer.
@@ -184,9 +96,9 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
 /**
  * Decode Multiplication Instruction
  *
- * @param - instruction_t* instructionPtr is the pointer to the instruction
- * @param - word_t word is the binary instruction
- * @return - void, changes made to the instruction pointed to by instructionPtr
+ * @param instruction_t* instructionPtr - is the pointer to the instruction
+ * @param word_t word - is the binary instruction
+ * @return void - changes made to the instruction pointed to by instructionPtr
  */
 
 void decodeMul(instruction_t* instructionPtr, word_t word){
@@ -207,9 +119,9 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
 /**
  * Decode Single Data transfer Instruction
  *
- * @param - instruction_t* instructionPtr is the pointer to the instruction
- * @param - word_t word is the binary instruction
- * @return - void, changes made to the instruction pointed to by i
+ * @param instruction_t* instructionPtr - the pointer to the instruction
+ * @param word_t word - the binary instruction
+ * @return void - changes made to the instruction pointed to by i
  */
 void decodeSdt(instruction_t *instructionPtr, word_t word){
   sdt_instruction_t sdt;
@@ -232,6 +144,12 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
 
 //// HAL ////
 
+/**
+ * Decode Halt Instruction
+ *
+ * @param instructionPtr - the pointer to the instruction
+ * @param word - the binary instruction
+ */
 void decodeHalt(instruction_t* instructionPtr, word_t word) {
 
   assert(instructionPtr != NULL);
@@ -256,6 +174,7 @@ void decodeHalt(instruction_t* instructionPtr, word_t word) {
  */
 
 void decodeInstructionType(instruction_t* instructionPtr, word_t word){
+    assert(instructionPtr != NULL);
 
     instruction_type_t instruction_type;
 
