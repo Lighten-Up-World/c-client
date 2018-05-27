@@ -15,8 +15,8 @@
 operand_t decodeOperand(flag_t I, word_t word){
   operand_t op;
   if(I){ //Immediate
-    op.imm = (op_immediate_t){.rotate = getNibble(word, OP_START),
-                                    .value = getByte(word, OP_IMM_START)};
+    op.imm = (op_immediate_t){.rotated.rotate = getNibble(word, OP_START),
+                                    .rotated.value = getByte(word, OP_IMM_START)};
   }
   else { //Register
     op.reg.type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
