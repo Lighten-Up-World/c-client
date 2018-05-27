@@ -24,9 +24,9 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
 
     mul.pad0 = 0x0;
 
-    mul.A = getFlag(word, MUL_ACC);
+    mul.A = getFlag(word, A_FLAG);
 
-    mul.S = getFlag(word, MUL_SET);
+    mul.S = getFlag(word, S_FLAG);
 
     mul.rd = getNibble(word, REG_1_START);
 

@@ -11,8 +11,8 @@
 
 #define COND_START 31
 
-#define MUL_ACC 23
-#define MUL_SET 20
+#define A_FLAG 23
+#define S_FLAG 20
 
 #define REG_1_START 19
 
