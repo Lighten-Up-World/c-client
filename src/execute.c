@@ -39,7 +39,6 @@ int condition(state_t *state, byte_t cond){
 shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
-    result = rotateRight(result, op.imm.rotate);
     result.value = leftPadZeros(op.imm.value);
     result.value = rotateRight(result.value, op.imm.rotate);
   }
@@ -118,10 +117,10 @@ void executeDP(state_t *state, dp_instruction_t instr){
       break;
     case SUB:
     case CMP:
-      result = rn - op2;
+      result = rn + negate(op2);
       break;
     case RSB:
-      result = op2 - rn;
+      result = op2 + negate(rn);
       break;
     case ADD:
       result = rn + op2;
