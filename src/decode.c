@@ -15,25 +15,24 @@
 operand_t decodeOperand(flag_t I, word_t word){
   operand_t op;
   if(I){ //Immediate
-    op.immediate = (op_immediate_t){.rotate = getNibble(word, OP_START),
-                                    .immediate = getByte(word, OP_IMM_START)};
+    op.imm = (op_immediate_t){.rotate = getNibble(word, OP_START),
+                                    .value = getByte(word, OP_IMM_START)};
   }
   else { //Register
-    op.shiftreg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
-    if(op.shiftreg.shiftBy){ //Shift by register
-      op.shiftreg.shift.shiftreg = (op_shift_register_t){
-        .Rs = getNibble(word, OP_START),
-        .zeroPad = 0x0,
-        .type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END)
+    op.reg.type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
+    op.reg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
+    if(op.reg.shiftBy){ //Shift by register
+      op.reg.shift.shiftreg = (op_shift_register_t){
+        .rs = getNibble(word, OP_START),
+        .zeroPad = 0x0
       };
     }
     else{ // Shift by constant
-      op.shiftreg.shift.constant = (op_shift_const_t){
-        .integer = getBits(word, OP_START, OP_IMM_START),
-        .type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END)
+      op.reg.shift.constant = (op_shift_const_t){
+        .integer = getBits(word, OP_START, OP_IMM_START)
       };
     }
-    op.shiftreg.rm = getNibble(word, REG_M_START);
+    op.reg.rm = getNibble(word, REG_M_START);
   }
   return op;
 }
@@ -83,15 +82,14 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
 void decodeSdt(instruction_t *i, word_t word){
   sdt_instruction_t sdt;
 
-  sdt.cond = getNibble(word, COND_START);
   sdt.pad1 = 0x1;
   sdt.I = getFlag(word, I_FLAG);
   sdt.P = getFlag(word, P_FLAG);
   sdt.U = getFlag(word, U_FLAG);
   sdt.pad0 = 0x0;
   sdt.L = getFlag(word, L_FLAG);
-  sdt.Rn = getNibble(word, REG_1_START);
-  sdt.Rd = getNibble(word, REG_2_START);
+  sdt.rn = getNibble(word, REG_1_START);
+  sdt.rd = getNibble(word, REG_2_START);
   sdt.offset = decodeOperand(sdt.I, word);
 
   i->i.sdt = sdt;
