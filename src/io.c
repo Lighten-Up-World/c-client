@@ -16,6 +16,13 @@ word_t getMemWord(state_t* state, int byteAddr) {
   return word;
 }
 
+int setMemWord(state_t* state, int byteAddr, word_t word){
+  assert(state != NULL);
+  for (size_t i = 1; i < 5; i++){
+    state->memory[byteAddr + i]) = getByte(word, (i * 8));
+  }
+}
+
 /* Takes as an argument the pointer to the register contents and register
  * address to print and outputs it's contents. */
 void printReg(state_t* state, reg_address_t reg) {
@@ -122,11 +129,11 @@ int readFile(const char *path, byte_t *buffer, size_t buffer_size){
   return 0;
 }
 
-int main(void){
-  state_t *state = calloc(1, sizeof(state_t));
-  if(state == NULL){
-    return EXIT_FAILURE;
-  }
-  readFile("../test/test_cases/add01", state->memory, MEM_SIZE);
-  printState(state);
-}
+// int main(void){
+//   state_t *state = calloc(1, sizeof(state_t));
+//   if(state == NULL){
+//     return EXIT_FAILURE;
+//   }
+//   readFile("../test/test_cases/add01", state->memory, MEM_SIZE);
+//   printState(state);
+// }

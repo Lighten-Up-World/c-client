@@ -21,6 +21,11 @@ typedef enum {
 typedef struct {
   byte_t rotate : 4;
   byte_t value : 8;
+} op_rotate_immediate_t;
+
+typedef union {
+  op_rotate_immediate_t rotated;
+  word_t fixed: 12;
 } op_immediate_t;
 
 typedef struct {
