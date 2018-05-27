@@ -100,7 +100,44 @@ void execute(state_t *state){
     }
   }
 }
-void executeDP(state_t *state, dp_instruction_t   instr);
+
+void executeDP(state_t *state, dp_instruction_t   instr){
+  word_t op2 = evaluateOperand(state, instr.I, instr.operand2);
+  word_t result = 0;
+  word_t rn = getRegister(state, instr.rn);
+  switch(instr.opcode){
+    case AND:
+    case TST:
+      result = rn & op2;
+      break;
+    case EOR:
+    case TEQ:
+      result = rn ^ op2;
+      break;
+    case SUB:
+    case CMP:
+      result = rn - op2;
+      break;
+    case RSB:
+      result = op2 - rn;
+      break;
+    case ADD:
+      result = rn + op2;
+      break;
+    case ORR:
+      result = rn | op2;
+      break;
+    case MOV:
+      result = op2;
+      break;
+  }
+  if(instr.S){
+    //V unaffected
+    //C bit set to the carrout from any shift op
+    //C 1 if addition lead to unisgned overflow
+    //Z
+  }
+}
 void executeMUL(state_t *state, mul_instruction_t instr);
 void executeBRN(state_t *state, brn_instruction_t instr);
 void executeSDT(state_t *state, sdt_instruction_t instr);
