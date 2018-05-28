@@ -28,10 +28,12 @@ const error_str error_strs[] = {
 #define EC_TO_SYS_ERROR(e) (e - EC_SYS)
 #define EC_IS_SYS_ERROR(e) (e >= EC_SYS)
 
-//Usage:
-// Start of function should include int _status = EC_OK.
-// Labelled area called fail: to jump to in case of error.
-// return _status.
+/*  Usage:
+ *
+ *  Start of function should include int _status = EC_OK.
+ *  Labelled area called fail: to jump to in case of error.
+ *  return _status.
+ */
 
 //DO-While allows macro to resemble single statement
 #define FAIL_PRED(pred, status) \

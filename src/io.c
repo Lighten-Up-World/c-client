@@ -1,16 +1,19 @@
+/*
+ *  Contains IO related operations, operating on either the ARM machine state or local disk.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "io.h"
 #include "bitops.h"
 
-
 /**
- * Read the 32 bit word from memory and return it
+ *  Read a 32 bit word from memory
  *
- * @param state - pointer to the state of the ARM machine.
- * @param byteAddr - byte address to read from.
- * @return word_t word - word read from memory at byte address.
+ *  @param state: a non-null pointer to the machine state
+ *  @param byteAddr: the byte address to read from
+ *  @return a word from memory at the given byte address
  */
 word_t getMemWord(state_t* state, int byteAddr) {
   assert(state != NULL);
@@ -24,12 +27,12 @@ word_t getMemWord(state_t* state, int byteAddr) {
 }
 
 /**
- * Write a word at a specified byte address in memory
+ *  Write a word at a specified byte address in memory
  *
- * @param state - pointer to the state of the ARM machine.
- * @param byteAddr - byte address to be written into.
- * @param word - word to write into byte address.
- * @return - returns 0 if the process succeeds
+ *  @param state: a non-null pointer to the machine state
+ *  @param byteAddr: the byte address to be written into
+ *  @param word: the word to write into memory
+ *  @return: return 0 iff success
  */
 int setMemWord(state_t* state, int byteAddr, word_t word){
   assert(state != NULL);
@@ -42,9 +45,9 @@ int setMemWord(state_t* state, int byteAddr, word_t word){
 /**
  *  Print the values stored in a specified register
  *
- * @param state - pointer to the state of the ARM machine.
- * @param reg -
- * @return void - only prits to the console
+ *  @param state: a non-null pointer to the machine state
+ *  @param reg: the address of the register to print
+ *  @return void
  */
 void printReg(state_t* state, reg_address_t reg) {
   assert(reg >= 0 && reg < REG_N);
@@ -65,11 +68,11 @@ void printReg(state_t* state, reg_address_t reg) {
 }
 
 /**
- * print the values stored in memory until the instruction is 0 or we run
- * out of memory.
+ *  Print the values stored in memory
+ *  Continue until the word value is 0 or we run out of memory
  *
- * @param state - pointer to the state of the ARM machine.
- * @return void - only prints to the console
+ *  @param state: a non-null pointer to the machine state
+ *  @return void
  */
 void printMem(state_t *state) {
   assert(state != NULL);
@@ -77,17 +80,20 @@ void printMem(state_t *state) {
 
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
     memWord = getMemWord(state, addr);
-    if (memWord == 0) { // halt when memory instr is 0.
+
+    // Halt when word read is 0
+    if (memWord == 0) {
       break;
     }
     printf("0x%08x: 0x%08x\n", addr, memWord);
   }
 }
+
 /**
- * print to the screen all data stored in registers and memory.
+ *  Print all data stored in registers and memory
  *
- * @param state - pointer to the state of the ARM machine.
- * @return void - only prints to the console.
+ *  @param state - a pointer to the state of the ARM machine
+ *  @return void
  */
 void printState(state_t* state) {
   assert(state != NULL);
@@ -102,13 +108,13 @@ void printState(state_t* state) {
 }
 
 /**
-* Writes the entire file into the buffer (or throws an error)
-*
-* @param path - A string to the binary file to read.
-* @param buffer - A pointer to an allocated array which it gets stored
-* @param buffer_size - the size of buffer allocated.
-* @return a status code for the result
-*/
+ *  Write a file from a buffer to disk
+ *
+ *  @param path: the path of the binary file to write to
+ *  @param buffer: a pointer to an allocated array in which the file will be written from
+ *  @param buffer_size: the size of the buffer allocated
+ *  @return a status code denoting the result
+ */
 int writeFile(const char *path, byte_t *buffer, size_t buffer_size){
   FILE* fp = fopen(path, "wb");
   if(fp == NULL){
@@ -128,12 +134,12 @@ int writeFile(const char *path, byte_t *buffer, size_t buffer_size){
 }
 
 /**
-* Loads the entire file into the buffer (or throws an error)
+*  Loads a file from disk into a buffer
 *
-* @param path - A string to the binary file to read.
-* @param buffer - A pointer to an allocated array which it gets stored
-* @param buffer_size - the size of buffer allocated.
-* @return a status code for the result
+*  @param path: the path of the binary file to read from
+*  @param buffer: a pointer to an allocated array which the file will be read to
+*  @param buffer_size: the size of the buffer allocated
+*  @return a status code denoting the result
 */
 int readFile(const char *path, byte_t *buffer, size_t buffer_size){
   long file_size = 0;

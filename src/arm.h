@@ -1,7 +1,7 @@
 /*
-* Breaksdown ARM format into internal representation for state and registers
-* into datastructures and constants
-*/
+ *  Breakdown ARM format into internal representation for state and registers
+ *  using data structures and constants.
+ */
 
 #ifndef ARM_H
 #define ARM_H
@@ -11,6 +11,7 @@
 
 // Total number of registers
 #define NUM_GENERAL_REGISTERS 13
+
 // Memory Size
 #define MEM_SIZE 65536
 
@@ -56,7 +57,7 @@ typedef enum {
 } opcode_t;
 
 typedef enum {
-  //// DATA PROCESSING ////
+  // DATA PROCESSING
   M_ADD, // Rd := Rn + Op2
   M_SUB, // Rd := Rn - Op2
   M_RSB, // Rd := Op2 - Rn
@@ -67,25 +68,29 @@ typedef enum {
   M_TST, // CPSR := Rn && Op2
   M_TEQ, // CPSR := Rn XOR Op2
   M_CMP, // CPSR := Rn - Op2
-  //// MULTIPLY ////
+
+  // MULTIPLY
   M_MUL, // Rd := Rm x Rs
   M_MLA, // Rd := (Rm x Rs) = Rn
-  //// SINGLE DATA TRANSFER ////
+
+  // SINGLE DATA TRANSFER
   M_LDR, // Rd := (address)
   M_STR, // (address) := Rd
-  //// BRANCH ////
+
+  // BRANCH
   M_BEQ, // PC := address
   M_BNE, // PC := address
   M_BLT, // PC := address
   M_BGT, // PC := address
   M_BLE, // PC := address
   M_B,   // PC := address
-  //// SPECIAL ////
+
+  // SPECIAL
   M_LSL,  // Rd := Rd <<
   M_ANDEQ // Halt
 } mnemonic_t;
 
-#include "instructions.h"
+#include "instructions.h"  // is there a reason this is so far down?
 
 typedef struct {
   word_t fetched;

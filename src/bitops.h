@@ -1,7 +1,3 @@
-//
-// Created by Matt Malarkey on 24/05/2018.
-//
-
 #ifndef ARM11_22_BITOPS_H
 #define ARM11_22_BITOPS_H
 
