@@ -119,7 +119,7 @@ void test_decodeDp_rotated_immediate(void) {
   compareInstructions(expected, decoded);
 }
 void test_decodeDp_shifted_register(void) {
-  word_t dp_ORR_op2shiftedR_w = 0x0190026;
+  word_t dp_ORR_op2shiftedR_w = 0xF1900260;
   instruction_t dp_ORR_op2shiftedR_i = {
     .type = DP,
     .cond = 0xF,
