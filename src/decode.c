@@ -214,25 +214,29 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
         switch (selectionBits) {
             case 0x0:
                 pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
-                if (pad9 ^ 0x9) {
-                    instruction_type = DP;
-                    decodeDp(instructionPtr, word);
+                if (!(pad9 ^ 0x9)) {
+                  instruction_type = MUL;
+                  decodeMul(instructionPtr, word);
                 } else {
-                    instruction_type = MUL;
-                    decodeMul(instructionPtr, word);
+                  instruction_type = DP;
+                  decodeDp(instructionPtr, word);
                 }
                 break;
             case 0x1:
                 instruction_type = DP;
                 decodeDp(instructionPtr, word);
                 break;
+            case 0x2:
+            case 0x3:
+              instruction_type = SDT;
+              decodeSdt(instructionPtr, word);
+              break;
             case 0x5:
                 instruction_type = BRN;
                 decodeBrn(instructionPtr, word);
                 break;
-            default:
-                instruction_type = SDT;
-                decodeSdt(instructionPtr, word);
+            default: //Shouldn't be default makes errors really difficult to debug
+                assert(false); //TODO: Add error code
                 break;
         }
     }
