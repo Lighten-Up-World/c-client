@@ -240,8 +240,9 @@ void executeMUL(state_t *state, mul_instruction_t instr) {
  */
 void executeBRN(state_t *state, brn_instruction_t instr){
   word_t pc = getPC(state);
-  //Shift offset left by 2 bits and implicitly sign extend to 32 bits
-  word_t shiftedOffset = lShiftLeft(instr.offset, 0x2);
+  //Shift offset left by 2 bits
+  word_t shiftedOffset =  lShiftLeft(instr.offset, 0x2);
+  shiftedOffset |= 0x0; // sign extend to 32 bits
   //Assume that the offset takes into account the knowledge that the PC is
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + shiftedOffset);
