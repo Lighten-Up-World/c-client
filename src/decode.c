@@ -155,8 +155,22 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
   instructionPtr->i.sdt = sdt;
 }
 
-//// BRN ////
+/*
+ *  Decode Branch Instruction
+ *
+ *  @param - instruction_t* instructionPtr is the pointer to the instruction
+ *  @param - word_t word is the binary instruction
+ *  @return - void, changes made to the instruction pointed to by i
+ */
+void decodeBrn(instruction_t *instructionPtr, word_t word) {
+  brn_instruction_t brn;
 
+  brn.pad5 = 0b101;
+  brn.pad0 = 0b0;
+  brn.offset = getBits(word, 23, 0);
+
+  instructionPtr->i.brn = brn;
+}
 
 //// HAL ////
 
@@ -216,7 +230,7 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
                 break;
             case 0x5:
                 instruction_type = BRN;
-                //decodeBrn(instructionPtr, word);
+                decodeBrn(instructionPtr, word);
                 break;
             default:
                 instruction_type = SDT;
