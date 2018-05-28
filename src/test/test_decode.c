@@ -3,38 +3,38 @@
 #include "../bitops.c"
 
 void compareInstructions(instruction_t e, instruction_t d){
-  TEST_ASSERT_EQUAL(e.type, d.type);
-  TEST_ASSERT_EQUAL(e.cond, d.cond);
+  TEST_ASSERT_EQUAL_MESSAGE(e.type, d.type, "Instr Type");
+  TEST_ASSERT_EQUAL_MESSAGE(e.cond, d.cond, "Condition");
   if(e.type == DP){
     dp_instruction_t edp = e.i.dp;
     dp_instruction_t ddp = d.i.dp;
-    TEST_ASSERT_EQUAL(edp.padding, ddp.padding);
-    TEST_ASSERT_EQUAL(edp.I, ddp.I);
-    TEST_ASSERT_EQUAL(edp.opcode, ddp.opcode);
-    TEST_ASSERT_EQUAL(edp.S, ddp.S);
-    TEST_ASSERT_EQUAL(edp.rn, ddp.rn);
-    TEST_ASSERT_EQUAL(edp.rd, ddp.rd);
+    TEST_ASSERT_EQUAL_MESSAGE(edp.padding, ddp.padding, "Padding");
+    TEST_ASSERT_EQUAL_MESSAGE(edp.I, ddp.I, "I flag");
+    TEST_ASSERT_EQUAL_MESSAGE(edp.opcode, ddp.opcode, "Opcode");
+    TEST_ASSERT_EQUAL_MESSAGE(edp.S, ddp.S, "S flag");
+    TEST_ASSERT_EQUAL_MESSAGE(edp.rn, ddp.rn, "Rn");
+    TEST_ASSERT_EQUAL_MESSAGE(edp.rd, ddp.rd, "Rd");
     if(edp.I){
       op_immediate_t eimm = edp.operand2.imm;
       op_immediate_t dimm = ddp.operand2.imm;
-      TEST_ASSERT_EQUAL(eimm.rotated.rotate, dimm.rotated.rotate);
-      TEST_ASSERT_EQUAL(eimm.rotated.value, dimm.rotated.value);
+      TEST_ASSERT_EQUAL_MESSAGE(eimm.rotated.rotate, dimm.rotated.rotate, "Rotated:R");
+      TEST_ASSERT_EQUAL_MESSAGE(eimm.rotated.value, dimm.rotated.value, "Rotated:Value");
     }
     else {
       op_shiftreg_t ereg = edp.operand2.reg;
       op_shiftreg_t dreg = ddp.operand2.reg;
-      TEST_ASSERT_EQUAL(ereg.type, dreg.type);
-      TEST_ASSERT_EQUAL(ereg.shiftBy, dreg.shiftBy);
-      TEST_ASSERT_EQUAL(ereg.rm, dreg.rm);
+      TEST_ASSERT_EQUAL_MESSAGE(ereg.type, dreg.type, "Reg Type");
+      TEST_ASSERT_EQUAL_MESSAGE(ereg.shiftBy, dreg.shiftBy, "ShiftBy");
+      TEST_ASSERT_EQUAL_MESSAGE(ereg.rm, dreg.rm, "Rm");
       if(ereg.shiftBy){
-        TEST_ASSERT_EQUAL(ereg.shift.shiftreg.rs,
-          dreg.shift.shiftreg.rs);
-        TEST_ASSERT_EQUAL(ereg.shift.shiftreg.zeroPad,
-          dreg.shift.shiftreg.zeroPad);
+        TEST_ASSERT_EQUAL_MESSAGE(ereg.shift.shiftreg.rs,
+          dreg.shift.shiftreg.rs, "Rs");
+        TEST_ASSERT_EQUAL_MESSAGE(ereg.shift.shiftreg.zeroPad,
+          dreg.shift.shiftreg.zeroPad, "zeroPad");
       }
       else {
-        TEST_ASSERT_EQUAL(ereg.shift.constant.integer,
-          dreg.shift.constant.integer);
+        TEST_ASSERT_EQUAL_MESSAGE(ereg.shift.constant.integer,
+          dreg.shift.constant.integer, "Integer");
       }
     }
 
@@ -42,58 +42,57 @@ void compareInstructions(instruction_t e, instruction_t d){
   if(e.type == SDT){
     sdt_instruction_t esdt = e.i.sdt;
     sdt_instruction_t dsdt = d.i.sdt;
-    TEST_ASSERT_EQUAL(esdt.pad1, dsdt.pad1);
-    TEST_ASSERT_EQUAL(esdt.I, dsdt.I);
-    TEST_ASSERT_EQUAL(esdt.P, dsdt.P);
-    TEST_ASSERT_EQUAL(esdt.U, dsdt.U);
-    TEST_ASSERT_EQUAL(esdt.pad0, dsdt.pad0);
-    TEST_ASSERT_EQUAL(esdt.L, dsdt.L);
-    TEST_ASSERT_EQUAL(esdt.rn, dsdt.rn);
-    TEST_ASSERT_EQUAL(esdt.rd, dsdt.rd);
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.pad1, dsdt.pad1, "pad1");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.I, dsdt.I, "I");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.P, dsdt.P, "P");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.U, dsdt.U, "U");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.pad0, dsdt.pad0, "pad0");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.L, dsdt.L, "L");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.rn, dsdt.rn, "Rn");
+    TEST_ASSERT_EQUAL_MESSAGE(esdt.rd, dsdt.rd, "Rd");
     if(esdt.I){
       op_shiftreg_t ereg = esdt.offset.reg;
       op_shiftreg_t dreg = dsdt.offset.reg;
-      TEST_ASSERT_EQUAL(ereg.type, dreg.type);
-      TEST_ASSERT_EQUAL(ereg.shiftBy, dreg.shiftBy);
-      TEST_ASSERT_EQUAL(ereg.rm, dreg.rm);
+      TEST_ASSERT_EQUAL_MESSAGE(ereg.type, dreg.type, "Reg Type");
+      TEST_ASSERT_EQUAL_MESSAGE(ereg.shiftBy, dreg.shiftBy, "ShiftBy");
+      TEST_ASSERT_EQUAL_MESSAGE(ereg.rm, dreg.rm, "Rm");
       if(ereg.shiftBy){
-        TEST_ASSERT_EQUAL(ereg.shift.shiftreg.rs,
-          dreg.shift.shiftreg.rs);
-        TEST_ASSERT_EQUAL(ereg.shift.shiftreg.zeroPad,
-          dreg.shift.shiftreg.zeroPad);
+        TEST_ASSERT_EQUAL_MESSAGE(ereg.shift.shiftreg.rs,
+          dreg.shift.shiftreg.rs, "Rs");
+        TEST_ASSERT_EQUAL_MESSAGE(ereg.shift.shiftreg.zeroPad,
+          dreg.shift.shiftreg.zeroPad, "Zero Pad");
       }
       else {
-        TEST_ASSERT_EQUAL(ereg.shift.constant.integer,
-          dreg.shift.constant.integer);
+        TEST_ASSERT_EQUAL_MESSAGE(ereg.shift.constant.integer,
+          dreg.shift.constant.integer, "Integer");
       }
     }
     else {
       op_immediate_t eimm = esdt.offset.imm;
       op_immediate_t dimm = dsdt.offset.imm;
-      TEST_ASSERT_EQUAL(eimm.fixed, dimm.fixed);
+      TEST_ASSERT_EQUAL_MESSAGE(eimm.fixed, dimm.fixed, "Fixed");
     }
   }
   if(e.type == MUL){
     mul_instruction_t emul = e.i.mul;
     mul_instruction_t dmul = d.i.mul;
-    TEST_ASSERT_EQUAL(emul.pad0, dmul.pad0);
-    TEST_ASSERT_EQUAL(emul.A, dmul.A);
-    TEST_ASSERT_EQUAL(emul.S, dmul.S);
-    TEST_ASSERT_EQUAL(emul.rd, dmul.rd);
-    TEST_ASSERT_EQUAL(emul.rn, dmul.rn);
-    TEST_ASSERT_EQUAL(emul.rs, dmul.rs);
-    TEST_ASSERT_EQUAL(emul.pad9, dmul.pad9);
-    TEST_ASSERT_EQUAL(emul.rm, dmul.rm);
+    TEST_ASSERT_EQUAL_MESSAGE(emul.pad0, dmul.pad0, "pad0");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.A, dmul.A, "A");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.S, dmul.S, "S");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.rd, dmul.rd, "Rd");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.rn, dmul.rn, "Rn");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.rs, dmul.rs, "Rs");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.pad9, dmul.pad9, "pad9");
+    TEST_ASSERT_EQUAL_MESSAGE(emul.rm, dmul.rm, "Rm");
   }
   if(e.type == BRN){
     brn_instruction_t ebrn = e.i.brn;
     brn_instruction_t dbrn = d.i.brn;
-    TEST_ASSERT_EQUAL(ebrn.pad5, dbrn.pad5);
-    TEST_ASSERT_EQUAL(ebrn.pad0, dbrn.pad0);
-    TEST_ASSERT_EQUAL(ebrn.offset, dbrn.offset);
+    TEST_ASSERT_EQUAL_MESSAGE(ebrn.padA, dbrn.padA, "padA");
+    TEST_ASSERT_EQUAL_MESSAGE(ebrn.offset, dbrn.offset, "offset");
   }
   if(e.type == HAL){
-    TEST_ASSERT_EQUAL(e.i.hal.pad0, d.i.hal.pad0);
+    TEST_ASSERT_EQUAL_MESSAGE(e.i.hal.pad0, d.i.hal.pad0, "pad0");
   }
 }
 
