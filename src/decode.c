@@ -89,7 +89,7 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
 }
 
 /*
- *  Decode Single Data transfer Instruction
+ *  Decode Branch Instruction
  *
  *  @param - instruction_t* instructionPtr is the pointer to the instruction
  *  @param - word_t word is the binary instruction
