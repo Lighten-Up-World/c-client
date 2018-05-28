@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "execute.h"
 #include "bitops.h"
 #include "register.h"
@@ -8,12 +9,12 @@
 #include "arm.h"
 
 /**
-* Checks if the condition on the decoded instruction is met using the current
+* Check if the condition on the decoded instruction is met using the current
 * state of the flags register (CPSR).
 *
-* @param state: The current VM state
+* @param state: Pointer to the current VM state
 * @param cond: The condition extracted from the instructionn
-* @returns 1 when condition is met, 0 if not.
+* @return 1 when condition is met, 0 if not.
 */
 int condition(state_t *state, byte_t cond){
   byte_t flags = getNibble(state->registers.cpsr, sizeof(word_t));
@@ -108,6 +109,7 @@ shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op){
 *
 */
 void execute(state_t *state){
+  assert(state != NULL);
   instruction_t *decoded = state->pipeline.decoded;
   if(decoded->type == HAL){
     executeHAL(state);
@@ -195,8 +197,20 @@ void executeDP(state_t *state, dp_instruction_t instr){
 void executeMUL(state_t *state, mul_instruction_t instr){
   return;
 }
+
+/**
+ *  Execute a branch instruction
+ *
+ * @param state - pointer to the program state
+ * @param instr - the branch instruction to execute
+ */
 void executeBRN(state_t *state, brn_instruction_t instr){
-  return;
+  word_t pc = getPC(state);
+  //Shift offset left by 2 bits and implicitly sign extend to 32 bits
+  word_t shiftedOffset = lShiftLeft(instr.offset, 0x2);
+  //Assume that the offset takes into account the knowledge that the PC is
+  // 8 bytes ahead of the instruction being executed.
+  setPC(state, pc + shiftedOffset);
 }
 void executeSDT(state_t *state, sdt_instruction_t instr){
   shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
@@ -235,6 +249,11 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
   }
 }
 
+/**
+ * Execute halt instruction
+ *
+ * @param state
+ */
 void executeHAL(state_t *state){
   printState(state);
 }
