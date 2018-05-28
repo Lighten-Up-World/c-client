@@ -207,6 +207,7 @@ flag_t isNegative(word_t word){
 word_t negate(word_t word){
   return (~word) + 1;
 }
+
 /*
  *  Pad out a byte value to a word value, with zeros
  *
