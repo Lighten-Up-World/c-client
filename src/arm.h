@@ -1,7 +1,7 @@
 /*
-* Breakdown ARM format into internal representation for state and registers
-* using data structures and constants
-*/
+ *  Breakdown ARM format into internal representation for state and registers
+ *  using data structures and constants.
+ */
 
 #ifndef ARM_H
 #define ARM_H
