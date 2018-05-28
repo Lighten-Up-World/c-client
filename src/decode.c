@@ -50,13 +50,12 @@ void decodeShiftedReg(operand_t* opPtr, word_t word) {
  */
 operand_t decodeOperand(flag_t I, word_t word){
   operand_t op;
-  operand_t* opPtr = &op;
   if(I){ //Immediate
     op.imm = (op_immediate_t){.rotated.rotate = getNibble(word, OP_START),
         .rotated.value = getByte(word, OP_IMM_START)};
   }
   else { //Register
-    decodeShiftedReg(opPtr, word);
+    decodeShiftedReg(&op, word);
   }
   return op;
 }
@@ -71,9 +70,8 @@ operand_t decodeOperand(flag_t I, word_t word){
 
 operand_t decodeOffset(flag_t I, word_t word){
   operand_t op;
-  operand_t* opPtr = &op;
   if(I){ //Register
-    decodeShiftedReg(opPtr, word);
+    decodeShiftedReg(&op, word);
   }
   else { //Immediate
     op.imm.fixed = getBits(word, OP_START,0);
@@ -96,7 +94,6 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
   assert(instructionPtr != NULL);
 
   dp_instruction_t dp; // create dp instruction
-  dp_instruction_t* dpPtr = &dp; // create pointer to dp instruction
 
   dp.padding = 0x0;
   dp.I = getFlag(word, I_FLAG);
