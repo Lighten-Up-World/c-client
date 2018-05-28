@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "execute.h"
 #include "bitops.h"
 #include "register.h"
@@ -49,7 +48,6 @@ int condition(state_t *state, byte_t cond){
  * @param - operand_t op is the operand/offset from evaluateOperand or from evaluateOffset
  * @param - shift_result_t *result is the pointer to the result, so that changes can be made directly to it.
  */
-
 void evaluateShiftedReg(state_t *state, operand_t op, shift_result_t *result){
   word_t rm = getRegister(state, op.reg.rm);
   byte_t shiftAmount = 0;
@@ -82,7 +80,6 @@ void evaluateShiftedReg(state_t *state, operand_t op, shift_result_t *result){
  *
  * @param - state_t *state is pointer to the
  */
-
 shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
@@ -105,11 +102,12 @@ shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op){
   }
   return result;
 }
+
 /**
+* Executes the current decoded instruction
 *
 */
 void execute(state_t *state){
-  assert(state != NULL);
   instruction_t *decoded = state->pipeline.decoded;
   if(decoded->type == HAL){
     executeHAL(state);
@@ -194,8 +192,44 @@ void executeDP(state_t *state, dp_instruction_t instr){
     setRegister(state, instr.rd, result);
   }
 }
-void executeMUL(state_t *state, mul_instruction_t instr){
-  return;
+
+void executeMUL(state_t *state, mul_instruction_t instr) {
+  // Cast the operands to 64 bit since this is the max result of A * B where A, B are 32 bit
+  uint64_t Rm = getRegister(state, instr.rm);
+  uint64_t Rs = getRegister(state, instr.rs);
+  uint64_t Rn = getRegister(state, instr.rn);
+
+  uint64_t res;
+  if (instr.A) {
+    res = Rm * Rs + Rn;
+  } else {
+    res = Rm * Rs;
+  }
+
+  // Mask to get only lower 32 bits of Rd, signed/unsigned does not affect these
+  uint64_t mask = ~(UINT64_MAX - UINT32_MAX);
+  uint32_t Rd = (u_int32_t) (res & mask);
+
+  // Set flag bits
+  if (instr.S) {
+    byte_t flags = getFlags(state);
+
+    // Set N flag
+    byte_t N = (byte_t) getBits(Rd, 31, 31);
+    flags |= (N << (uint8_t) 3);
+
+    // Set Z flag
+    byte_t Z = 0;
+    if (Rd == 0) {
+      Z = 1;
+    }
+    flags |= (Z << (uint8_t) 2);
+
+    setFlags(state, flags);
+  }
+
+  // Store result in Rd
+  setRegister(state, instr.rd, Rd);
 }
 
 /**
@@ -212,6 +246,7 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + shiftedOffset);
 }
+
 void executeSDT(state_t *state, sdt_instruction_t instr){
   shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
