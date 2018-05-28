@@ -124,8 +124,7 @@ typedef struct {
 //|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
 //|           -OFFSET                             |//
 typedef struct {
-  byte_t pad5 : 3; // == 101
-  byte_t pad0 : 1; // == 00
+  byte_t padA : 4; // == 1010
   word_t offset : 24;
 } brn_instruction_t;
 
