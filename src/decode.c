@@ -214,12 +214,12 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
         switch (selectionBits) {
             case 0x0:
                 pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
-                if (pad9 ^ 0x9) {
-                    instruction_type = DP;
-                    decodeDp(instructionPtr, word);
+                if (!(pad9 ^ 0x9)) {
+                  instruction_type = MUL;
+                  decodeMul(instructionPtr, word);
                 } else {
-                    instruction_type = MUL;
-                    decodeMul(instructionPtr, word);
+                  instruction_type = DP;
+                  decodeDp(instructionPtr, word);
                 }
                 break;
             case 0x1:
