@@ -5,8 +5,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-//// DP ////
-
 /**
  * The functions below are all used to decode the data processing
  * instructions. Since there are many aspects to an instruction of this type
@@ -165,8 +163,7 @@ void decodeSdt(instruction_t *instructionPtr, word_t word){
 void decodeBrn(instruction_t *instructionPtr, word_t word) {
   brn_instruction_t brn;
 
-  brn.pad5 = 0b101;
-  brn.pad0 = 0b0;
+  brn.padA = 0xA;
   brn.offset = getBits(word, 23, 0);
 
   instructionPtr->i.brn = brn;
@@ -210,7 +207,8 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
     if (word == 0x0){
         instruction_type = HAL;
         decodeHalt(instructionPtr, word);
-    }else {
+    }
+    else {
         word_t selectionBits = getBits(word, INSTR_TYPE_START, INSTR_TYPE_END);
         word_t pad9;
         switch (selectionBits) {
