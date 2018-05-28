@@ -99,10 +99,10 @@ void decodeBrn(instruction_t *instructionPtr, word_t word) {
   brn_instruction_t brn;
 
   brn.pad5 = 0b101;
-  brn.pad0 = 0b0;                     // in instructions.h this is 00?
-  brn.offset = getBits(word, 23, 0);  //this is a signed offset but I guess we can still store as an unsigned word
+  brn.pad0 = 0b0;
+  brn.offset = getBits(word, 23, 0);
 
-  instructionPtr -> i.brn = brn;
+  instructionPtr->i.brn = brn;
 }
 
 //// HAL ////
