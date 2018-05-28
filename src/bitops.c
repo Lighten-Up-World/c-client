@@ -1,3 +1,8 @@
+/*
+ *  All bit operations that may be needed can be found in here.
+ *  This includes register shift operations, masking, and negating.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
