@@ -1,0 +1,13 @@
+before_script:
+  - ruby -v
+  - which ruby
+
+unit_test:
+  script:
+    - cd src/test/
+    - make
+
+test:
+  script:
+    - cd test/
+    - ruby ./testserver.rb test_cases
