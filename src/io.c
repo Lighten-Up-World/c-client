@@ -11,7 +11,7 @@
 /**
  *  Read a 32 bit word from memory
  *
- *  @param state: a pointer to the state of the ARM machine
+ *  @param state: a non-null pointer to the machine state
  *  @param byteAddr: the byte address to read from
  *  @return a word from memory at the given byte address
  */
@@ -29,7 +29,7 @@ word_t getMemWord(state_t* state, int byteAddr) {
 /**
  *  Write a word at a specified byte address in memory
  *
- *  @param state: a pointer to the state of the ARM machine
+ *  @param state: a non-null pointer to the machine state
  *  @param byteAddr: the byte address to be written into
  *  @param word: the word to write into memory
  *  @return: return 0 iff success
@@ -45,7 +45,7 @@ int setMemWord(state_t* state, int byteAddr, word_t word){
 /**
  *  Print the values stored in a specified register
  *
- *  @param state: a pointer to the state of the ARM machine.
+ *  @param state: a non-null pointer to the machine state
  *  @param reg: the address of the register to print
  *  @return void
  */
@@ -71,7 +71,7 @@ void printReg(state_t* state, reg_address_t reg) {
  *  Print the values stored in memory
  *  Continue until the word value is 0 or we run out of memory
  *
- *  @param state: a pointer to the state of the ARM machine
+ *  @param state: a non-null pointer to the machine state
  *  @return void
  */
 void printMem(state_t *state) {
