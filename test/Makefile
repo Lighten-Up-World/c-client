@@ -1,2 +1,4 @@
+.PHONY: test
+
 test:
-	sudo ruby ./testserver.rb ./test_cases
+	sudo ruby ./testserver.rb ../src/build/
