@@ -15,8 +15,8 @@ class TestSuite
     @test_cases_path       = File.absolute_path(test_cases_path)
     @emulate_assemble_path = File.absolute_path(emulate_assemble_path)
 
-    @emulate  = File.absolute_path(File.join(emulate_assemble_path,"emulate"))
-    @assemble = File.absolute_path(File.join(emulate_assemble_path,"assemble"))
+    @emulate  = File.absolute_path(File.join(emulate_assemble_path,"emulate.out"))
+    @assemble = File.absolute_path(File.join(emulate_assemble_path,"assemble.out"))
 
     sources
 
