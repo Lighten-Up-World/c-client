@@ -8,12 +8,12 @@
 #include "arm.h"
 
 /**
-* Checks if the condition on the decoded instruction is met using the current
+* Check if the condition on the decoded instruction is met using the current
 * state of the flags register (CPSR).
 *
-* @param state: The current VM state
+* @param state: Pointer to the current VM state
 * @param cond: The condition extracted from the instructionn
-* @returns 1 when condition is met, 0 if not.
+* @return 1 when condition is met, 0 if not.
 */
 int condition(state_t *state, byte_t cond){
   byte_t flags = getNibble(state->registers.cpsr, sizeof(word_t));
@@ -104,6 +104,7 @@ shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op){
 }
 
 /**
+* Executes the current decoded instruction
 *
 */
 void execute(state_t *state){
@@ -231,8 +232,22 @@ void executeMUL(state_t *state, mul_instruction_t instr) {
   setRegister(state, instr.rd, Rd);
 }
 
+/**
+ *  Execute a branch instruction
+ *
+ * @param state - pointer to the program state
+ * @param instr - the branch instruction to execute
+ */
 void executeBRN(state_t *state, brn_instruction_t instr){
-  return;
+  word_t pc = getPC(state);
+  //Shift offset left by 2 bits
+  word_t shiftedOffset =  lShiftLeft(instr.offset, 0x2);
+  //Sign extend offset to 32 bits
+  shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
+  //Assume that the offset takes into account the knowledge that the PC is
+  // 8 bytes ahead of the instruction being executed.
+  setPC(state, pc + (int32_t) shiftedOffset);
+  //not sure If this works, will find out.
 }
 
 void executeSDT(state_t *state, sdt_instruction_t instr){
@@ -272,6 +287,11 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
   }
 }
 
+/**
+ * Execute halt instruction
+ *
+ * @param state
+ */
 void executeHAL(state_t *state){
   printState(state);
 }

@@ -3,6 +3,8 @@
 
 #include "arm.h"
 
+#define OFFSET_BITMASK 0xFF000000
+
 int condition(state_t *state, byte_t cond);
 
 void execute(state_t *state);
