@@ -10,7 +10,7 @@ BUILD = ./build/
 
 CFLAGS = -Wall -Werror -pedantic
 DEBUG = -DDEBUG
-COMPILE = gcc -c $(DEBUG) $(CFLAGS) $< -o $@
+COMPILE = gcc -c $(CFLAGS) $< -o $@
 
 emulate: /build/emulate.out
 	$(BUILD)emulate.out ../test/test_cases/add01

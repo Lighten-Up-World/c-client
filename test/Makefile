@@ -1,5 +1,5 @@
 server:
-	ruby ./testserver_macOS.rb ../src/build/
+	ruby ./testserver.rb ../src/build/
 
 init:
-	sudo ruby ./testserver_macOS.rb ../src/build/
+	sudo ruby ./testserver.rb ../src/build/

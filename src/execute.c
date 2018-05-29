@@ -84,10 +84,10 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
     result.value = leftPadZeros(op.imm.rotated.value);
-    //DEBUG_PRINT("\tval: %08x\n", op.imm.rotated.value);
+    DEBUG_PRINT("\tval: %08x\n", op.imm.rotated.value);
     result.value = rotateRight(result.value, op.imm.rotated.rotate * 2);
-    //DEBUG_PRINT("\trotate: %08x\n", op.imm.rotated.rotate);
-    //DEBUG_PRINT("\tresult: %08x\n", result.value);
+    DEBUG_PRINT("\trotate: %08x\n", op.imm.rotated.rotate);
+    DEBUG_PRINT("\tresult: %08x\n", result.value);
   }
   else{//register value
     evaluateShiftedReg(state, op, &result);
@@ -116,21 +116,24 @@ void execute(state_t *state){
     executeHAL(state);
     return;
   }
-  //DEBUG_PRINT("Flags: %04x:\n", getFlags(state));
-  //DEBUG_PRINT("Condition Result: %01x:\n", condition(state, decoded->cond));
+  DEBUG_PRINT("Flags: %04x:\n\t", getFlags(state));
+  DEBUG_PRINT("Execute?: %01x:\n\t", condition(state, decoded->cond));
   if(condition(state, decoded->cond)){
-    //DEBUG_PRINT("Type: %04x\n", decoded->type);
     switch(decoded->type){
       case DP:
+        DEBUG_PRINT("DP(%01x)\n\t\t", DP);
         executeDP(state, decoded->i.dp);
         break;
       case MUL:
+        DEBUG_PRINT("MUL(%01x)\n\t\t", MUL);
         executeMUL(state, decoded->i.mul);
         break;
       case SDT:
+        DEBUG_PRINT("SDT(%01x)\n\t\t", SDT);
         executeSDT(state, decoded->i.sdt);
         break;
       case BRN:
+        DEBUG_PRINT("BRN(%01x)\n\t\t", BRN);
         executeBRN(state, decoded->i.brn);
         break;
       default:
@@ -171,8 +174,8 @@ void executeDP(state_t *state, dp_instruction_t instr){
       result = op2;
       break;
   }
-  //DEBUG_PRINT("S: %01x\n", instr.S);
-  //DEBUG_PRINT("Result: %08x\n", result);
+  DEBUG_PRINT("S: %01x\n", instr.S);
+  DEBUG_PRINT("Result: %08x\n", result);
   if(instr.S){
     byte_t flags = 0x0;
     switch(instr.opcode){
@@ -194,10 +197,10 @@ void executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
-    //DEBUG_PRINT("Flags were: %04x\n", getFlags(state));
-    //DEBUG_PRINT("Flags are: %04x\n", flags);
+    DEBUG_PRINT("Flags were: %04x\n", getFlags(state));
+    DEBUG_PRINT("Flags are: %04x\n", flags);
     setFlags(state, flags);
-    //DEBUG_PRINT("CPSR Updated: %04x\n", getFlags(state));
+    DEBUG_PRINT("CPSR Updated: %04x\n", getFlags(state));
   }
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);
@@ -269,7 +272,9 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
   word_t offset = barrel.value;
   word_t rn = getRegister(state, instr.rn);
   word_t data;
-
+  DEBUG_PRINT("Offset: 0x%08x\n\t\t", offset);
+  DEBUG_PRINT("rn: 0x%08x\n\t\t", rn);
+  DEBUG_PRINT("P = %01x\n\t\t", instr.P);
   if (instr.P){ //Pre-indexing
 
     if (instr.U){ //Add offset
@@ -277,23 +282,34 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     }else{  //Subtract offset
       rn -= offset;
     }
-
+    DEBUG_PRINT("rn+-offset: 0x%08x\n\t\t", rn);
     if (instr.L){ //Load from memory at address rn into reg rd.
       if(!getMemWord(state, rn, &data)){
         setRegister(state, instr.rd, data);
       }
+      DEBUG_PRINT("MEM[rn(%u)] -> R[rd(%u)]\n\t\t", rn, instr.rd);
+      word_t word;
+      getMemWord(state, rn, &word);
+      DEBUG_PRINT("r[rd(%u)] = 0x%08x\n", instr.rd, word);
     }else{ //Store contents of reg rd in memory at address rn.
+      DEBUG_PRINT("R[rd(%u)] -> MEM[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));
+      DEBUG_PRINT("MEM[%04x] = 0x%08x\n", rn, getRegister(state, instr.rd));
     }
 
   }else{ //Post-indexing
-
     if (instr.L){ //Load from memory at address rn into reg rd.
       if (!getMemWord(state, rn, &data)){
         setRegister(state, instr.rd, data);
       }
+      DEBUG_PRINT("MEM[rn(%u)] -> rd(%u)\n\t\t", rn, instr.rd);
+      word_t word;
+      getMemWord(state, rn, &word);
+      DEBUG_PRINT("rd(%u) = 0x%08x\n", instr.rd, word);
     }else{ //Store contents of reg rd in memory at address rn.
+      DEBUG_PRINT("rd(%u) -> MEN[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));
+      DEBUG_PRINT("MEN[%04x] = rn(0x%08x)\n", getRegister(state, instr.rd), rn);
     }
     if (instr.U){ //Add offset
       rn += offset;
@@ -301,6 +317,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
       rn -= offset;
     }
     //Change contents of reg rn (the base register)
+    DEBUG_PRINT("rn+-offset(0x%08x) -> rn(%04x)\n", rn, instr.rn);
     setRegister(state, instr.rn, rn);
   }
 }

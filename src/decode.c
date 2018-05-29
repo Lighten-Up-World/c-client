@@ -245,9 +245,9 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
  */
 instruction_t decodeWord(word_t word){
     instruction_t instruction;
-    //DEBUG_PRINT("\nWord: %08x\n", word);
+    DEBUG_PRINT("\nWord: %08x\n", word);
     instruction.cond = getNibble(word, COND_START);
-    //DEBUG_PRINT("Word: %01x\n", instruction.cond);
+    DEBUG_PRINT("Word: %01x\n", instruction.cond);
     decodeInstructionType(&instruction, word);
 
     return instruction;

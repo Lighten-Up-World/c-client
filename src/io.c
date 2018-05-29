@@ -10,7 +10,7 @@
 
 int checkAddressValid(word_t addr) {
   if (addr > MEM_SIZE) {
-    printf("Error: Out of bounds memory access at address 0x%08x", addr);
+    printf("Error: Out of bounds memory access at address 0x%08x \n", addr);
     return 1;
   }
   return 0;
@@ -21,7 +21,8 @@ int checkAddressValid(word_t addr) {
  *
  *  @param state: a non-null pointer to the machine state
  *  @param byteAddr: the byte address to read from
- *  @return a word from memory at the given byte address
+ *  @param dest: a non-null pointer to destination of loaded word
+ *  @return an int indicating success or failure
  */
 int getMemWord(state_t* state, word_t byteAddr, word_t* dest) {
   assert(state != NULL);
@@ -41,7 +42,8 @@ int getMemWord(state_t* state, word_t byteAddr, word_t* dest) {
  *
  * @param state - pointer to the state of the ARM machine.
  * @param byteAddr - byte address to read from.
- * @return word_t word - word read from memory at byte address.
+ * @param dest: a non-null pointer to destination of loaded word
+ * @return an int indicating success or failure
  */
 int getMemWordBigEnd(state_t* state, word_t byteAddr, word_t* dest) {
   assert(state != NULL);
@@ -68,7 +70,7 @@ int setMemWord(state_t* state, word_t byteAddr, word_t word){
   assert(state != NULL);
   if (checkAddressValid(byteAddr)) { return 1; }
   for (size_t i = 1; i < 5; i++){
-    state->memory[byteAddr + i] = getByte(word, (i * 8));
+    state->memory[byteAddr + i] = getByte(word, (i * 8) - 1);
   }
   return 0;
 }
@@ -111,7 +113,7 @@ void printMem(state_t *state) {
   word_t memWord;
 
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
-    getMemWord(state, addr, &memWord);
+    getMemWordBigEnd(state, addr, &memWord);
     if (memWord == 0) { // halt when memory instr is 0.
       break;
     }
