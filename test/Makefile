@@ -1,4 +1,5 @@
-.PHONY: test
+server:
+	ruby ./testserver.rb ../src/build/
 
-test:
+init:
 	sudo ruby ./testserver.rb ../src/build/

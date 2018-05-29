@@ -1,26 +1,25 @@
-
-
-
-
 .PHONY: clean
-.PHONY: all
-.PHONY: emulate
-.PHONY: assemble
+.PHONY: emulate_production
+.PHONY: emulate_debug
+.PHONY: production
+.PHONY: debug
+
+.ONESHELL:
 
 BUILD = ./build/
 
 CFLAGS = -Wall -Werror -pedantic
+DEBUG = -DDEBUG
+COMPILE = gcc -c $(DEBUG) $(CFLAGS) $< -o $@
 
-COMPILE = gcc -c $(CFLAGS) $< -o $@
+emulate: /build/ emulate.out
+	$(BUILD)emulate.out ../test/test_cases/add01
 
-emulate: $(BUILD) emulate.out
-	./build/emulate.out ../test/test_cases/ldr02
+emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
+	gcc $(CFLAGS) $^ -o $(BUILD)emulate.out
 
 dependencies:
 	grep '#include' *.[ch] | grep '"'
-
-emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
-	gcc $(CFLAGS) $^ -o $(BUILD)$@
 
 $(BUILD)emulate.o: emulate.c arm.h io.h execute.h decode.h register.h
 	$(COMPILE)
@@ -45,6 +44,7 @@ $(BUILD)error.o: error.c error.h
 
 $(BUILD):
 	mkdir -p $(BUILD)
+
 clean:
 	rm -f $(BUILD)*.o
 	rm -f $(BUILD)*.out
