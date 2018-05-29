@@ -35,7 +35,6 @@ word_t getRegister(state_t *state, reg_address_t reg){
  *  @return void
  */
 void setRegister(state_t *state, reg_address_t reg, word_t value){
-  DEBUG_PRINT_3("Setting register %d to %08x\n", reg, value);
   if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
     state->registers.r[reg] = value;
   }

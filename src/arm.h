@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define DEBUG_PRINT_2(x, y) do {if(DEBUG){printf(x, y);}} while(0)
 

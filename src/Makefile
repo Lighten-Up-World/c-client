@@ -46,8 +46,8 @@ $(BUILD)error.o: error.c error.h
 $(BUILD):
 	mkdir -p $(BUILD)
 clean:
-	rm -f $(PATHO)*.o
-	rm -f $(PATHB)*.out
+	rm -f $(BUILD)*.o
+	rm -f $(BUILD)*.out
 
 # PATHS = ./
 
