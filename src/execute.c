@@ -244,10 +244,10 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   word_t shiftedOffset =  lShiftLeft(instr.offset, 0x2);
   //Sign extend offset to 32 bits
   shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
+  printf("%d\n", shiftedOffset);
   //Assume that the offset takes into account the knowledge that the PC is
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + (int32_t) shiftedOffset);
-  //not sure If this works, will find out.
 }
 
 void executeSDT(state_t *state, sdt_instruction_t instr){

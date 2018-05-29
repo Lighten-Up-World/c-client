@@ -97,15 +97,8 @@ void printMem(state_t *state) {
   word_t memWord;
 
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
-<<<<<<< HEAD
     memWord = getMemWordBigEnd(state, addr);
     if (memWord == 0) { // halt when memory instr is 0.
-=======
-    memWord = getMemWord(state, addr);
-
-    // Halt when word read is 0
-    if (memWord == 0) {
->>>>>>> db895549cda43060e17fa618bfcde0d30dd22e55
       break;
     }
     printf("0x%08x: 0x%08x\n", addr, memWord);
