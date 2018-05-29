@@ -288,9 +288,11 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
         setRegister(state, instr.rd, data);
       }
       DEBUG_PRINT("MEM[rn(%u)] -> R[rd(%u)]\n\t\t", rn, instr.rd);
+      /*
       word_t word;
       getMemWord(state, rn, &word);
       DEBUG_PRINT("r[rd(%u)] = 0x%08x\n", instr.rd, word);
+       */
     }else{ //Store contents of reg rd in memory at address rn.
       DEBUG_PRINT("R[rd(%u)] -> MEM[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));
@@ -303,9 +305,11 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
         setRegister(state, instr.rd, data);
       }
       DEBUG_PRINT("MEM[rn(%u)] -> rd(%u)\n\t\t", rn, instr.rd);
+      /*
       word_t word;
       getMemWord(state, rn, &word);
       DEBUG_PRINT("rd(%u) = 0x%08x\n", instr.rd, word);
+       */
     }else{ //Store contents of reg rd in memory at address rn.
       DEBUG_PRINT("rd(%u) -> MEN[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));

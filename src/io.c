@@ -10,7 +10,7 @@
 
 int checkAddressValid(word_t addr) {
   if (addr > MEM_SIZE) {
-    printf("Error: Out of bounds memory access at address 0x%08x \n", addr);
+    printf("Error: Out of bounds memory access at address 0x%08x\n", addr);
     return 1;
   }
   return 0;
