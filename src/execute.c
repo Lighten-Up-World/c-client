@@ -253,7 +253,6 @@ void executeBRN(state_t *state, brn_instruction_t instr){
 void executeSDT(state_t *state, sdt_instruction_t instr){
   shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
-  flag_t carry = barrel.carry;
   word_t rn = getRegister(state, instr.rn);
 
   if (instr.P){ //Pre-indexing
