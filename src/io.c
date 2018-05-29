@@ -24,6 +24,24 @@ word_t getMemWord(state_t* state, int byteAddr) {
 }
 
 /**
+ * Read the 32 bit word from memory and return it
+ *
+ * @param state - pointer to the state of the ARM machine.
+ * @param byteAddr - byte address to read from.
+ * @return word_t word - word read from memory at byte address.
+ */
+word_t getMemWordBigEnd(state_t* state, int byteAddr) {
+  assert(state != NULL);
+  word_t word = 0;
+
+  for (size_t i = 0; i < 4; i++){
+    word |= ((word_t) state->memory[byteAddr + 3 - i]) << (i * 8);
+  }
+
+  return word;
+}
+
+/**
  * Write a word at a specified byte address in memory
  *
  * @param state - pointer to the state of the ARM machine.
@@ -76,7 +94,7 @@ void printMem(state_t *state) {
   word_t memWord;
 
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
-    memWord = getMemWord(state, addr);
+    memWord = getMemWordBigEnd(state, addr);
     if (memWord == 0) { // halt when memory instr is 0.
       break;
     }
@@ -158,4 +176,3 @@ int readFile(const char *path, byte_t *buffer, size_t buffer_size){
   }
   return 0;
 }
-
