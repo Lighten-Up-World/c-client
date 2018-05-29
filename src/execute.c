@@ -246,7 +246,8 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
   //Assume that the offset takes into account the knowledge that the PC is
   // 8 bytes ahead of the instruction being executed.
-  setPC(state, pc + shiftedOffset);
+  setPC(state, pc + (int32_t) shiftedOffset);
+  //not sure If this works, will find out.
 }
 
 void executeSDT(state_t *state, sdt_instruction_t instr){
