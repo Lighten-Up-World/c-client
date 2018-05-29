@@ -13,8 +13,11 @@
   #define DEBUG_PRINT(fmt, ...) \
         do { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
                                 __LINE__, __func__, __VA_ARGS__); } while (0)
+  #define DEBUG_CMD(cmd) \
+        do { cmd; } while (0)
 #else
   #define DEBUG_PRINT(fmt, ...)
+  #define DEBUG_CMD(cmd)
 #endif
 // Total number of registers
 #define NUM_GENERAL_REGISTERS 13
