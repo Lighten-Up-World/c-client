@@ -45,7 +45,7 @@ typedef union {
 typedef struct {
   op_shift_t shift;
   shift_type_t type : 2;
-  flag_t shiftBy;
+  flag_t shiftBy : 1;
   reg_address_t rm : 4;
 } op_shiftreg_t;
 
