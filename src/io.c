@@ -8,6 +8,14 @@
 #include "io.h"
 #include "bitops.h"
 
+int checkAddressValid(address_t addr) {
+  if (addr > MEM_SIZE) {
+    printf("Error: Out of bounds memory access at address 0x%08x", addr);
+    return 1;
+  }
+  return 0;
+}
+
 /**
  *  Read a 32 bit word from memory
  *
@@ -15,7 +23,7 @@
  *  @param byteAddr: the byte address to read from
  *  @return a word from memory at the given byte address
  */
-word_t getMemWord(state_t* state, int byteAddr) {
+word_t getMemWord(state_t* state, address_t byteAddr) {
   assert(state != NULL);
   word_t word = 0;
 
@@ -33,7 +41,7 @@ word_t getMemWord(state_t* state, int byteAddr) {
  * @param byteAddr - byte address to read from.
  * @return word_t word - word read from memory at byte address.
  */
-word_t getMemWordBigEnd(state_t* state, int byteAddr) {
+word_t getMemWordBigEnd(state_t* state, address_t byteAddr) {
   assert(state != NULL);
   word_t word = 0;
 
@@ -52,8 +60,9 @@ word_t getMemWordBigEnd(state_t* state, int byteAddr) {
  *  @param word: the word to write into memory
  *  @return: return 0 iff success
  */
-int setMemWord(state_t* state, int byteAddr, word_t word){
+int setMemWord(state_t* state, address_t byteAddr, word_t word){
   assert(state != NULL);
+  if (checkAddressValid(byteAddr)) { return 1; }
   for (size_t i = 1; i < 5; i++){
     state->memory[byteAddr + i] = getByte(word, (i * 8));
   }
@@ -82,7 +91,8 @@ void printReg(state_t* state, reg_address_t reg) {
   else if(reg == REG_N_CPSR){
     printf("CPSR:");
   }
-  printf("%11d (0x%08x)\n", getRegister(state, reg), getRegister(state, reg));
+  printf("%.11d (0x%08x)\n", getRegister(state, reg), getRegister(state,
+                                                                    reg));
 }
 
 /**

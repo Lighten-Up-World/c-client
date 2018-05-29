@@ -4,10 +4,10 @@
 #include "arm.h"
 #include "register.h"
 
-word_t getMemWord(state_t* state, int byteAddr);
-word_t getMemWordBigEnd(state_t* state, int byteAddr);
+word_t getMemWord(state_t* state, address_t byteAddr);
+word_t getMemWordBigEnd(state_t* state, address_t byteAddr);
 
-int setMemWord(state_t* state, int byteAddr, word_t word);
+int setMemWord(state_t* state, address_t byteAddr, word_t word);
 
 void printReg(state_t* state, reg_address_t reg);
 void printMem(state_t *state);
