@@ -19,13 +19,18 @@ int main(int argc, char **argv) {
 
   //Setup Pipeline
   setPC(state, 0x8);
-  *state->pipeline.decoded = decodeWord(getMemWord(state, 0));
-  state->pipeline.fetched = getMemWord(state, 0x4);
+  word_t toDecode;
+  getMemWord(state, 0, &toDecode);
+  *state->pipeline.decoded = decodeWord(toDecode);
+  word_t fetched;
+  getMemWord(state, 0x4, &fetched);
+  state->pipeline.fetched = fetched;
 
   while(state->pipeline.decoded->type != HAL){
     execute(state);
     *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
-    state->pipeline.fetched = getMemWord(state, getPC(state));
+    getMemWord(state, getPC(state), &fetched);
+    state->pipeline.fetched = fetched;
     incrementPC(state);
   }
   execute(state); // Execute HAL instruction

@@ -8,7 +8,7 @@
 #include "io.h"
 #include "bitops.h"
 
-int checkAddressValid(address_t addr) {
+int checkAddressValid(word_t addr) {
   if (addr > MEM_SIZE) {
     printf("Error: Out of bounds memory access at address 0x%08x", addr);
     return 1;
@@ -23,15 +23,17 @@ int checkAddressValid(address_t addr) {
  *  @param byteAddr: the byte address to read from
  *  @return a word from memory at the given byte address
  */
-word_t getMemWord(state_t* state, address_t byteAddr) {
+int getMemWord(state_t* state, word_t byteAddr, word_t* dest) {
   assert(state != NULL);
   word_t word = 0;
-
+  if (checkAddressValid(byteAddr)){
+    return 1;
+  }
   for (size_t i = 0; i < 4; i++){
     word |= ((word_t) state->memory[byteAddr + i]) << (i * 8);
   }
-
-  return word;
+  *dest = word;
+  return 0;
 }
 
 /**
@@ -41,15 +43,17 @@ word_t getMemWord(state_t* state, address_t byteAddr) {
  * @param byteAddr - byte address to read from.
  * @return word_t word - word read from memory at byte address.
  */
-word_t getMemWordBigEnd(state_t* state, address_t byteAddr) {
+int getMemWordBigEnd(state_t* state, word_t byteAddr, word_t* dest) {
   assert(state != NULL);
   word_t word = 0;
-
+  if (checkAddressValid(byteAddr)){
+    return 1;
+  }
   for (size_t i = 0; i < 4; i++){
     word |= ((word_t) state->memory[byteAddr + 3 - i]) << (i * 8);
   }
-
-  return word;
+  *dest = word;
+  return 0;
 }
 
 /**
@@ -60,7 +64,7 @@ word_t getMemWordBigEnd(state_t* state, address_t byteAddr) {
  *  @param word: the word to write into memory
  *  @return: return 0 iff success
  */
-int setMemWord(state_t* state, address_t byteAddr, word_t word){
+int setMemWord(state_t* state, word_t byteAddr, word_t word){
   assert(state != NULL);
   if (checkAddressValid(byteAddr)) { return 1; }
   for (size_t i = 1; i < 5; i++){
@@ -91,7 +95,7 @@ void printReg(state_t* state, reg_address_t reg) {
   else if(reg == REG_N_CPSR){
     printf("CPSR:");
   }
-  printf("%.11d (0x%08x)\n", getRegister(state, reg), getRegister(state,
+  printf("%11d (0x%08x)\n", getRegister(state, reg), getRegister(state,
                                                                     reg));
 }
 
@@ -107,7 +111,7 @@ void printMem(state_t *state) {
   word_t memWord;
 
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
-    memWord = getMemWordBigEnd(state, addr);
+    getMemWord(state, addr, &memWord);
     if (memWord == 0) { // halt when memory instr is 0.
       break;
     }

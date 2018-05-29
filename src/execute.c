@@ -84,10 +84,10 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
     result.value = leftPadZeros(op.imm.rotated.value);
-    DEBUG_PRINT("\tval: %08x\n", op.imm.rotated.value);
+    //DEBUG_PRINT("\tval: %08x\n", op.imm.rotated.value);
     result.value = rotateRight(result.value, op.imm.rotated.rotate * 2);
-    DEBUG_PRINT("\trotate: %08x\n", op.imm.rotated.rotate);
-    DEBUG_PRINT("\tresult: %08x\n", result.value);
+    //DEBUG_PRINT("\trotate: %08x\n", op.imm.rotated.rotate);
+    //DEBUG_PRINT("\tresult: %08x\n", result.value);
   }
   else{//register value
     evaluateShiftedReg(state, op, &result);
@@ -116,10 +116,10 @@ void execute(state_t *state){
     executeHAL(state);
     return;
   }
-  DEBUG_PRINT("Flags: %04x:\n", getFlags(state));
-  DEBUG_PRINT("Condition Result: %01x:\n", condition(state, decoded->cond));
+  //DEBUG_PRINT("Flags: %04x:\n", getFlags(state));
+  //DEBUG_PRINT("Condition Result: %01x:\n", condition(state, decoded->cond));
   if(condition(state, decoded->cond)){
-    DEBUG_PRINT("Type: %04x\n", decoded->type);
+    //DEBUG_PRINT("Type: %04x\n", decoded->type);
     switch(decoded->type){
       case DP:
         executeDP(state, decoded->i.dp);
@@ -171,8 +171,8 @@ void executeDP(state_t *state, dp_instruction_t instr){
       result = op2;
       break;
   }
-  DEBUG_PRINT("S: %01x\n", instr.S);
-  DEBUG_PRINT("Result: %08x\n", result);
+  //DEBUG_PRINT("S: %01x\n", instr.S);
+  //DEBUG_PRINT("Result: %08x\n", result);
   if(instr.S){
     byte_t flags = 0x0;
     switch(instr.opcode){
@@ -194,10 +194,10 @@ void executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
-    DEBUG_PRINT("Flags were: %04x\n", getFlags(state));
-    DEBUG_PRINT("Flags are: %04x\n", flags);
+    //DEBUG_PRINT("Flags were: %04x\n", getFlags(state));
+    //DEBUG_PRINT("Flags are: %04x\n", flags);
     setFlags(state, flags);
-    DEBUG_PRINT("CPSR Updated: %04x\n", getFlags(state));
+    //DEBUG_PRINT("CPSR Updated: %04x\n", getFlags(state));
   }
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);
@@ -259,13 +259,16 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + (int32_t) shiftedOffset);
   // Fetch new word at PC
-  state->pipeline.fetched = getMemWord(state, getPC(state));
+  word_t next;
+  getMemWord(state, getPC(state), &next);
+  state->pipeline.fetched = next;
 }
 
 void executeSDT(state_t *state, sdt_instruction_t instr){
   shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
   word_t rn = getRegister(state, instr.rn);
+  word_t data;
 
   if (instr.P){ //Pre-indexing
 
@@ -276,7 +279,9 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     }
 
     if (instr.L){ //Load from memory at address rn into reg rd.
-      setRegister(state, instr.rd, getMemWord(state, rn));
+      if(!getMemWord(state, rn, &data)){
+        setRegister(state, instr.rd, data);
+      }
     }else{ //Store contents of reg rd in memory at address rn.
       setMemWord(state, rn, getRegister(state, instr.rd));
     }
@@ -284,7 +289,9 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
   }else{ //Post-indexing
 
     if (instr.L){ //Load from memory at address rn into reg rd.
-      setRegister(state, instr.rd, getMemWord(state, rn));
+      if (!getMemWord(state, rn, &data)){
+        setRegister(state, instr.rd, data);
+      }
     }else{ //Store contents of reg rd in memory at address rn.
       setMemWord(state, rn, getRegister(state, instr.rd));
     }
