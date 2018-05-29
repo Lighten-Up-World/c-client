@@ -116,21 +116,24 @@ void execute(state_t *state){
     executeHAL(state);
     return;
   }
-  DEBUG_PRINT("Flags: %04x:\n", getFlags(state));
-  DEBUG_PRINT("Condition Result: %01x:\n", condition(state, decoded->cond));
+  DEBUG_PRINT("Flags: %04x:\n\t", getFlags(state));
+  DEBUG_PRINT("Execute?: %01x:\n\t", condition(state, decoded->cond));
   if(condition(state, decoded->cond)){
-    DEBUG_PRINT("Type: %04x\n", decoded->type);
     switch(decoded->type){
       case DP:
+        DEBUG_PRINT("DP(%01x)\n\t\t", DP);
         executeDP(state, decoded->i.dp);
         break;
       case MUL:
+        DEBUG_PRINT("MUL(%01x)\n\t\t", MUL);
         executeMUL(state, decoded->i.mul);
         break;
       case SDT:
+        DEBUG_PRINT("SDT(%01x)\n\t\t", SDT);
         executeSDT(state, decoded->i.sdt);
         break;
       case BRN:
+        DEBUG_PRINT("BRN(%01x)\n\t\t", BRN);
         executeBRN(state, decoded->i.brn);
         break;
       default:
@@ -266,7 +269,9 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
   shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
   word_t rn = getRegister(state, instr.rn);
-
+  DEBUG_PRINT("Offset: 0x%08x\n\t\t", offset);
+  DEBUG_PRINT("rn: 0x%08x\n\t\t", rn);
+  DEBUG_PRINT("P = %01x\n\t\t", instr.P);
   if (instr.P){ //Pre-indexing
 
     if (instr.U){ //Add offset
@@ -274,19 +279,26 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     }else{  //Subtract offset
       rn -= offset;
     }
-
+    DEBUG_PRINT("rn+-offset: 0x%08x\n\t\t", rn);
     if (instr.L){ //Load from memory at address rn into reg rd.
+      DEBUG_PRINT("MEM[rn(%u)] -> R[rd(%u)]\n\t\t", rn, instr.rd);
       setRegister(state, instr.rd, getMemWord(state, rn));
+      DEBUG_PRINT("r[rd(%u)] = 0x%08x\n", instr.rd, getMemWord(state, rn));
     }else{ //Store contents of reg rd in memory at address rn.
+      DEBUG_PRINT("R[rd(%u)] -> MEM[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));
+      DEBUG_PRINT("MEM[%04x] = 0x%08x\n", rn, getRegister(state, instr.rd));
     }
 
   }else{ //Post-indexing
-
     if (instr.L){ //Load from memory at address rn into reg rd.
+      DEBUG_PRINT("MEM[rn(%u)] -> rd(%u)\n\t\t", rn, instr.rd);
       setRegister(state, instr.rd, getMemWord(state, rn));
+      DEBUG_PRINT("rd(%u) = 0x%08x\n", instr.rd, getMemWord(state, rn));
     }else{ //Store contents of reg rd in memory at address rn.
+      DEBUG_PRINT("rd(%u) -> MEN[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));
+      DEBUG_PRINT("MEN[%04x] = rn(0x%08x)\n", getRegister(state, instr.rd), rn);
     }
     if (instr.U){ //Add offset
       rn += offset;
@@ -294,6 +306,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
       rn -= offset;
     }
     //Change contents of reg rn (the base register)
+    DEBUG_PRINT("rn+-offset(0x%08x) -> rn(%04x)\n", rn, instr.rn);
     setRegister(state, instr.rn, rn);
   }
 }
