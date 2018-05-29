@@ -16,7 +16,7 @@
 * @return 1 when condition is met, 0 if not.
 */
 int condition(state_t *state, byte_t cond){
-  byte_t flags = getNibble(state->registers.cpsr, sizeof(word_t));
+  byte_t flags = getFlags(state);
 
   switch(cond){
     case EQ:
@@ -113,7 +113,10 @@ void execute(state_t *state){
     executeHAL(state);
     return;
   }
+  // printf("Flags: %04x:\n", getFlags(state));
+  // printf("Condition Result: %01x:\n", condition(state, decoded->cond));
   if(condition(state, decoded->cond)){
+    printf("Type: %04x\n", decoded->type);
     switch(decoded->type){
       case DP:
         executeDP(state, decoded->i.dp);
@@ -165,6 +168,8 @@ void executeDP(state_t *state, dp_instruction_t instr){
       result = op2;
       break;
   }
+  // printf("S: %01x\n", instr.S);
+  // printf("Result: %08x\n", result);
   if(instr.S){
     byte_t flags = 0x0;
     switch(instr.opcode){
@@ -186,7 +191,10 @@ void executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
+    // printf("Flags were: %04x\n", getFlags(state));
+    // printf("Flags are: %04x\n", flags);
     setFlags(state, flags);
+    // printf("CPSR Updated: %04x\n", getFlags(state));
   }
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);
@@ -244,10 +252,11 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   word_t shiftedOffset =  lShiftLeft(instr.offset, 0x2);
   //Sign extend offset to 32 bits
   shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
-  printf("%d\n", shiftedOffset);
   //Assume that the offset takes into account the knowledge that the PC is
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + (int32_t) shiftedOffset);
+  // Fetch new word at PC
+  state->pipeline.fetched = getMemWord(state, getPC(state));
 }
 
 void executeSDT(state_t *state, sdt_instruction_t instr){

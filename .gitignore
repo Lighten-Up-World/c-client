@@ -17,7 +17,7 @@ cmake-build-debug/
 #*.pdf
 
 #ignore junk files from latex output
-*.out
+doc/*.out
 *.log
 *.aux
 *.dvi

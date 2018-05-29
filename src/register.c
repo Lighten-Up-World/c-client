@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "arm.h"
 #include "register.h"
 
@@ -34,6 +35,7 @@ word_t getRegister(state_t *state, reg_address_t reg){
  *  @return void
  */
 void setRegister(state_t *state, reg_address_t reg, word_t value){
+  printf("Setting register %d to %08x\n", reg, value);
   if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
     state->registers.r[reg] = value;
   }
@@ -87,7 +89,7 @@ void incrementPC(state_t *state){
  *  @return a byte with the 4 least significant bits set to the value of the flags
  */
 byte_t getFlags(state_t *state){
-  return (getRegister(state, REG_N_CPSR) >> (sizeof(word_t) - 4));
+  return (getRegister(state, REG_N_CPSR) >> (sizeof(word_t) * 8 - 4));
 }
 
 /**
@@ -99,5 +101,5 @@ byte_t getFlags(state_t *state){
  */
 void setFlags(state_t *state, byte_t value){
   // 4 is the number of flags, maybe this can be put in a constant somewhere?
-  setRegister(state, REG_N_CPSR, value << (sizeof(word_t) * 8 - 4 - 1));
+  setRegister(state, REG_N_CPSR, value << (sizeof(word_t) * 8 - 4));
 }

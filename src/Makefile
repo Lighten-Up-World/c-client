@@ -14,7 +14,7 @@ CFLAGS = -Wall -Werror -pedantic
 COMPILE = gcc -c $(CFLAGS) $< -o $@
 
 emulate: $(BUILD) emulate.out
-	./build/emulate.out ../test/test_cases/b01
+	./build/emulate.out ../test/test_cases/beq01
 
 dependencies:
 	grep '#include' *.[ch] | grep '"'

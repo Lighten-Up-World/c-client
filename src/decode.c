@@ -162,7 +162,6 @@ void decodeBrn(instruction_t *instructionPtr, word_t word) {
 
   brn.padA = 0xA;
   brn.offset = getBits(word, 23, 0);
-
   instructionPtr->i.brn = brn;
 }
 
@@ -246,8 +245,9 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
  */
 instruction_t decodeWord(word_t word){
     instruction_t instruction;
-
+    printf("\nWord: %08x\n", word);
     instruction.cond = getNibble(word, COND_START);
+    printf("Word: %01x\n", instruction.cond);
     decodeInstructionType(&instruction, word);
 
     return instruction;
