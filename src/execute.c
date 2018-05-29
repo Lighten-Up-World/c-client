@@ -84,7 +84,10 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
     result.value = leftPadZeros(op.imm.rotated.value);
-    result.value = rotateRight(result.value, op.imm.rotated.rotate);
+    DEBUG_PRINT_2("\tval: %08x\n", op.imm.rotated.value);
+    result.value = rotateRight(result.value, op.imm.rotated.rotate * 2);
+    DEBUG_PRINT_2("\trotate: %08x\n", op.imm.rotated.rotate);
+    DEBUG_PRINT_2("\tresult: %08x\n", result.value);
   }
   else{//register value
     evaluateShiftedReg(state, op, &result);
