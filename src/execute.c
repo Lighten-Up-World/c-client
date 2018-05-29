@@ -113,10 +113,10 @@ void execute(state_t *state){
     executeHAL(state);
     return;
   }
-  // printf("Flags: %04x:\n", getFlags(state));
-  // printf("Condition Result: %01x:\n", condition(state, decoded->cond));
+  DEBUG_PRINT_2("Flags: %04x:\n", getFlags(state));
+  DEBUG_PRINT_2("Condition Result: %01x:\n", condition(state, decoded->cond));
   if(condition(state, decoded->cond)){
-    printf("Type: %04x\n", decoded->type);
+    DEBUG_PRINT_2("Type: %04x\n", decoded->type);
     switch(decoded->type){
       case DP:
         executeDP(state, decoded->i.dp);
@@ -168,8 +168,8 @@ void executeDP(state_t *state, dp_instruction_t instr){
       result = op2;
       break;
   }
-  // printf("S: %01x\n", instr.S);
-  // printf("Result: %08x\n", result);
+  DEBUG_PRINT_2("S: %01x\n", instr.S);
+  DEBUG_PRINT_2("Result: %08x\n", result);
   if(instr.S){
     byte_t flags = 0x0;
     switch(instr.opcode){
@@ -191,10 +191,10 @@ void executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
-    // printf("Flags were: %04x\n", getFlags(state));
-    // printf("Flags are: %04x\n", flags);
+    DEBUG_PRINT_2("Flags were: %04x\n", getFlags(state));
+    DEBUG_PRINT_2("Flags are: %04x\n", flags);
     setFlags(state, flags);
-    // printf("CPSR Updated: %04x\n", getFlags(state));
+    DEBUG_PRINT_2("CPSR Updated: %04x\n", getFlags(state));
   }
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);

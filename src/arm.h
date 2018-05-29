@@ -9,6 +9,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define DEBUG 1
+
+#define DEBUG_PRINT_2(x, y) do {if(DEBUG){printf(x, y);}} while(0)
+
+#define DEBUG_PRINT_3(x, y, z) do {if(DEBUG){printf(x, y, z);}} while(0)
+
 // Total number of registers
 #define NUM_GENERAL_REGISTERS 13
 
