@@ -1,13 +1,14 @@
+/*
+ *  This file defines the bit ranges for specific bit groups in instructions.
+ */
+
 #ifndef ARM11_22_DECODE_H
 #define ARM11_22_DECODE_H
 
 #include "arm.h"
 #include "instructions.h"
 
-//The following define the bit ranges for specific bit groups in instructions
-
-//// GENERAL INSTRUCTION DEFINITIONS ////
-
+// GENERAL INSTRUCTION DEFINITIONS
 #define COND_START 31
 
 #define INSTR_TYPE_START 27
@@ -21,8 +22,8 @@
 #define U_FLAG 23
 #define L_FLAG 20
 
-//// DP DEFINITIONS ////
 
+// DP DEFINITIONS
 #define OPCODE_START 24
 
 #define DP_RN_START 19
@@ -30,8 +31,7 @@
 #define DP_RD_START 15
 
 
-//// MUL DEFINITIONS ////
-
+// MUL DEFINITIONS
 #define MUL_RD_START 19
 
 #define MUL_RN_START 15
@@ -49,14 +49,13 @@
 #define OP_SHIFT_TYPE_START 6
 #define OP_SHIFT_TYPE_END 5
 
-//// SDT DEFINITIONS ////
 
+// SDT DEFINITIONS
 #define SDT_RN_START 19
 
 #define SDT_RD_START 15
 
 
 instruction_t decodeWord(word_t word);
-
 
 #endif

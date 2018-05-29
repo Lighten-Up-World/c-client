@@ -1,3 +1,8 @@
+/*
+ *  All bit operations that may be needed can be found in here.
+ *  This includes register shift operations, masking, and negating.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -71,37 +76,35 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
 /*
  *  Logical shift left with carry
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t lShiftLeftC(word_t value, byte_t shift) {
   assert(shift >= 0);
-  shift_result_t res = {value << shift,
-                        (value >> (sizeof(word_t) - shift)) & 0x1};
+  shift_result_t res = {value << shift, (value >> (sizeof(word_t) - shift)) & 0x1};
   return res;
 }
 
 /*
  *  Logical shift right with carry
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t lShiftRightC(word_t value, byte_t shift) {
   assert(shift >= 0);
-  shift_result_t res = {value >> shift,
-                        (value << (sizeof(word_t) - shift)) & 0x80000000};
+  shift_result_t res = {value >> shift, (value << (sizeof(word_t) - shift)) & 0x80000000};
   return res;
 }
 
 /*
  *  Arithmetic shift right with carry
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t aShiftRightC(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -124,9 +127,9 @@ shift_result_t aShiftRightC(word_t value, byte_t shift) {
 /*
  *  Rotate right
  *
- *  @param value: The value to shift
- *  @param rotate: The amount to rotate by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param rotate: the amount to rotate by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t rotateRightC(word_t value, byte_t rotate) {
   assert(rotate >= 0);
@@ -145,8 +148,8 @@ shift_result_t rotateRightC(word_t value, byte_t rotate) {
 /*
  *  Logical shift left
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
  *  @return the shifted value
  */
 word_t lShiftLeft(word_t value, byte_t shift) {
@@ -157,8 +160,8 @@ word_t lShiftLeft(word_t value, byte_t shift) {
 /*
  *  Logical shift right
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
  *  @return the shifted value
  */
 word_t lShiftRight(word_t value, byte_t shift) {
@@ -169,8 +172,8 @@ word_t lShiftRight(word_t value, byte_t shift) {
 /*
  *  Arithmetic shift right
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
  *  @return the shifted value
  */
 word_t aShiftRight(word_t value, byte_t shift) {
@@ -181,8 +184,8 @@ word_t aShiftRight(word_t value, byte_t shift) {
 /*
  *  Rotate right
  *
- *  @param value: The value to shift
- *  @param rotate: The amount to rotate by
+ *  @param value: the value to shift
+ *  @param rotate: the amount to rotate by
  *  @return the shifted value
  */
 word_t rotateRight(word_t value, byte_t rotate) {
@@ -190,23 +193,26 @@ word_t rotateRight(word_t value, byte_t rotate) {
   return rotateRightC(value, rotate).value;
 }
 
-/**
-* Checks if 2s complement word is negative.
-* @param word The value to check sign.
-* @returns True iff value is negative in 2s complement
-*/
+/*
+ *  Checks if a 2s complement word is negative
+ *
+ *  @param word: the value to check the sign of
+ *  @returns a flag that is set iff value is negative in 2s complement
+ */
 flag_t isNegative(word_t word){
   return word >> 31;
 }
 
-/**
-* Negates a 2s Complement word.
-* @param word The value to be negated
-* @returns The negated word
-*/
+/*
+ *  Negates a 2s complement word
+ *
+ *  @param word: the value to be negated
+ *  @returns the negated word
+ */
 word_t negate(word_t word){
   return (~word) + 1;
 }
+
 /*
  *  Pad out a byte value to a word value, with zeros
  *

@@ -2,12 +2,12 @@
 #include "register.h"
 
 /**
-* Gets a register from its register number.
-*
-* @param state: A non-null state_t pointer
-* @param reg: A register address
-* @return The word stored at that register.
-*/
+ *  Get the value of a register
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @param reg: the register's address
+ *  @return the word stored at that register
+ */
 word_t getRegister(state_t *state, reg_address_t reg){
   if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
     return state->registers.r[reg];
@@ -25,13 +25,14 @@ word_t getRegister(state_t *state, reg_address_t reg){
   //TODO: Throw error for out of bounds register
   return 0;
 }
+
 /**
-* Sets a register from its register number.
-*
-* @param state: A non-null state_t pointer
-* @param reg: A register address
-* @return The word stored at that register.
-*/
+ *  Set the value of a register
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @param reg: the register's address
+ *  @return void
+ */
 void setRegister(state_t *state, reg_address_t reg, word_t value){
   if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
     state->registers.r[reg] = value;
@@ -51,46 +52,51 @@ void setRegister(state_t *state, reg_address_t reg, word_t value){
 }
 
 /**
-* Convenience function for getting PC
-*
-* @param state: A non-null state_t pointer
-* @return The word stored in PC.
-*/
+ *  Get the value of the PC
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @return the word stored in the PC
+ */
 word_t getPC(state_t *state){
   return getRegister(state, REG_N_PC);
 }
+
 /**
-* Convenience function for setting PC
-*
-* @param state: A non-null state_t pointer
-* @param value: A word_t which PC is set to
-*/
+ *  Set the value of the PC
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @param value: the value to set the PC to
+ */
 void setPC(state_t *state, word_t value){
   setRegister(state, REG_N_PC, value);
 }
+
 /**
-* Convenience function for incrementing PC
-*
-* @param state: A non-null state_t pointer
-*/
+ *  Increment the PC
+ *
+ *  @param state: a non-null pointer to the machine state
+ */
 void incrementPC(state_t *state){
   setRegister(state, REG_N_PC, getPC(state)+4);
 }
+
 /**
-* Convenience function for getting Flags
-*
-* @param state: A non-null state_t pointer
-* @return A byte with the 4 LSB set to the flag values
-*/
+ *  Get the flags from the flag register
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @return a byte with the 4 least significant bits set to the value of the flags
+ */
 byte_t getFlags(state_t *state){
   return (getRegister(state, REG_N_CPSR) >> (sizeof(word_t) - 4));
 }
+
 /**
-* Convenience function for setting Flags
-*
-* @param state: A non-null state_t pointer
-* @param value: A byte with the 4 LSB set to the flag values;
-*/
+ *  Set the flags in the flag register
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @param value: a byte with the 4 least significant bits set to the flag values
+ *  @return void
+ */
 void setFlags(state_t *state, byte_t value){
   // 4 is the number of flags, maybe this can be put in a constant somewhere?
   setRegister(state, REG_N_CPSR, value << (sizeof(word_t) * 8 - 4 - 1));
