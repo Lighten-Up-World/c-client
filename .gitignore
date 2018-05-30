@@ -3,6 +3,9 @@
 #ignore temp files
 *~
 
+#ignore macOS files
+.DS_Store
+
 #Matt files to ignore
 out/
 car.sh
