@@ -3,7 +3,7 @@
 .PHONY: emulate_debug
 .PHONY: production
 .PHONY: debug
-
+.PHONY: build/
 .ONESHELL:
 
 BUILD = ./build/
@@ -44,7 +44,7 @@ $(BUILD)error.o: error.c error.h
 	$(COMPILE)
 
 build/:
-	mkdir -p $(BUILD)
+	mkdir -p build
 
 clean:
 	rm -rf $(BUILD)
