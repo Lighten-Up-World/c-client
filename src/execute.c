@@ -86,14 +86,15 @@ void evaluateShiftedReg(state_t *state, operand_t op, shift_result_t *result){
  */
 shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
-  if(I){ //Immediate value
-    result.value = leftPadZeros(op.imm.rotated.value);
+  if(I) { //Immediate value
     DEBUG_PRINT("val: %08x\n\t\t", op.imm.rotated.value);
-    result.value = rotateRight(result.value, op.imm.rotated.rotate * 2);
+
+    result.value = leftPadZeros(op.imm.rotated.value);
+    result = rotateRightC(result.value, op.imm.rotated.rotate * 2);
+
     DEBUG_PRINT("rotate: %08x\n\t\t", op.imm.rotated.rotate);
     DEBUG_PRINT("result: %08x\n\t\t", result.value);
-  }
-  else{//register value
+  } else { //register value
     evaluateShiftedReg(state, op, &result);
   }
   return result;
@@ -200,7 +201,6 @@ int executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
-    DEBUG_PRINT("Flags were: %04x\n\t\t", getFlags(state));
     DEBUG_PRINT("Flags are: %04x\n\t\t", flags);
     setFlags(state, flags);
     DEBUG_PRINT("CPSR Updated: %04x\n\t\t", getFlags(state));
