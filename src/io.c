@@ -70,7 +70,8 @@ int setMemWord(state_t* state, word_t byteAddr, word_t word){
   assert(state != NULL);
   if (checkAddressValid(byteAddr)) { return 1; }
   for (size_t i = 1; i < 5; i++){
-    state->memory[byteAddr + i] = getByte(word, (i * 8) - 1);
+    DEBUG_PRINT("M[%04x] = %04x\n\t\t", byteAddr + (word_t) i - 1, getByte(word, (i * 8) - 1));
+    state->memory[byteAddr + i - 1] = getByte(word, (i * 8) - 1);
   }
   return 0;
 }
