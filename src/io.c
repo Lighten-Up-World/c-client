@@ -115,7 +115,7 @@ void printMem(state_t *state) {
   for (int addr = 0; addr < MEM_SIZE; addr+=4) {
     getMemWordBigEnd(state, addr, &memWord);
     if (memWord == 0) { // halt when memory instr is 0.
-      break;
+      continue;
     }
     printf("0x%08x: 0x%08x\n", addr, memWord);
   }
