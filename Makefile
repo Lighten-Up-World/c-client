@@ -4,6 +4,8 @@
 
 all: emulate unit_test test
 
+RUN = factorial
+
 test:
 	cd ./test; make
 
@@ -11,7 +13,7 @@ emulate:
 	cd src; make clean; make emulate DEBUG=
 
 debug:
-	cd src; make clean; make emulate
+	cd src; make clean; make emulate RUN=$(RUN)
 
 unit_test:
 	cd src/test; make

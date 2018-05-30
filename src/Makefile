@@ -10,10 +10,11 @@ BUILD = ./build/
 
 CFLAGS = -Wall -Werror -pedantic
 DEBUG = -DDEBUG
+RUN = factorial
 COMPILE = gcc -c $(DEBUG) $(CFLAGS) $< -o $@
 
 emulate: build/ emulate.out
-	$(BUILD)emulate.out ../test/test_cases/factorial
+	$(BUILD)emulate.out ../test/test_cases/$(RUN)
 
 emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
 	gcc $(CFLAGS) $^ -o $(BUILD)emulate.out
