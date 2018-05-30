@@ -7,7 +7,6 @@
 .DS_Store
 
 #Matt files to ignore
-**/test/Makefile
 out/
 car.sh
 temp.c
