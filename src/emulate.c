@@ -20,24 +20,27 @@ int main(int argc, char **argv) {
   DEBUG_PRINT("\n=========\nEmulating: %s\n=========\n", argv[1]);
   //Setup Pipeline
   setPC(state, 0x8);
-  word_t toDecode;
-  getMemWord(state, 0, &toDecode);
-  *state->pipeline.decoded = decodeWord(toDecode);
-  word_t fetched;
-  getMemWord(state, 0x4, &fetched);
-  state->pipeline.fetched = fetched;
+  getMemWord(state, 0, &state->pipeline.fetched);
+  *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
+  getMemWord(state, 0x4, &state->pipeline.fetched);
 
   DEBUG_PRINT("Initial Pipeline setup:\n\tPC (0x%08x)\n\tFetched (0x%08x)\n",
               getPC(state), state->pipeline.fetched);
+
   while(state->pipeline.decoded->type != HAL){
-    DEBUG_PRINT("\n---------(P %u)---------\n", getPC(state) / 4);
+
+    DEBUG_PRINT("\n---------(PC=%04x PC@%04x)---------\n", getPC(state), getPC(state) - 0x8);
     DEBUG_CMD(printState(state));
-    DEBUG_PRINT("Executing %01x Instruction:\n\t", state->pipeline.decoded->type);
-    execute(state);
-    *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
-    getMemWord(state, getPC(state), &fetched);
-    state->pipeline.fetched = fetched;
+    DEBUG_PRINT("Executing: %01x Instruction:\n\t", state->pipeline.decoded->type);
+
+    if(!execute(state)){
+      *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
+      DEBUG_PRINT("\nDecoded: %08x\n", state->pipeline.fetched);
+      getMemWord(state, getPC(state), &state->pipeline.fetched);
+      DEBUG_PRINT("\nFetching@%04x: %08x\n", getPC(state), state->pipeline.fetched);
+    }
     incrementPC(state);
+    DEBUG_PRINT("\n---------(PC=%04x)---------\n\n", getPC(state));
   }
   execute(state); // Execute HAL instruction
   free(state->pipeline.decoded);

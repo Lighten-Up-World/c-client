@@ -110,11 +110,10 @@ shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op){
 * Executes the current decoded instruction
 *
 */
-void execute(state_t *state){
+int execute(state_t *state){
   instruction_t *decoded = state->pipeline.decoded;
   if(decoded->type == HAL){
-    executeHAL(state);
-    return;
+    return executeHAL(state);
   }
   DEBUG_PRINT("Flags: %04x:\n\t", getFlags(state));
   DEBUG_PRINT("Execute?: %01x:\n\t", condition(state, decoded->cond));
@@ -122,28 +121,26 @@ void execute(state_t *state){
     switch(decoded->type){
       case DP:
         DEBUG_PRINT("DP(%01x)\n\t\t", DP);
-        executeDP(state, decoded->i.dp);
-        break;
+        return executeDP(state, decoded->i.dp);
       case MUL:
         DEBUG_PRINT("MUL(%01x)\n\t\t", MUL);
-        executeMUL(state, decoded->i.mul);
-        break;
+        return executeMUL(state, decoded->i.mul);
       case SDT:
         DEBUG_PRINT("SDT(%01x)\n\t\t", SDT);
-        executeSDT(state, decoded->i.sdt);
-        break;
+        return executeSDT(state, decoded->i.sdt);
       case BRN:
         DEBUG_PRINT("BRN(%01x)\n\t\t", BRN);
-        executeBRN(state, decoded->i.brn);
-        break;
+        return executeBRN(state, decoded->i.brn);
       default:
         fprintf(stderr, "Invalid type%x\n", decoded->type);
+        return 2;
         //free_state();
     }
   }
+  return 0;
 }
 
-void executeDP(state_t *state, dp_instruction_t instr){
+int executeDP(state_t *state, dp_instruction_t instr){
   shift_result_t barrel = evaluateOperand(state, instr.I, instr.operand2);
   word_t op2 = barrel.value;
   word_t result = 0;
@@ -205,9 +202,10 @@ void executeDP(state_t *state, dp_instruction_t instr){
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);
   }
+  return 0;
 }
 
-void executeMUL(state_t *state, mul_instruction_t instr) {
+int executeMUL(state_t *state, mul_instruction_t instr) {
   // Cast the operands to 64 bit since this is the max result of A * B where A, B are 32 bit
   uint64_t Rm = getRegister(state, instr.rm);
   uint64_t Rs = getRegister(state, instr.rs);
@@ -244,6 +242,7 @@ void executeMUL(state_t *state, mul_instruction_t instr) {
 
   // Store result in Rd
   setRegister(state, instr.rd, Rd);
+  return 0;
 }
 
 /**
@@ -252,7 +251,7 @@ void executeMUL(state_t *state, mul_instruction_t instr) {
  * @param state - pointer to the program state
  * @param instr - the branch instruction to execute
  */
-void executeBRN(state_t *state, brn_instruction_t instr){
+int executeBRN(state_t *state, brn_instruction_t instr){
   word_t pc = getPC(state);
   //Shift offset left by 2 bits
   word_t shiftedOffset =  lShiftLeft(instr.offset, 0x2);
@@ -262,12 +261,13 @@ void executeBRN(state_t *state, brn_instruction_t instr){
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + (int32_t) shiftedOffset);
   // Fetch new word at PC
-  word_t next;
-  getMemWord(state, getPC(state), &next);
-  state->pipeline.fetched = next;
+  getMemWord(state, getPC(state), &state->pipeline.fetched);
+  *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
+  getMemWord(state, getPC(state)+0x4, &state->pipeline.fetched);
+  return 1;
 }
 
-void executeSDT(state_t *state, sdt_instruction_t instr){
+int executeSDT(state_t *state, sdt_instruction_t instr){
   shift_result_t barrel = evaluateOffset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
   word_t rn = getRegister(state, instr.rn);
@@ -298,8 +298,9 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
       setMemWord(state, rn, getRegister(state, instr.rd));
       DEBUG_PRINT("MEM[%04x] = 0x%08x\n", rn, getRegister(state, instr.rd));
     }
-
-  }else{ //Post-indexing
+    return 0;
+  }
+  else{ //Post-indexing
     if (instr.L){ //Load from memory at address rn into reg rd.
       if (!getMemWord(state, rn, &data)){
         setRegister(state, instr.rd, data);
@@ -323,6 +324,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
     //Change contents of reg rn (the base register)
     DEBUG_PRINT("rn+-offset(0x%08x) -> rn(%04x)\n", rn, instr.rn);
     setRegister(state, instr.rn, rn);
+    return 0;
   }
 }
 
@@ -331,6 +333,7 @@ void executeSDT(state_t *state, sdt_instruction_t instr){
  *
  * @param state
  */
-void executeHAL(state_t *state){
+int executeHAL(state_t *state){
   printState(state);
+  return 1;
 }
