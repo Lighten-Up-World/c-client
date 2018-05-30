@@ -67,7 +67,7 @@ class TestSuite
     unless File.exists?(@emulate) then
       return { :result => :error,
                :passed => false,
-               :message => "emulate binary cannot be found"
+               :message => "emulate binary cannot be found @ " + @emulate
              }
     end
 
