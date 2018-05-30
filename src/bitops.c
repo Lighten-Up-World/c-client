@@ -82,7 +82,10 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
  */
 shift_result_t lShiftLeftC(word_t value, byte_t shift) {
   assert(shift >= 0);
-  shift_result_t res = {value << shift, (value >> (sizeof(word_t) - shift)) & 0x1};
+  shift_result_t res = {value << shift, 0};
+  if(shift != 0){
+    res.carry = (value >> (sizeof(word_t) - shift)) & 0x1;
+  }
   return res;
 }
 
