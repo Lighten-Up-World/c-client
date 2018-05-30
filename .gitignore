@@ -27,9 +27,7 @@ doc/*.out
 *.ps
 
 #ignore junk files from compiling C code
-*.o
-emulate
-assemble
+src/build/*
 
 #ignore junk files from compiling Haskell code
 *.hi
