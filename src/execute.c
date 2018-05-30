@@ -272,7 +272,8 @@ int executeBRN(state_t *state, brn_instruction_t instr){
   // Fetch new word at PC
   getMemWord(state, getPC(state), &state->pipeline.fetched);
   *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
-  getMemWord(state, getPC(state)+0x4, &state->pipeline.fetched);
+  incrementPC(state);
+  getMemWord(state, getPC(state), &state->pipeline.fetched);
   return 1;
 }
 
