@@ -2,16 +2,16 @@
 .PHONY: unit_test
 .PHONY: src
 
-all: src unit_test test
+all: emulate unit_test test
 
 test:
 	cd ./test; make
 
 emulate:
-	cd src; make emulate
+	cd src; make emulate DEBUG=
 
-src:
-	cd src; make clean; make emulate DEBUG=
+debug:
+	cd src; make clean; make emulate
 
 unit_test:
 	cd src/test; make

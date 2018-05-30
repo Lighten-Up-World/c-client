@@ -10,12 +10,12 @@ BUILD = ./build/
 
 CFLAGS = -Wall -Werror -pedantic
 DEBUG = -DDEBUG
-COMPILE = gcc -c $(CFLAGS) $< -o $@
+COMPILE = gcc -c $(DEBUG) $(CFLAGS) $< -o $@
 
-emulate: /build/emulate.out
-	$(BUILD)emulate.out ../test/test_cases/add01
+emulate: build/ emulate.out
+	$(BUILD)emulate.out ../test/test_cases/factorial
 
-/build/emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
+emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
 	gcc $(CFLAGS) $^ -o $(BUILD)emulate.out
 
 dependencies:
@@ -42,12 +42,11 @@ $(BUILD)bitops.o: bitops.c bitops.h
 $(BUILD)error.o: error.c error.h
 	$(COMPILE)
 
-$(BUILD):
+build/:
 	mkdir -p $(BUILD)
 
 clean:
-	rm -f $(BUILD)*.o
-	rm -f $(BUILD)*.out
+	rm -rf $(BUILD)
 
 # PATHS = ./
 
