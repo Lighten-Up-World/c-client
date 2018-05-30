@@ -8,7 +8,7 @@ test:
 	cd ./test; make
 
 emulate:
-	cd src; make emulate DEBUG=
+	cd src; make clean; make emulate DEBUG=
 
 debug:
 	cd src; make clean; make emulate
