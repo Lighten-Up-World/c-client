@@ -1,0 +1,21 @@
+r0 = 0x20200000
+
+r1 = 1
+r1 << 4
+mem[r0 + 28] = r1
+
+r1 = 0xFFF3FFFF
+mem[r0 + 4] = r1
+
+r1 = 1
+r1 << 4
+mem[r0 + 20] = r0
+
+//TODO: this still might not work
+loop forever to keep LED turned on
+
+mov r2,#10
+wait2:
+sub r2,r2,#1
+cmp r2,#0
+bne wait2

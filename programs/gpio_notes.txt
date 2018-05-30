@@ -37,8 +37,6 @@ lsl r1,#6               #shifts r1 left by 6
 
 str r1,[r0,#8]          #[r0,8] = r1
 
-
-
 mov r1,#1               #r1 = 1
 lsl r1,#22              #shifts r1 left by 22
 
