@@ -6,6 +6,7 @@
 #include "io.h"
 #include "instructions.h"
 #include "arm.h"
+#include "decode.h"
 
 /**
 * Check if the condition on the decoded instruction is met using the current
@@ -51,11 +52,14 @@ int condition(state_t *state, byte_t cond){
 void evaluateShiftedReg(state_t *state, operand_t op, shift_result_t *result){
   word_t rm = getRegister(state, op.reg.rm);
   byte_t shiftAmount = 0;
+  DEBUG_PRINT("ShiftBY: %01x\n\t\t", op.reg.shiftBy);
   if (op.reg.shiftBy){ //Shift by register
     shiftAmount = getByte(getRegister(state, op.reg.shift.shiftreg.rs), 7);
   }else{ //Shift by constant
     shiftAmount = op.reg.shift.constant.integer;
   }
+  DEBUG_PRINT("shiftAmount: %04x\n\t\t", shiftAmount);
+  DEBUG_PRINT("shiftType: %02x\n\t\t", op.reg.type);
   switch(op.reg.type){
     case LSL:
       *result = lShiftLeftC(rm, shiftAmount);
@@ -84,10 +88,10 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if(I){ //Immediate value
     result.value = leftPadZeros(op.imm.rotated.value);
-    DEBUG_PRINT("\tval: %08x\n", op.imm.rotated.value);
+    DEBUG_PRINT("val: %08x\n\t\t", op.imm.rotated.value);
     result.value = rotateRight(result.value, op.imm.rotated.rotate * 2);
-    DEBUG_PRINT("\trotate: %08x\n", op.imm.rotated.rotate);
-    DEBUG_PRINT("\tresult: %08x\n", result.value);
+    DEBUG_PRINT("rotate: %08x\n\t\t", op.imm.rotated.rotate);
+    DEBUG_PRINT("result: %08x\n\t\t", result.value);
   }
   else{//register value
     evaluateShiftedReg(state, op, &result);
@@ -142,6 +146,8 @@ int execute(state_t *state){
 
 int executeDP(state_t *state, dp_instruction_t instr){
   shift_result_t barrel = evaluateOperand(state, instr.I, instr.operand2);
+  DEBUG_PRINT("barrelv: %08x\n\t\t", barrel.value);
+  DEBUG_PRINT("barrelc: %01x\n\t\t", barrel.carry);
   word_t op2 = barrel.value;
   word_t result = 0;
   word_t rn = getRegister(state, instr.rn);
@@ -171,8 +177,8 @@ int executeDP(state_t *state, dp_instruction_t instr){
       result = op2;
       break;
   }
-  DEBUG_PRINT("S: %01x\n", instr.S);
-  DEBUG_PRINT("Result: %08x\n", result);
+  DEBUG_PRINT("S: %01x\n\t\t", instr.S);
+  DEBUG_PRINT("Result: %08x\n\t\t", result);
   if(instr.S){
     byte_t flags = 0x0;
     switch(instr.opcode){
@@ -194,10 +200,10 @@ int executeDP(state_t *state, dp_instruction_t instr){
     }
     flags |= (N * isNegative(result));
     flags |= (Z * (result == 0));
-    DEBUG_PRINT("Flags were: %04x\n", getFlags(state));
-    DEBUG_PRINT("Flags are: %04x\n", flags);
+    DEBUG_PRINT("Flags were: %04x\n\t\t", getFlags(state));
+    DEBUG_PRINT("Flags are: %04x\n\t\t", flags);
     setFlags(state, flags);
-    DEBUG_PRINT("CPSR Updated: %04x\n", getFlags(state));
+    DEBUG_PRINT("CPSR Updated: %04x\n\t\t", getFlags(state));
   }
   if(instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP){
     setRegister(state, instr.rd, result);
@@ -254,9 +260,12 @@ int executeMUL(state_t *state, mul_instruction_t instr) {
 int executeBRN(state_t *state, brn_instruction_t instr){
   word_t pc = getPC(state);
   //Shift offset left by 2 bits
-  word_t shiftedOffset =  lShiftLeft(instr.offset, 0x2);
+  DEBUG_PRINT("offset: 0x%08x\n\t\t", instr.offset);
+  word_t shiftedOffset = lShiftLeft(instr.offset, 0x2);
+  DEBUG_PRINT("shiftedOffset: 0x%08x\n\t\t", shiftedOffset);
   //Sign extend offset to 32 bits
   shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
+  DEBUG_PRINT("signextended: (%d) 0x%08x\n\t\t", shiftedOffset, shiftedOffset);
   //Assume that the offset takes into account the knowledge that the PC is
   // 8 bytes ahead of the instruction being executed.
   setPC(state, pc + (int32_t) shiftedOffset);
@@ -288,11 +297,6 @@ int executeSDT(state_t *state, sdt_instruction_t instr){
         setRegister(state, instr.rd, data);
       }
       DEBUG_PRINT("MEM[rn(%u)] -> R[rd(%u)]\n\t\t", rn, instr.rd);
-      /*
-      word_t word;
-      getMemWord(state, rn, &word);
-      DEBUG_PRINT("r[rd(%u)] = 0x%08x\n", instr.rd, word);
-       */
     }else{ //Store contents of reg rd in memory at address rn.
       DEBUG_PRINT("R[rd(%u)] -> MEM[rn(%u)]\n\t\t", instr.rd, rn);
       setMemWord(state, rn, getRegister(state, instr.rd));
