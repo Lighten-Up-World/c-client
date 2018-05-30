@@ -339,5 +339,5 @@ int executeSDT(state_t *state, sdt_instruction_t instr){
  */
 int executeHAL(state_t *state){
   printState(state);
-  return 1;
+  return 0;
 }
