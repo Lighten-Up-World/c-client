@@ -6,8 +6,6 @@
 #include "decode.h"
 #include "register.h"
 
-
-
 int main(int argc, char **argv) {
   assert(argc > 1);
 

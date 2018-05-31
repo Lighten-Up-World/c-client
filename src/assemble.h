@@ -1,15 +1,13 @@
 #ifndef ASSEMBLE_H
 #define ASSEMBLE_H
 
-typedef struct {
-  word_t word;
-  address_t address;
-} bin_instr_t;
+#define LINE_SIZE 511
 
 typedef struct {
-  bin_instr_t **instrs;
+  byte_t out[MEM_SIZE];
   symbol_map_t *sym_m;
   reference_map_t *ref_m;
+  char **in;
   int lines;
   word_t mPC;
 } program_t;
