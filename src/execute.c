@@ -78,8 +78,15 @@ void evaluateShiftedReg(state_t *state, operand_t op, shift_result_t *result) {
   }
 }
 
-
-shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op) {
+/**
+ * Evaluates the operand and returns the result
+ *
+ * @param - state_t *state is pointer to the program state
+ * @param - flag_t I is the flag that determines the meaning of operand
+ * @param - operand_t op is the operand being evaluated
+ * @return - the result of evaluating the operand
+ */
+shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if (I) {
     DEBUG_PRINT("val: %08x\n\t\t", op.imm.rotated.value);
@@ -96,8 +103,16 @@ shift_result_t evaluateOperand(state_t *state, flag_t I, operand_t op) {
   return result;
 }
 
+/**
+ * Evaluates the offset and returns the result from
+ *
+ * @param - state_t *state is pointer to the program state
+ * @param - flag_t I is the flag that determines the meaning of offset
+ * @param - operand_t op is the offset being evaluated
+ * @return - the result of evaluating the offset
+ */
 
-shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op) {
+shift_result_t evaluateOffset(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if (I) {
     evaluateShiftedReg(state, op, &result);

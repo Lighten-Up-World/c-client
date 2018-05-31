@@ -20,7 +20,7 @@ const uint8_t U_ONE = 1;
  *  @return a flag that is true iff the bit at pos is not 0
  */
 flag_t getFlag(word_t inst, byte_t pos) {
-  return (flag_t) getBits(inst, pos, pos);
+ return (inst & ( 1 << pos )) >> pos;
 }
 
 /**
@@ -32,7 +32,7 @@ flag_t getFlag(word_t inst, byte_t pos) {
  */
 byte_t getByte(word_t inst, byte_t pos) {
   assert(pos >= 7);
-  return (byte_t) getBits(inst, pos, (byte_t) (pos - 7));
+  return (inst >> (pos - 7)) & 0x000000ff;
 }
 
 /**
@@ -44,7 +44,7 @@ byte_t getByte(word_t inst, byte_t pos) {
  */
 byte_t getNibble(word_t inst, byte_t pos) {
   assert(pos >= 3);
-  return (byte_t) getBits(inst, pos, (byte_t) (pos - 3));
+  return (inst >> (pos - 3)) & 0x0000000f;
 }
 
 /**
@@ -60,18 +60,9 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
   assert(x <= 31);
   assert(x >= y);
   assert(y >= 0);
+  assert(!(x==31 && y==0));
 
-  // Logical shift right so that y is the base
-  inst = lShiftRight(inst, y);
-
-  // Mask so that everything after x is zero
-  word_t mask = U_ONE;
-  for (int i = 0; i < (x - y); i++) {
-    mask = mask << U_ONE;
-    mask = mask | U_ONE;
-  }
-
-  return inst & mask;
+  return (inst >> y) & ~(~(word_t)0 << (x + 1 - y));
 }
 
 //TODO: check *8 error
