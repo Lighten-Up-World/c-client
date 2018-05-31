@@ -65,7 +65,6 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
   return (inst >> y) & ~(~(word_t)0 << (x + 1 - y));
 }
 
-//TODO: check *8 error
 /**
  *  Logical shift left with carry
  *
@@ -81,12 +80,11 @@ shift_result_t lShiftLeftC(word_t value, byte_t shift) {
   res.carry = 0;
 
   if (shift != 0) {
-    res.carry = (flag_t) (value >> (sizeof(word_t) - shift)) & U_ONE;
+    res.carry = (flag_t) (value >> (sizeof(word_t) * 8 - shift)) & U_ONE;
   }
   return res;
 }
 
-//TODO: check *8 error
 /**
  *  Logical shift right with carry
  *
@@ -100,12 +98,11 @@ shift_result_t lShiftRightC(word_t value, byte_t shift) {
   shift_result_t res;
   res.value = lShiftRight(value, shift);
 
-  res.carry = (value << (sizeof(word_t) - shift)) & 0x80000000;
+  res.carry = (value << (sizeof(word_t) * 8 - shift)) & 0x80000000;
 
   return res;
 }
 
-//TODO: check *8 error
 /**
  *  Arithmetic shift right with carry
  *
@@ -118,12 +115,11 @@ shift_result_t aShiftRightC(word_t value, byte_t shift) {
 
   shift_result_t res;
   res.value = aShiftRight(value, shift);
-  res.carry = (value << (sizeof(word_t) - shift)) & 0x80000000;
+  res.carry = (value << (sizeof(word_t) * 8 - shift)) & 0x80000000;
 
   return res;
 }
 
-//TODO: check *8 error
 /**
  *  Rotate right
  *
@@ -136,7 +132,7 @@ shift_result_t rotateRightC(word_t value, byte_t rotate) {
 
   shift_result_t res;
   res.value = rotateRight(value, rotate);
-  res.carry = (value << (sizeof(word_t) - rotate)) & 0x80000000;
+  res.carry = (value << (sizeof(word_t) * 8 - rotate)) & 0x80000000;
 
   return res;
 }
