@@ -19,10 +19,8 @@
   #define DEBUG_PRINT(fmt, ...)
   #define DEBUG_CMD(cmd)
 #endif
-// Total number of registers
-#define NUM_GENERAL_REGISTERS 13
 
-// Memory Size
+#define NUM_GENERAL_REGISTERS 13
 #define MEM_SIZE 65536
 
 typedef uint8_t byte_t;
@@ -100,7 +98,7 @@ typedef enum {
   M_ANDEQ // Halt
 } mnemonic_t;
 
-#include "instructions.h"  // is there a reason this is so far down?
+#include "instructions.h"  // This needs to be down here
 
 typedef struct {
   word_t fetched;
