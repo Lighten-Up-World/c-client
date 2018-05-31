@@ -97,7 +97,6 @@ shift_result_t lShiftRightC(word_t value, byte_t shift) {
 
   shift_result_t res;
   res.value = lShiftRight(value, shift);
-
   res.carry = (value << (sizeof(word_t) * 8 - shift)) & 0x80000000;
 
   return res;
