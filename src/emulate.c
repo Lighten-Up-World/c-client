@@ -18,10 +18,10 @@ int main(int argc, char **argv) {
   DEBUG_PRINT("\n=========\nEmulating: %s\n=========\n", argv[1]);
 
   //Setup Pipeline
-  setPC(state, 0x8);
-  getMemWord(state, 0, &state->pipeline.fetched);
-  *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
-  getMemWord(state, 0x4, &state->pipeline.fetched);
+  set_pc(state, 0x8);
+  get_mem_word(state, 0, &state->pipeline.fetched);
+  *state->pipeline.decoded = decode_word(state->pipeline.fetched);
+  get_mem_word(state, 0x4, &state->pipeline.fetched);
 
   DEBUG_PRINT("Initial Pipeline setup:\n\tPC (0x%08x)\n\tFetched (0x%08x)\n",
               getPC(state), state->pipeline.fetched);
@@ -32,12 +32,12 @@ int main(int argc, char **argv) {
     DEBUG_PRINT("Executing: %01x Instruction:\n\t", state->pipeline.decoded->type);
 
     if (!execute(state)) {
-      *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
+      *state->pipeline.decoded = decode_word(state->pipeline.fetched);
       DEBUG_PRINT("\nDecoded: %08x\n", state->pipeline.fetched);
-      getMemWord(state, getPC(state), &state->pipeline.fetched);
+      get_mem_word(state, getPC(state), &state->pipeline.fetched);
       DEBUG_PRINT("\nFetching@%04x: %08x\n", getPC(state), state->pipeline.fetched);
     }
-    incrementPC(state);
+    increment_pc(state);
     DEBUG_PRINT("\n---------(PC=%04x)---------\n\n", getPC(state));
   }
 
