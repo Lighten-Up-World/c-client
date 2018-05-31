@@ -6,6 +6,7 @@
 #define REG_N_LR 14
 #define REG_N_PC 15
 #define REG_N_CPSR 16
+#define NUM_FLAGS 4
 
 #include "arm.h"
 
