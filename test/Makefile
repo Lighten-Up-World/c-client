@@ -1,2 +1,5 @@
-test:
-	sudo ruby ./testserver.rb ./test_cases
+server:
+	ruby ./testserver.rb ../src/build/
+
+init:
+	sudo ruby ./testserver.rb ../src/build/

@@ -45,7 +45,7 @@ typedef union {
 typedef struct {
   op_shift_t shift;
   shift_type_t type : 2;
-  flag_t shiftBy;
+  flag_t shiftBy : 1;
   reg_address_t rm : 4;
 } op_shiftreg_t;
 
@@ -54,11 +54,13 @@ typedef union {
   op_shiftreg_t reg;
 } operand_t;
 
-///// DATA PROCESSING INSTRUCTION FORMAT        /////
-//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
-//|   COND    | 0| 0| I|   OPCODE  | S|     Rn    |//
-//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
-//|     Rd    |             OPERAND               |//
+/*
+ * DATA PROCESSING INSTRUCTION FORMAT
+ * |31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
+ * |   COND    | 0| 0| I|   OPCODE  | S|     Rn    |
+ * |15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
+ * |     Rd    |             OPERAND               |
+ */
 typedef struct {
   byte_t padding : 2;
   // Immediate Operand
@@ -75,29 +77,32 @@ typedef struct {
 } dp_instruction_t;
 
 
-///// MULTIPLY INSTRUCTION FORMAT               /////
-//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
-//|   COND    | 0| 0| 0| 0| 0| 0| A| S|     Rd    |//
-//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
-//|     Rn    |     Rs    | 1| 0| 0| 1|     Rm    |//
+/*
+ * MULTIPLY INSTRUCTION FORMAT
+ * |31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
+ * |   COND    | 0| 0| 0| 0| 0| 0| A| S|     Rd    |
+ * |15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
+ * |     Rn    |     Rs    | 1| 0| 0| 1|     Rm    |
+ */
 typedef struct {
-  byte_t pad0 : 6; // == 000000
-  flag_t A : 1; // Accumulate
-  flag_t S : 1; // Set conditions codes
+  byte_t pad0 : 6;          // 0x000000
+  flag_t A : 1;             // Accumulate
+  flag_t S : 1;             // Set conditions codes
   reg_address_t rd : 4;
   reg_address_t rn : 4;
   reg_address_t rs : 4;
-  byte_t pad9 : 4; // == 1001
+  byte_t pad9 : 4;         // 0x1001
   reg_address_t rm : 4;
 } mul_instruction_t;
 
-///// SINGLE DATA TRANSFER INSTRUCTION FORMAT    /////
-//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
-//|   COND    | 0| 1| I| P| U| 0| 0| L|     Rn    |//
-//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
-//|     Rd    |             OFFSET                |//
+/* SINGLE DATA TRANSFER INSTRUCTION FORMAT
+ * |31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
+ * |   COND    | 0| 1| I| P| U| 0| 0| L|     Rn    |
+ * |15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
+ * |     Rd    |             OFFSET                |
+ */
 typedef struct {
-  byte_t pad1 : 2; // == 01
+  byte_t pad1 : 2; // 0x01
   //SDT: 1 -> Offset is a shifted register
   //     0 -> = interpreted as an unsigned 12 bit immediate offset
   flag_t I : 1;
@@ -109,7 +114,7 @@ typedef struct {
   // 1 -> Offset added to the br.
   // 0 -> Offset is subtracted from the br
   flag_t U : 1;
-  byte_t pad0 : 2; // == 00
+  byte_t pad0 : 2; // 0x00
   //Load/Store 1 -> Word loaded from memory
   // 0 -> Word is stored into memory
   flag_t L : 1;
@@ -118,18 +123,19 @@ typedef struct {
   operand_t offset;
 } sdt_instruction_t;
 
-///// BRANCH INSTRUCTION FORMAT                 /////
-//|31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|//
-//|   COND    | 1| 0| 1| 0|         OFFSET-        //
-//|15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|//
-//|           -OFFSET                             |//
+/* BRANCH INSTRUCTION FORMAT
+ * |31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16|
+ * |   COND    | 1| 0| 1| 0|         OFFSET-
+ * |15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0|
+ * |           -OFFSET                             |
+ */
 typedef struct {
-  byte_t padA : 4; // == 1010
+  byte_t padA : 4;      // 0x1010
   word_t offset : 24;
 } brn_instruction_t;
 
 typedef struct {
-  word_t pad0 : 32; // 0x0000
+  word_t pad0 : 32;     // 0x0000
 } hal_instruction_t;
 
 typedef union {

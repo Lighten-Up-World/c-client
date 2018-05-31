@@ -1,3 +1,8 @@
+/*
+ *  All bit operations that may be needed can be found in here.
+ *  This includes register shift operations, masking, and negating.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -14,7 +19,7 @@ const uint8_t U_ONE = 1;
  *  @return a flag_t that is true iff the bit at pos is not 0
  */
 flag_t getFlag(word_t inst, byte_t pos) {
-  return (flag_t) getBits(inst, pos, pos);
+ return (inst & ( 1 << pos )) >> pos;
 }
 
 /*
@@ -26,7 +31,7 @@ flag_t getFlag(word_t inst, byte_t pos) {
  */
 byte_t getByte(word_t inst, byte_t pos) {
   assert(pos >= 7);
-  return (byte_t) getBits(inst, pos, (byte_t) (pos - 7));
+  return (inst >> (pos - 7)) & 0x000000ff;
 }
 
 /*
@@ -38,7 +43,7 @@ byte_t getByte(word_t inst, byte_t pos) {
  */
 byte_t getNibble(word_t inst, byte_t pos) {
   assert(pos >= 3);
-  return (byte_t) getBits(inst, pos, (byte_t) (pos - 3));
+  return (inst >> (pos - 3)) & 0x0000000f;
 }
 
 /*
@@ -54,54 +59,46 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
   assert(x <= 31);
   assert(x >= y);
   assert(y >= 0);
+  assert(!(x==31 && y==0));
 
-  // Logical shift right so that y is the base
-  inst = lShiftRight(inst, y);
-
-  // Mask so that everything after x is zero
-  word_t mask = 1;
-  for (int i = 0; i < (x - y); i++) {
-    mask = mask << U_ONE;
-    mask = mask | U_ONE;
-  }
-
-  return inst & mask;
+  return (inst >> y) & ~(~(word_t)0 << (x + 1 - y));
 }
 
 /*
  *  Logical shift left with carry
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t lShiftLeftC(word_t value, byte_t shift) {
   assert(shift >= 0);
-  shift_result_t res = {value << shift,
-                        (value >> (sizeof(word_t) - shift)) & 0x1};
+  shift_result_t res = {value << shift, 0};
+  if(shift != 0){
+    res.carry = (value >> (sizeof(word_t) - shift)) & 0x1;
+  }
   return res;
 }
 
 /*
  *  Logical shift right with carry
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t lShiftRightC(word_t value, byte_t shift) {
   assert(shift >= 0);
-  shift_result_t res = {value >> shift,
-                        (value << (sizeof(word_t) - shift)) & 0x80000000};
+  shift_result_t res = {value >> shift, (value << (sizeof(word_t) - shift)) & 0x80000000};
   return res;
 }
 
 /*
  *  Arithmetic shift right with carry
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t aShiftRightC(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -124,9 +121,9 @@ shift_result_t aShiftRightC(word_t value, byte_t shift) {
 /*
  *  Rotate right
  *
- *  @param value: The value to shift
- *  @param rotate: The amount to rotate by
- *  @return the shifted value and carry pair
+ *  @param value: the value to shift
+ *  @param rotate: the amount to rotate by
+ *  @return a pair containing the shifted value and carry
  */
 shift_result_t rotateRightC(word_t value, byte_t rotate) {
   assert(rotate >= 0);
@@ -145,8 +142,8 @@ shift_result_t rotateRightC(word_t value, byte_t rotate) {
 /*
  *  Logical shift left
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
  *  @return the shifted value
  */
 word_t lShiftLeft(word_t value, byte_t shift) {
@@ -157,8 +154,8 @@ word_t lShiftLeft(word_t value, byte_t shift) {
 /*
  *  Logical shift right
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
  *  @return the shifted value
  */
 word_t lShiftRight(word_t value, byte_t shift) {
@@ -169,8 +166,8 @@ word_t lShiftRight(word_t value, byte_t shift) {
 /*
  *  Arithmetic shift right
  *
- *  @param value: The value to shift
- *  @param shift: The amount to shift by
+ *  @param value: the value to shift
+ *  @param shift: the amount to shift by
  *  @return the shifted value
  */
 word_t aShiftRight(word_t value, byte_t shift) {
@@ -181,8 +178,8 @@ word_t aShiftRight(word_t value, byte_t shift) {
 /*
  *  Rotate right
  *
- *  @param value: The value to shift
- *  @param rotate: The amount to rotate by
+ *  @param value: the value to shift
+ *  @param rotate: the amount to rotate by
  *  @return the shifted value
  */
 word_t rotateRight(word_t value, byte_t rotate) {
@@ -190,23 +187,26 @@ word_t rotateRight(word_t value, byte_t rotate) {
   return rotateRightC(value, rotate).value;
 }
 
-/**
-* Checks if 2s complement word is negative.
-* @param word The value to check sign.
-* @returns True iff value is negative in 2s complement
-*/
+/*
+ *  Checks if a 2s complement word is negative
+ *
+ *  @param word: the value to check the sign of
+ *  @returns a flag that is set iff value is negative in 2s complement
+ */
 flag_t isNegative(word_t word){
   return word >> 31;
 }
 
-/**
-* Negates a 2s Complement word.
-* @param word The value to be negated
-* @returns The negated word
-*/
+/*
+ *  Negates a 2s complement word
+ *
+ *  @param word: the value to be negated
+ *  @returns the negated word
+ */
 word_t negate(word_t word){
   return (~word) + 1;
 }
+
 /*
  *  Pad out a byte value to a word value, with zeros
  *
@@ -215,161 +215,4 @@ word_t negate(word_t word){
  */
 word_t leftPadZeros(byte_t value) {
   return value;
-}
-
-// Main for testing
-int main(int argc, char **argv) {
-
-  word_t zero = 0;
-  word_t five = 5;
-  word_t sixtyThree = 63;
-  word_t max = UINT32_MAX;
-  word_t maxMSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 1);
-  word_t max2MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 2);
-  word_t max3MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 3);
-
-  // Get bits
-  assert(zero == getBits(zero, 0, 0));
-  assert(zero == getBits(zero, 1, 0));
-  assert(zero == getBits(zero, 17, 6));
-
-  assert(five == getBits(five, 31, 0));
-  assert(zero == getBits(five, 31, 21));
-  assert(2 == getBits(five, 2, 1));
-  assert(1 == getBits(five, 2, 2));
-
-  assert(sixtyThree == getBits(sixtyThree, 31, 0));
-  assert(zero == getBits(sixtyThree, 31, 29));
-  assert(15 == getBits(sixtyThree, 4, 1));
-  assert(1 == getBits(sixtyThree, 5, 5));
-  assert(3 == getBits(sixtyThree, 7, 4));
-
-  assert(max == getBits(max, 31, 0));
-  assert(2047 == getBits(max, 31, 21));
-  assert(3 == getBits(max, 2, 1));
-  assert(31 == getBits(max, 6, 2));
-
-
-  // Get flag
-  assert(!getFlag(zero, 0));
-  assert(!getFlag(zero, 30));
-
-  assert(getFlag(five, 0));
-  assert(!getFlag(five, 1));
-  assert(getFlag(five, 2));
-
-  assert(getFlag(sixtyThree, 0));
-  assert(getFlag(sixtyThree, 5));
-  assert(!getFlag(sixtyThree, 6));
-
-  assert(getFlag(max, 0));
-  assert(getFlag(max, 8));
-
-
-  // Get byte
-  assert(zero == getByte(zero, 7));
-  assert(zero == getByte(zero, 14));
-  assert(zero == getByte(zero, 31));
-
-  assert(five == getByte(five, 7));
-  assert(2 == getByte(five, 8));
-  assert(zero == getByte(five, 31));
-
-  assert(sixtyThree == getByte(sixtyThree, 7));
-  assert(31 == getByte(sixtyThree, 8));
-  assert(zero == getByte(sixtyThree, 31));
-
-  assert(UINT8_MAX == getByte(max, 7));
-  assert(UINT8_MAX == getByte(max, 8));
-  assert(UINT8_MAX == getByte(max, 19));
-
-
-  // Logical shift left
-  assert(zero == lShiftLeft(zero, 0));
-  assert(zero == lShiftLeft(zero, 4));
-  assert(zero == lShiftLeft(zero, 72));
-
-  assert(five == lShiftLeft(five, 0));
-  assert(10 == lShiftLeft(five, 1));
-  assert(40 == lShiftLeft(five, 3));
-
-  assert(sixtyThree == lShiftLeft(sixtyThree, 0));
-  assert(126 == lShiftLeft(sixtyThree, 1));
-  assert(252 == lShiftLeft(sixtyThree, 2));
-  assert(504 == lShiftLeft(sixtyThree, 3));
-
-  assert(max == lShiftLeft(max, 0));
-  assert(max - 1 == lShiftLeft(max, 1));
-  assert(max - 3 == lShiftLeft(max, 2));
-  assert(max - 7 == lShiftLeft(max, 3));
-
-
-  // Logical shift right
-  assert(zero == lShiftRight(zero, 0));
-  assert(zero == lShiftRight(zero, 4));
-  assert(zero == lShiftRight(zero, 72));
-
-  assert(five == lShiftRight(five, 0));
-  assert(2 == lShiftRight(five, 1));
-  assert(0 == lShiftRight(five, 3));
-
-  assert(sixtyThree == lShiftRight(sixtyThree, 0));
-  assert(31 == lShiftRight(sixtyThree, 1));
-  assert(15 == lShiftRight(sixtyThree, 2));
-  assert(7 == lShiftRight(sixtyThree, 3));
-
-  assert(max == lShiftRight(max, 0));
-  assert(max - maxMSb == lShiftRight(max, 1));
-  assert(max - maxMSb - max2MSb == lShiftRight(max, 2));
-  assert(max - maxMSb - max2MSb - max3MSb == lShiftRight(max, 3));
-
-
-  // Arithmetic shift right
-  assert(zero == aShiftRight(zero, 0));
-  assert(zero == aShiftRight(zero, 4));
-  assert(zero == aShiftRight(zero, 72));
-
-  assert(five == aShiftRight(five, 0));
-  assert(2 == aShiftRight(five, 1));
-  assert(0 == aShiftRight(five, 3));
-
-  assert(sixtyThree == aShiftRight(sixtyThree, 0));
-  assert(31 == aShiftRight(sixtyThree, 1));
-  assert(15 == aShiftRight(sixtyThree, 2));
-  assert(7 == aShiftRight(sixtyThree, 3));
-
-  assert(max == aShiftRight(max, 0));
-  assert(max == aShiftRight(max, 1));
-  assert(max == aShiftRight(max, 22));
-  assert(max - 1 == aShiftRight(max - 2, 1));
-  assert(max == aShiftRight(max - 2, 2));
-
-
-  // Rotate right
-  assert(zero == rotateRight(zero, 0));
-  assert(zero == rotateRight(zero, 4));
-  assert(zero == rotateRight(zero, 72));
-
-  assert(five == rotateRight(five, 0));
-  assert(2147483650 == rotateRight(five, 1));
-  assert(2684354560 == rotateRight(five, 3));
-
-  assert(sixtyThree == rotateRight(sixtyThree, 0));
-  assert(2147483679 == rotateRight(sixtyThree, 1));
-  assert(3221225487 == rotateRight(sixtyThree, 2));
-  assert(3758096391 == rotateRight(sixtyThree, 3));
-
-  assert(max == rotateRight(max, 0));
-  assert(max == rotateRight(max, 1));
-  assert(max == rotateRight(max, 3));
-
-
-  // Left pad zeros
-  assert(0 == leftPadZeros(0));
-  assert(242 == leftPadZeros(242));
-  assert(1 == leftPadZeros(1));
-  assert(UINT8_MAX == leftPadZeros(UINT8_MAX));
-
-
-  return 0;
 }

@@ -3,6 +3,9 @@
 #ignore temp files
 *~
 
+#ignore macOS files
+.DS_Store
+
 #Matt files to ignore
 out/
 car.sh
@@ -17,22 +20,23 @@ cmake-build-debug/
 #*.pdf
 
 #ignore junk files from latex output
-*.out
+doc/*.out
 *.log
 *.aux
 *.dvi
 *.ps
 
 #ignore junk files from compiling C code
-*.o
-emulate
-assemble
+src/build/*
 
 #ignore junk files from compiling Haskell code
 *.hi
 
 #ignore junk files from compiling Java code
 *.class
+
+#Ignore test outputs
+src/test/build/*
 
 #ignore other junk files
 *.backup
@@ -42,4 +46,3 @@ assemble
 *.vrb
 *.nav
 *.toc
-
