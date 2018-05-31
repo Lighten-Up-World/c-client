@@ -19,7 +19,7 @@ const uint8_t U_ONE = 1;
  *  @param pos: the position of the flag
  *  @return a flag that is true iff the bit at pos is not 0
  */
-flag_t getFlag(word_t inst, byte_t pos) {
+flag_t get_flag(word_t inst, byte_t pos) {
  return (inst & ( 1 << pos )) >> pos;
 }
 
@@ -30,7 +30,7 @@ flag_t getFlag(word_t inst, byte_t pos) {
  *  @param pos: the start of the byte
  *  @return a byte containing the 8 bits downwards from pos, in inst
  */
-byte_t getByte(word_t inst, byte_t pos) {
+byte_t get_byte(word_t inst, byte_t pos) {
   assert(pos >= 7);
   return (inst >> (pos - 7)) & 0x000000ff;
 }
@@ -42,7 +42,7 @@ byte_t getByte(word_t inst, byte_t pos) {
  *  @param pos: the start of the nibble
  *  @return a byte containing the 4 bits downwards from pos, in inst
  */
-byte_t getNibble(word_t inst, byte_t pos) {
+byte_t get_nibble(word_t inst, byte_t pos) {
   assert(pos >= 3);
   return (inst >> (pos - 3)) & 0x0000000f;
 }
@@ -56,7 +56,7 @@ byte_t getNibble(word_t inst, byte_t pos) {
  *  @param y: the LSb of interval to return
  *  @return a word containing the specified bits, right aligned
  */
-word_t getBits(word_t inst, byte_t x, byte_t y) {
+word_t get_bits(word_t inst, byte_t x, byte_t y) {
   assert(x <= 31);
   assert(x >= y);
   assert(y >= 0);
@@ -72,11 +72,11 @@ word_t getBits(word_t inst, byte_t x, byte_t y) {
  *  @param shift: the amount to shift by
  *  @return a pair containing the shifted value and carry
  */
-shift_result_t lShiftLeftC(word_t value, byte_t shift) {
+shift_result_t l_shift_left_c(word_t value, byte_t shift) {
   assert(shift >= 0);
 
   shift_result_t res;
-  res.value = lShiftLeft(value, shift);
+  res.value = l_shift_left(value, shift);
   res.carry = 0;
 
   if (shift != 0) {
@@ -92,11 +92,11 @@ shift_result_t lShiftLeftC(word_t value, byte_t shift) {
  *  @param shift: the amount to shift by
  *  @return a pair containing the shifted value and carry
  */
-shift_result_t lShiftRightC(word_t value, byte_t shift) {
+shift_result_t l_shift_right_c(word_t value, byte_t shift) {
   assert(shift >= 0);
 
   shift_result_t res;
-  res.value = lShiftRight(value, shift);
+  res.value = l_shift_right(value, shift);
   res.carry = (value << (sizeof(word_t) * 8 - shift)) & 0x80000000;
 
   return res;
@@ -109,11 +109,11 @@ shift_result_t lShiftRightC(word_t value, byte_t shift) {
  *  @param shift: the amount to shift by
  *  @return a pair containing the shifted value and carry
  */
-shift_result_t aShiftRightC(word_t value, byte_t shift) {
+shift_result_t a_shift_right_c(word_t value, byte_t shift) {
   assert(shift >= 0);
 
   shift_result_t res;
-  res.value = aShiftRight(value, shift);
+  res.value = a_shift_right(value, shift);
   res.carry = (value << (sizeof(word_t) * 8 - shift)) & 0x80000000;
 
   return res;
@@ -126,11 +126,11 @@ shift_result_t aShiftRightC(word_t value, byte_t shift) {
  *  @param rotate: the amount to rotate by
  *  @return a pair containing the shifted value and carry
  */
-shift_result_t rotateRightC(word_t value, byte_t rotate) {
+shift_result_t rotate_right_c(word_t value, byte_t rotate) {
   assert(rotate >= 0);
 
   shift_result_t res;
-  res.value = rotateRight(value, rotate);
+  res.value = rotate_right(value, rotate);
   res.carry = (value << (sizeof(word_t) * 8 - rotate)) & 0x80000000;
 
   return res;
@@ -143,7 +143,7 @@ shift_result_t rotateRightC(word_t value, byte_t rotate) {
  *  @param shift: the amount to shift by
  *  @return the shifted value
  */
-word_t lShiftLeft(word_t value, byte_t shift) {
+word_t l_shift_left(word_t value, byte_t shift) {
   assert(shift >= 0);
   return value << shift;
 }
@@ -155,7 +155,7 @@ word_t lShiftLeft(word_t value, byte_t shift) {
  *  @param shift: the amount to shift by
  *  @return the shifted value
  */
-word_t lShiftRight(word_t value, byte_t shift) {
+word_t l_shift_right(word_t value, byte_t shift) {
   assert(shift >= 0);
   return value >> shift;
 }
@@ -167,13 +167,13 @@ word_t lShiftRight(word_t value, byte_t shift) {
  *  @param shift: the amount to shift by
  *  @return the shifted value
  */
-word_t aShiftRight(word_t value, byte_t shift) {
+word_t a_shift_right(word_t value, byte_t shift) {
   assert(shift >= 0);
 
   word_t msb = value >> (sizeof(word_t) * 8 - 1);
 
   if (msb == 0) {
-    return lShiftRight(value, shift);
+    return l_shift_right(value, shift);
   }
 
   word_t msbOnly = msb << ((sizeof(word_t) * 8) - 1);
@@ -192,7 +192,7 @@ word_t aShiftRight(word_t value, byte_t shift) {
  *  @param rotate: the amount to rotate by
  *  @return the shifted value
  */
-word_t rotateRight(word_t value, byte_t rotate) {
+word_t rotate_right(word_t value, byte_t rotate) {
   assert(rotate >= 0);
 
   word_t lsb;
@@ -211,8 +211,8 @@ word_t rotateRight(word_t value, byte_t rotate) {
  *  @param word: the value to check the sign of
  *  @returns a flag that is set iff value is negative in 2s complement
  */
-flag_t isNegative(word_t word){
-  return (flag_t) lShiftRight(word, 31);
+flag_t is_negative(word_t word){
+  return (flag_t) l_shift_right(word, 31);
 }
 
 /**
@@ -231,6 +231,6 @@ word_t negate(word_t word){
  *  @param value: the value to zero extend
  *  @return the zero extended value
  */
-word_t leftPadZeros(byte_t value) {
+word_t left_pad_zeros(byte_t value) {
   return value;
 }
