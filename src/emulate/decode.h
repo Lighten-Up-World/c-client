@@ -5,8 +5,8 @@
 #ifndef ARM11_22_DECODE_H
 #define ARM11_22_DECODE_H
 
-#include "arm.h"
-#include "instructions.h"
+#include "utils/arm.h"
+#include "utils/instructions.h"
 
 // GENERAL INSTRUCTION DEFINITIONS
 #define COND_START 31

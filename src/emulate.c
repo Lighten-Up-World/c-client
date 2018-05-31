@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include "arm.h"
-#include "io.h"
-#include "execute.h"
-#include "decode.h"
-#include "register.h"
+#include "utils/arm.h"
+#include "utils/io.h"
+#include "emulate/execute.h"
+#include "emulate/decode.h"
+#include "emulate/register.h"
 
 int main(int argc, char **argv) {
   assert(argc > 1);

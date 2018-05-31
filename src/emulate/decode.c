@@ -5,9 +5,9 @@
  *  process at the lowest level and work up.
  */
 
-#include "arm.h"
-#include "instructions.h"
-#include "bitops.h"
+#include "utils/arm.h"
+#include "utils/instructions.h"
+#include "utils/bitops.h"
 #include "decode.h"
 #include <assert.h>
 #include <stdio.h>

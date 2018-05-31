@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "execute.h"
-#include "bitops.h"
+#include "utils/bitops.h"
 #include "register.h"
-#include "io.h"
-#include "instructions.h"
-#include "arm.h"
+#include "utils/io.h"
+#include "utils/instructions.h"
+#include "utils/arm.h"
 #include "decode.h"
 
 /**
