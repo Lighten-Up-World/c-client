@@ -85,7 +85,6 @@ int encode_offset(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_dp(instruction_t *instr, word_t *word){
-
   word_t w = *word;
   w <<= 3;
   w |= instr->i.dp.I;
@@ -133,8 +132,41 @@ int encode_dp(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_mul(instruction_t *instr, word_t *word){
-  //TODO
-  return 0;
+  word_t w = *word;
+  w <<= 7;
+  w |= instr->i.mul.A;
+  w <<= 1;
+  w |= instr->i.mul.S;
+
+  if (instr->i.mul.rd >= NUM_GENERAL_REGISTERS){
+    return EC_INVALID_PARAM;
+  }
+  w <<= 4;
+  w |= instr->i.mul.rd;
+
+  if (instr->i.mul.rn >= NUM_GENERAL_REGISTERS){
+    return EC_INVALID_PARAM;
+  }
+  w <<= 4;
+  w |= instr->i.mul.rn;
+
+  if (instr->i.mul.rs >= NUM_GENERAL_REGISTERS){
+    return EC_INVALID_PARAM;
+  }
+  w <<= 4;
+  w |= instr->i.mul.rs;
+
+  w <<= 4;
+  w |= instr->i.mul.pad9;
+
+  if (instr->i.mul.rs >= NUM_GENERAL_REGISTERS){
+    return EC_INVALID_PARAM;
+  }
+  w <<= 4;
+  w |= instr->i.mul.rm;
+
+  *word = w;
+  return EC_OK;
 }
 
 /**
