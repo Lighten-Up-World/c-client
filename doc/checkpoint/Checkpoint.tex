@@ -1,0 +1,88 @@
+\documentclass[10pt,twoside]{article}
+\newcommand{\reporttitle}{ARM LAB}
+\newcommand{\reportauthors}{Tiger Cross, William Burr, Matt Malarkey, Daniel Hails}
+\newcommand{\reporttype}{Interim Report}
+
+% include files that load packages and define macros
+\usepackage{wrapfig}
+\input{includes}
+\input{notation} % short-hand notation and macros
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+% front page
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Main document
+\begin{center}
+\LARGE\textbf{ARM Checkpoint Report}
+\end{center}
+\begin{center}
+\small{Tiger Cross, William Burr, Matt Malarkey, Daniel Hails - 1st June 2018}
+\end{center}
+
+\section{Code Structure}
+\subsection*{Files}
+We decided to employ a divide and conquer approach to building the emulator, splitting the problem into smaller sub-problems each with their own file. This allowed for a modular structure where functions, and definitions are reusable:
+\begin{itemize}
+\item \textbf{arm.h} - Contains definitions/typedefs for program state, registers, pipeline, flags, conditions and opcodes.
+\item \textbf{instructions.h} - Contains typedefs for representing decoded binary instructions. See Figure 1.
+\item \textbf{emulate.c (.h)} - This is entry for the emulator and contains the main function which initialises memory and registers, loops through binary instructions, decoding and executing each using the pipeline until reaching halt. 
+\item \textbf{decode.c (.h)} - Takes in a binary instruction (a word) and returns an instance of an instruction struct (instruction\_t in \textbf{instructions.h}) representing the decoded binary.
+\item \textbf{execute.c (.h)} - Takes in program state, and executes the decoded instruction\_t in pipeline, modifying the state (registers and memory) based on the instruction.
+\item \textbf{io.c (.h)} - Contains functions for getting/setting words in memory, printing register and memory contents, reading and writing to/from files. 
+\item \textbf{bitops.c (.h)} - Contains functions for extracting bits from a word, left and right shifts, arithmetic and logical rotations, negating words, checking if words are negative and left padding with 0s.
+\item \textbf{register.c (.h)} - Contains functions for getting/setting registers, getting/setting PC, incrementing PC, getting/setting flags (from CPSR).
+\item \textbf{error.c (.h)} - Contains typedefs for error codes, error strings and functions for printing errors and dealing with error codes.
+\end{itemize}
+\begin{wrapfigure}[11]{R}{0.5\textwidth}
+\centering
+\vspace{-20pt}
+\includegraphics[width=\hsize]{figures/ARMStructure}
+\caption{\label{fig:ARMStructure} Extract of struct/union hierarchy for instruction\_t in \textbf{instructions.h}}.
+\end{wrapfigure}
+
+Unit tests were used to identify and resolve errors in each module, before combining modules together to form the emulator. \\ 
+To provide clarity in team about how we were to decode instructions, a diagram was constructed illustrating the hierarchy of unions and structs in \textbf{instructions.h}. \\ 
+An extract of this diagram is shown in Figure 1, with the full version in the git docs repository which includes additional structs and unions for the offset/operand for the SDT and DP instructions respectively. 
+\subsection*{Reusable Components}
+For the assembler, elements of the existing code will prove useful. These elements include \textbf{instructions.h} as each ARM instruction can be translated into a respective instruction\_t, then translated to binary. \textbf{io.c (.h)} will be useful for reading in the instructions from a file and writing the binary to another file. \textbf{bitops.c (.h)} will be useful for applying shifts to binary words in the construction of the assembled binary instruction. 
+
+\section{Group Work}
+\subsection*{Planning and Delegation}
+\begin{wrapfigure}[10]{R}{0.55\textwidth}
+\centering
+\vspace{-40pt}
+\includegraphics[width=0.6\textwidth]{figures/WorkloadBreakdown.png}
+\caption{\label{fig:spreadsheet} Spreadsheet to show our allocation of tasks.}
+\end{wrapfigure}
+In our first meeting we broke down part I into small tasks and created a spreadsheet to assign tasks to members based on their preferences and strengths. We opted for a colour-coded system for illustrating the progress of tasks. A copy of the table midway through part I is shown in Figure 2. Despite initial assignments, each group members was available to help and assist with any task.
+
+\subsection*{Communication and Use of Git}
+\begin{wrapfigure}[13]{L}{0.4\textwidth}
+\centering
+\vspace{-16pt}
+\includegraphics[width=0.4\textwidth]{figures/Group_debug_sesh-min.jpg}
+\caption{\label{fig:spreadsheet} Group Debug Session in Huxley}
+\end{wrapfigure}
+Throughout the project so far we have favoured face-to-face communication over other methods, especially whilst debugging (a group debug session is shown in Figure 3) as we can communicate clearly with one another. Outside of college, we initially used Facebook messenger but found we needed clearer communication. We therefore created our own Slack workspace, creating channels for each module in development. This allowed us to discuss multiple areas clearly and help each other with problems on specific channels.\\
+\linebreak
+
+For using Gitlab, we created a \textbf{develop} branch which would contain a working version of our emulator/assembler with the goal of pushing to \textbf{master} when we are confident that it is production level. For each task, we created branches from \textbf{develop} (e.g. \textbf{decodeBRN}, \textbf{decodeMul} etc.), but then decided to reduce unnecessary branching by only creating new branches from \textbf{develop} for each module (e.g. \textbf{execute}, \textbf{bitops}, \textbf{error}). For each branch, when the module/task was finished the team member would submit a merge request, prompting another member to review the changes and approve the merge. This ensured we developed and reviewed code as a team in a structured way.
+
+\section{Future Challenges}
+
+For each challenge in the upcoming parts, we have designed our approach accordingly:
+\begin{itemize}
+
+\item \textbf{Part II} - To ensure the on-time development of a working, well-structured assembler, we have decided the structure as a team and have split the assembler into modules, each with its own assigned team members, slack channel and git branch. Team deadline: 9:00am, 4th June.
+\item \textbf{Part III} - Since this is a small task, we have already set about producing the ARM code for repeatedly switching the LED on and off, and have successfully tested this using an online ARM compiler. The only remaining task is to modify Part I to accommodate the changes. 
+\item \textbf{Extension} - We anticipate this section to be very time consuming, so we already have an active slack channel, \textbf{\#extension}, for brainstorming and planning ideas, including finding any necessary parts we may need to order early. This will allow us to be ready with a plan and with the right hardware by the time the other parts are done. \\
+Since there will be no given specification, we will be constructing our own specification of what our extension will do, so that the team has a clear understanding of the design.
+\end{itemize}
+
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
