@@ -28,8 +28,8 @@ typedef struct {
 * @param ouput: the place in memory to store the separated sublists
 * @returns The number of tokens found
 */
-int str_separate(char *src, char sep, char ***output);
+int str_separate(char *src, char *tokens, char sep, char ***output);
 
-int tokenize(char *line, token_t *out);
+int tokenize(char *line, token_t **out);
 
 #endif
