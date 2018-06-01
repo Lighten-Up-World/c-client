@@ -3,6 +3,7 @@
 #include <error.h>
 #include <bitops.h>
 #include "encode.h"
+#include <stdio.h>
 
 /**
  * encode shifted register for DP or SDT instruction
@@ -13,6 +14,7 @@
  */
 
 int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *word){
+  assert(word != NULL);
   if (opShiftReg.rm >= NUM_GENERAL_REGISTERS){
     return EC_INVALID_PARAM;
   }
@@ -45,6 +47,8 @@ int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *word){
  * @return
  */
 int encode_operand(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   word_t w = *word;
   if (instr->i.dp.I){ //Operand2 is immediate constant
     w <<= 4;
@@ -67,6 +71,8 @@ int encode_operand(instruction_t *instr, word_t *word){
  */
 
 int encode_offset(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   if (instr->i.dp.I){ //Offset is shifted register
     return encode_shifted_reg(instr->i.sdt.offset, word);
   }else{  //Offset is 12-bit immediate value
@@ -85,6 +91,9 @@ int encode_offset(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_dp(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
+
   word_t w = *word;
   w <<= 3;
   w |= instr->i.dp.I;
@@ -132,6 +141,9 @@ int encode_dp(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_mul(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
+
   word_t w = *word;
   w <<= 7;
   w |= instr->i.mul.A;
@@ -177,6 +189,8 @@ int encode_mul(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_sdt(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   //TODO
   return 0;
 }
@@ -189,6 +203,8 @@ int encode_sdt(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_brn(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   //TODO
   return 0;
 }
@@ -201,6 +217,8 @@ int encode_brn(instruction_t *instr, word_t *word){
  * @return
  */
 int encode_hal(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   //TODO
   return 0;
 }
@@ -215,6 +233,8 @@ int encode_hal(instruction_t *instr, word_t *word){
  */
 
 int encode_cond(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   word_t w = *word;
   switch (instr->cond){
     case EQ:
@@ -241,6 +261,8 @@ int encode_cond(instruction_t *instr, word_t *word){
  * @return status code for success of encoding
  */
 int encode(instruction_t *instr, word_t *word){
+  assert(word != NULL);
+  assert(instr != NULL);
   *word = 0;
   if(encode_cond(instr, word)){
     return EC_INVALID_PARAM;
@@ -257,7 +279,6 @@ int encode(instruction_t *instr, word_t *word){
     case HAL:
       return encode_hal(instr, word);
     default:
-      assert(false);
       return EC_INVALID_PARAM;
   }
 }
