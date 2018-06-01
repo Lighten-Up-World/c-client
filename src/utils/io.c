@@ -1,5 +1,3 @@
-/// FILE DESCRIPTION ///
-
 /*
 *  Contains IO related operations, operating on either the ARM machine state or local disk.
 */

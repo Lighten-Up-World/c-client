@@ -1,7 +1,7 @@
 /*
- *  The functions below are all used to decode the data processing
- *  instructions. Since there are many aspects to an instruction of this type
- *  we have broken it down into different structs, and we start the decoding
+ *  The functions below are all used to decode the different types of
+ *  instructions. Since there are many aspects to an instruction,
+ *  we have broken them down into different structs and we start the decoding
  *  process at the lowest level and work up.
  */
 

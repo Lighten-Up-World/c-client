@@ -1,4 +1,6 @@
-/// FILE DESCRIPTION ///
+/*
+ * Contains functions for getting/setting registers as well as PC and flags.
+ */
 
 #include <stdio.h>
 #include "utils/arm.h"
