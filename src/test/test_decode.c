@@ -1,6 +1,6 @@
 #include "unity.h"
-#include "emulate/decode.h"
-#include "utils/bitops.c"
+#include "../emulate/decode.h"
+#include "../utils/bitops.c"
 
 void compareInstructions(instruction_t e, instruction_t d){
   TEST_ASSERT_EQUAL_MESSAGE(e.type, d.type, "Instr Type");

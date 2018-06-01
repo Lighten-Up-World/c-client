@@ -12,7 +12,7 @@ typedef enum{
   T_COMMA,
   T_MINUS,
   T_PLUS,
-}
+}token_type_t;
 
 typedef struct {
   token_type_t type;

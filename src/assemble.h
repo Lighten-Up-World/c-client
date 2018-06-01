@@ -1,6 +1,11 @@
 #ifndef ASSEMBLE_H
 #define ASSEMBLE_H
 
+#include "./utils/arm.h"
+#include "assemble/symbolmap.h"
+#include "assemble/referencemap.h"
+#include "assemble/map.h"
+
 #define LINE_SIZE 511
 
 typedef struct {

@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "arm.h"
+#include "../utils/arm.h"
 
 typedef struct {
   address_t *address;
@@ -26,6 +26,7 @@ typedef struct {
 } reference_map_t;
 
 reference_map_t *rmap_new(size_t capacity);
+
 int rmap_delete(reference_map_t *map);
 
 int rmap_get_address(const reference_map_t *map, const label_t label, address_t *out, size_t out_size);
