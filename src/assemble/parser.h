@@ -8,9 +8,9 @@ int consume_token(token_t *arr, token_type_t type);
 
 int parse(token_t *tkns, instruction_t *inst);
 
-int parseDP(token_t *tkns, instruction_t *inst);
-int parseMUL(token_t *tkns, instruction_t *inst);
-int parseSDT(token_t *tkns, instruction_t *inst);
-int parseBRN(token_t *tkns, instruction_t *inst);
+int parse_dp(token_t *tkns, instruction_t *inst);
+int parse_mul(token_t *tkns, instruction_t *inst);
+int parse_sdt(token_t *tkns, instruction_t *inst);
+int parse_brn(token_t *tkns, instruction_t *inst);
 
 #endif
