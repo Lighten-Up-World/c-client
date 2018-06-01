@@ -1,8 +1,8 @@
 #include "unity.h"
-#include "emulate/decode.h"
-#include "utils/bitops.c"
+#include "../emulate/decode.h"
+#include "../utils/bitops.c"
 
-void compareInstructions(instruction_t e, instruction_t d){
+void compare_instructions(instruction_t e, instruction_t d){
   TEST_ASSERT_EQUAL_MESSAGE(e.type, d.type, "Instr Type");
   TEST_ASSERT_EQUAL_MESSAGE(e.cond, d.cond, "Condition");
   if(e.type == DP){
@@ -114,9 +114,9 @@ void test_decodeDp_rotated_immediate(void) {
       }
       }
     };
-  instruction_t decoded = decodeWord(dp_tst_op2rotatedI_w);
+  instruction_t decoded = decode_word(dp_tst_op2rotatedI_w);
   instruction_t expected = dp_tst_op2rotatedI_i;
-  compareInstructions(expected, decoded);
+  compare_instructions(expected, decoded);
 }
 void test_decodeDp_shifted_register(void) {
   word_t dp_ORR_op2shiftedR_w = 0xF1900260;
@@ -138,9 +138,9 @@ void test_decodeDp_shifted_register(void) {
       },
     }
   };
-  instruction_t decoded = decodeWord(dp_ORR_op2shiftedR_w);
+  instruction_t decoded = decode_word(dp_ORR_op2shiftedR_w);
   instruction_t expected = dp_ORR_op2shiftedR_i;
-  compareInstructions(expected, decoded);
+  compare_instructions(expected, decoded);
 }
 void test_decodeSDT_invalid_register(void) {
   word_t sdt_and_invalidreg_w = 0xC59EF000;
@@ -159,9 +159,9 @@ void test_decodeSDT_invalid_register(void) {
         .offset.imm.fixed = 0x0
         }
       };
-  instruction_t decoded = decodeWord(sdt_and_invalidreg_w);
+  instruction_t decoded = decode_word(sdt_and_invalidreg_w);
   instruction_t expected = sdt_and_invalidreg_i;
-  compareInstructions(expected, decoded);
+  compare_instructions(expected, decoded);
 
 }
 void test_decodeMul(void) {
@@ -180,9 +180,9 @@ void test_decodeMul(void) {
         .rm = 0x2
         }
     };
-  instruction_t decoded = decodeWord(mul_w);
+  instruction_t decoded = decode_word(mul_w);
   instruction_t expected = mul_i;
-  compareInstructions(expected, decoded);
+  compare_instructions(expected, decoded);
 }
 void test_decodeBrn(void) {
   word_t brn_w = 0xAA000032;
@@ -194,9 +194,9 @@ void test_decodeBrn(void) {
         .offset = 0x32
         }
     };
-  instruction_t decoded = decodeWord(brn_w);
+  instruction_t decoded = decode_word(brn_w);
   instruction_t expected = brn_i;
-  compareInstructions(expected, decoded);
+  compare_instructions(expected, decoded);
 }
 void test_decodeHal(void) {
   word_t hal_w = 0x00000000;
@@ -205,9 +205,9 @@ void test_decodeHal(void) {
     .cond = 0x0,
     .i.hal.pad0 = 0x0
   };
-  instruction_t decoded = decodeWord(hal_w);
+  instruction_t decoded = decode_word(hal_w);
   instruction_t expected = hal_i;
-  compareInstructions(expected, decoded);
+  compare_instructions(expected, decoded);
 }
 
 // TODO: translate into test code?
@@ -219,28 +219,28 @@ void test_decodeHal(void) {
   word_t w3 = 0b00001010000000000000000000000000;
   word_t w4 = 0b00111010100000000000000000000001;
 
-  inst = decodeWord(w1);
+  inst = decode_word(w1);
   assert(inst.type == BRN);
   assert(inst.cond == 0b1010);
   assert(inst.i.brn.offset == 0b111111111111111111111111);
   assert(inst.i.brn.pad5 == 0b101);
   assert(inst.i.brn.pad0 == 0b0);
 
-  inst = decodeWord(w2);
+  inst = decode_word(w2);
   assert(inst.type == BRN);
   assert(inst.cond == 0b1111);
   assert(inst.i.brn.offset == 0b111111111111111111111111);
   assert(inst.i.brn.pad5 == 0b101);
   assert(inst.i.brn.pad0 == 0b0);
 
-  inst = decodeWord(w3);
+  inst = decode_word(w3);
   assert(inst.type == BRN);
   assert(inst.cond == 0b0000);
   assert(inst.i.brn.offset == 0b000000000000000000000000);
   assert(inst.i.brn.pad5 == 0b101);
   assert(inst.i.brn.pad0 == 0b0);
 
-  inst = decodeWord(w4);
+  inst = decode_word(w4);
   assert(inst.type == BRN);
   assert(inst.cond == 0b0011);
   assert(inst.i.brn.offset == 0b100000000000000000000001);

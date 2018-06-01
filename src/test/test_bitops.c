@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "utils/bitops.h"
+#include "../utils/bitops.h"
 
 word_t minus42 = -42;
 word_t minus1 = -1;
@@ -13,153 +13,153 @@ word_t max3MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 3);
 
 void test_getBits(void) {
 
-  TEST_ASSERT_EQUAL(zero, getBits(zero, 0, 0));
-  TEST_ASSERT_EQUAL(zero, getBits(zero, 1, 0));
-  TEST_ASSERT_EQUAL(zero, getBits(zero, 17, 6));
+  TEST_ASSERT_EQUAL(zero, get_bits(zero, 0, 0));
+  TEST_ASSERT_EQUAL(zero, get_bits(zero, 1, 0));
+  TEST_ASSERT_EQUAL(zero, get_bits(zero, 17, 6));
 
-  TEST_ASSERT_EQUAL(zero, getBits(five, 31, 21));
-  TEST_ASSERT_EQUAL(2, getBits(five, 2, 1));
-  TEST_ASSERT_EQUAL(1, getBits(five, 2, 2));
+  TEST_ASSERT_EQUAL(zero, get_bits(five, 31, 21));
+  TEST_ASSERT_EQUAL(2, get_bits(five, 2, 1));
+  TEST_ASSERT_EQUAL(1, get_bits(five, 2, 2));
 
-  TEST_ASSERT_EQUAL(zero, getBits(sixtyThree, 31, 29));
-  TEST_ASSERT_EQUAL(15, getBits(sixtyThree, 4, 1));
-  TEST_ASSERT_EQUAL(1, getBits(sixtyThree, 5, 5));
-  TEST_ASSERT_EQUAL(3, getBits(sixtyThree, 7, 4));
+  TEST_ASSERT_EQUAL(zero, get_bits(sixtyThree, 31, 29));
+  TEST_ASSERT_EQUAL(15, get_bits(sixtyThree, 4, 1));
+  TEST_ASSERT_EQUAL(1, get_bits(sixtyThree, 5, 5));
+  TEST_ASSERT_EQUAL(3, get_bits(sixtyThree, 7, 4));
 
-  TEST_ASSERT_EQUAL(2047, getBits(max, 31, 21));
-  TEST_ASSERT_EQUAL(3, getBits(max, 2, 1));
-  TEST_ASSERT_EQUAL(31, getBits(max, 6, 2));
+  TEST_ASSERT_EQUAL(2047, get_bits(max, 31, 21));
+  TEST_ASSERT_EQUAL(3, get_bits(max, 2, 1));
+  TEST_ASSERT_EQUAL(31, get_bits(max, 6, 2));
 }
 
 void test_getFlag(void) {
   // Get flag
-  TEST_ASSERT_FALSE(getFlag(zero, 0));
-  TEST_ASSERT_FALSE(getFlag(zero, 30));
+  TEST_ASSERT_FALSE(get_flag(zero, 0));
+  TEST_ASSERT_FALSE(get_flag(zero, 30));
 
-  TEST_ASSERT_TRUE(getFlag(five, 0));
-  TEST_ASSERT_FALSE(getFlag(five, 1));
-  TEST_ASSERT_TRUE(getFlag(five, 2));
+  TEST_ASSERT_TRUE(get_flag(five, 0));
+  TEST_ASSERT_FALSE(get_flag(five, 1));
+  TEST_ASSERT_TRUE(get_flag(five, 2));
 
-  TEST_ASSERT_TRUE(getFlag(sixtyThree, 0));
-  TEST_ASSERT_TRUE(getFlag(sixtyThree, 5));
-  TEST_ASSERT_FALSE(getFlag(sixtyThree, 6));
+  TEST_ASSERT_TRUE(get_flag(sixtyThree, 0));
+  TEST_ASSERT_TRUE(get_flag(sixtyThree, 5));
+  TEST_ASSERT_FALSE(get_flag(sixtyThree, 6));
 
-  TEST_ASSERT_TRUE(getFlag(max, 0));
-  TEST_ASSERT_TRUE(getFlag(max, 8));
+  TEST_ASSERT_TRUE(get_flag(max, 0));
+  TEST_ASSERT_TRUE(get_flag(max, 8));
 }
 
 void test_getByte(void){
   // Get byte
-  TEST_ASSERT_EQUAL(zero, getByte(zero, 7));
-  TEST_ASSERT_EQUAL(zero, getByte(zero, 14));
-  TEST_ASSERT_EQUAL(zero, getByte(zero, 31));
+  TEST_ASSERT_EQUAL(zero, get_byte(zero, 7));
+  TEST_ASSERT_EQUAL(zero, get_byte(zero, 14));
+  TEST_ASSERT_EQUAL(zero, get_byte(zero, 31));
 
-  TEST_ASSERT_EQUAL(five, getByte(five, 7));
-  TEST_ASSERT_EQUAL(2, getByte(five, 8));
-  TEST_ASSERT_EQUAL(zero, getByte(five, 31));
+  TEST_ASSERT_EQUAL(five, get_byte(five, 7));
+  TEST_ASSERT_EQUAL(2, get_byte(five, 8));
+  TEST_ASSERT_EQUAL(zero, get_byte(five, 31));
 
-  TEST_ASSERT_EQUAL(sixtyThree, getByte(sixtyThree, 7));
-  TEST_ASSERT_EQUAL(31, getByte(sixtyThree, 8));
-  TEST_ASSERT_EQUAL(zero, getByte(sixtyThree, 31));
+  TEST_ASSERT_EQUAL(sixtyThree, get_byte(sixtyThree, 7));
+  TEST_ASSERT_EQUAL(31, get_byte(sixtyThree, 8));
+  TEST_ASSERT_EQUAL(zero, get_byte(sixtyThree, 31));
 
-  TEST_ASSERT_EQUAL(UINT8_MAX, getByte(max, 7));
-  TEST_ASSERT_EQUAL(UINT8_MAX, getByte(max, 8));
-  TEST_ASSERT_EQUAL(UINT8_MAX, getByte(max, 19));
+  TEST_ASSERT_EQUAL(UINT8_MAX, get_byte(max, 7));
+  TEST_ASSERT_EQUAL(UINT8_MAX, get_byte(max, 8));
+  TEST_ASSERT_EQUAL(UINT8_MAX, get_byte(max, 19));
 }
 
 void test_lShift(void){
   // Logical shift left
-  TEST_ASSERT_EQUAL(zero, lShiftLeft(zero, 0));
-  TEST_ASSERT_EQUAL(zero, lShiftLeft(zero, 4));
-  TEST_ASSERT_EQUAL(zero, lShiftLeft(zero, 72));
+  TEST_ASSERT_EQUAL(zero, l_shift_left(zero, 0));
+  TEST_ASSERT_EQUAL(zero, l_shift_left(zero, 4));
+  TEST_ASSERT_EQUAL(zero, l_shift_left(zero, 72));
 
-  TEST_ASSERT_EQUAL(five, lShiftLeft(five, 0));
-  TEST_ASSERT_EQUAL(10, lShiftLeft(five, 1));
-  TEST_ASSERT_EQUAL(40, lShiftLeft(five, 3));
+  TEST_ASSERT_EQUAL(five, l_shift_left(five, 0));
+  TEST_ASSERT_EQUAL(10, l_shift_left(five, 1));
+  TEST_ASSERT_EQUAL(40, l_shift_left(five, 3));
 
-  TEST_ASSERT_EQUAL(sixtyThree, lShiftLeft(sixtyThree, 0));
-  TEST_ASSERT_EQUAL(126, lShiftLeft(sixtyThree, 1));
-  TEST_ASSERT_EQUAL(252, lShiftLeft(sixtyThree, 2));
-  TEST_ASSERT_EQUAL(504, lShiftLeft(sixtyThree, 3));
+  TEST_ASSERT_EQUAL(sixtyThree, l_shift_left(sixtyThree, 0));
+  TEST_ASSERT_EQUAL(126, l_shift_left(sixtyThree, 1));
+  TEST_ASSERT_EQUAL(252, l_shift_left(sixtyThree, 2));
+  TEST_ASSERT_EQUAL(504, l_shift_left(sixtyThree, 3));
 
-  TEST_ASSERT_EQUAL(max, lShiftLeft(max, 0));
-  TEST_ASSERT_EQUAL(max - 1, lShiftLeft(max, 1));
-  TEST_ASSERT_EQUAL(max - 3, lShiftLeft(max, 2));
-  TEST_ASSERT_EQUAL(max - 7, lShiftLeft(max, 3));
+  TEST_ASSERT_EQUAL(max, l_shift_left(max, 0));
+  TEST_ASSERT_EQUAL(max - 1, l_shift_left(max, 1));
+  TEST_ASSERT_EQUAL(max - 3, l_shift_left(max, 2));
+  TEST_ASSERT_EQUAL(max - 7, l_shift_left(max, 3));
 
 
   // Logical shift right
-  TEST_ASSERT_EQUAL(zero, lShiftRight(zero, 0));
-  TEST_ASSERT_EQUAL(zero, lShiftRight(zero, 4));
-  TEST_ASSERT_EQUAL(zero, lShiftRight(zero, 72));
+  TEST_ASSERT_EQUAL(zero, l_shift_right(zero, 0));
+  TEST_ASSERT_EQUAL(zero, l_shift_right(zero, 4));
+  TEST_ASSERT_EQUAL(zero, l_shift_right(zero, 72));
 
-  TEST_ASSERT_EQUAL(five, lShiftRight(five, 0));
-  TEST_ASSERT_EQUAL(2, lShiftRight(five, 1));
-  TEST_ASSERT_EQUAL(0, lShiftRight(five, 3));
+  TEST_ASSERT_EQUAL(five, l_shift_right(five, 0));
+  TEST_ASSERT_EQUAL(2, l_shift_right(five, 1));
+  TEST_ASSERT_EQUAL(0, l_shift_right(five, 3));
 
-  TEST_ASSERT_EQUAL(sixtyThree, lShiftRight(sixtyThree, 0));
-  TEST_ASSERT_EQUAL(31, lShiftRight(sixtyThree, 1));
-  TEST_ASSERT_EQUAL(15, lShiftRight(sixtyThree, 2));
-  TEST_ASSERT_EQUAL(7, lShiftRight(sixtyThree, 3));
+  TEST_ASSERT_EQUAL(sixtyThree, l_shift_right(sixtyThree, 0));
+  TEST_ASSERT_EQUAL(31, l_shift_right(sixtyThree, 1));
+  TEST_ASSERT_EQUAL(15, l_shift_right(sixtyThree, 2));
+  TEST_ASSERT_EQUAL(7, l_shift_right(sixtyThree, 3));
 
-  TEST_ASSERT_EQUAL(max, lShiftRight(max, 0));
-  TEST_ASSERT_EQUAL(max - maxMSb, lShiftRight(max, 1));
-  TEST_ASSERT_EQUAL(max - maxMSb - max2MSb, lShiftRight(max, 2));
-  TEST_ASSERT_EQUAL(max - maxMSb - max2MSb - max3MSb, lShiftRight(max, 3));
+  TEST_ASSERT_EQUAL(max, l_shift_right(max, 0));
+  TEST_ASSERT_EQUAL(max - maxMSb, l_shift_right(max, 1));
+  TEST_ASSERT_EQUAL(max - maxMSb - max2MSb, l_shift_right(max, 2));
+  TEST_ASSERT_EQUAL(max - maxMSb - max2MSb - max3MSb, l_shift_right(max, 3));
 }
 
 void test_aShift(void){
 
 
     // Arithmetic shift right
-    TEST_ASSERT_EQUAL(zero, aShiftRight(zero, 0));
-    TEST_ASSERT_EQUAL(zero, aShiftRight(zero, 4));
-    TEST_ASSERT_EQUAL(zero, aShiftRight(zero, 72));
+    TEST_ASSERT_EQUAL(zero, a_shift_right(zero, 0));
+    TEST_ASSERT_EQUAL(zero, a_shift_right(zero, 4));
+    TEST_ASSERT_EQUAL(zero, a_shift_right(zero, 72));
 
-    TEST_ASSERT_EQUAL(five, aShiftRight(five, 0));
-    TEST_ASSERT_EQUAL(2, aShiftRight(five, 1));
-    TEST_ASSERT_EQUAL(0, aShiftRight(five, 3));
+    TEST_ASSERT_EQUAL(five, a_shift_right(five, 0));
+    TEST_ASSERT_EQUAL(2, a_shift_right(five, 1));
+    TEST_ASSERT_EQUAL(0, a_shift_right(five, 3));
 
-    TEST_ASSERT_EQUAL(sixtyThree, aShiftRight(sixtyThree, 0));
-    TEST_ASSERT_EQUAL(31, aShiftRight(sixtyThree, 1));
-    TEST_ASSERT_EQUAL(15, aShiftRight(sixtyThree, 2));
-    TEST_ASSERT_EQUAL(7, aShiftRight(sixtyThree, 3));
+    TEST_ASSERT_EQUAL(sixtyThree, a_shift_right(sixtyThree, 0));
+    TEST_ASSERT_EQUAL(31, a_shift_right(sixtyThree, 1));
+    TEST_ASSERT_EQUAL(15, a_shift_right(sixtyThree, 2));
+    TEST_ASSERT_EQUAL(7, a_shift_right(sixtyThree, 3));
 
-    TEST_ASSERT_EQUAL(max, aShiftRight(max, 0));
-    TEST_ASSERT_EQUAL(max, aShiftRight(max, 1));
-    TEST_ASSERT_EQUAL(max, aShiftRight(max, 22));
-    TEST_ASSERT_EQUAL(max - 1, aShiftRight(max - 2, 1));
-    TEST_ASSERT_EQUAL(max, aShiftRight(max - 2, 2));
+    TEST_ASSERT_EQUAL(max, a_shift_right(max, 0));
+    TEST_ASSERT_EQUAL(max, a_shift_right(max, 1));
+    TEST_ASSERT_EQUAL(max, a_shift_right(max, 22));
+    TEST_ASSERT_EQUAL(max - 1, a_shift_right(max - 2, 1));
+    TEST_ASSERT_EQUAL(max, a_shift_right(max - 2, 2));
 }
 
 void test_rotate(void){
 
 
     // Rotate right
-    TEST_ASSERT_EQUAL(zero, rotateRight(zero, 0));
-    TEST_ASSERT_EQUAL(zero, rotateRight(zero, 4));
-    TEST_ASSERT_EQUAL(zero, rotateRight(zero, 72));
+    TEST_ASSERT_EQUAL(zero, rotate_right(zero, 0));
+    TEST_ASSERT_EQUAL(zero, rotate_right(zero, 4));
+    TEST_ASSERT_EQUAL(zero, rotate_right(zero, 72));
 
-    TEST_ASSERT_EQUAL(five, rotateRight(five, 0));
-    TEST_ASSERT_EQUAL(2147483650, rotateRight(five, 1));
-    TEST_ASSERT_EQUAL(2684354560, rotateRight(five, 3));
+    TEST_ASSERT_EQUAL(five, rotate_right(five, 0));
+    TEST_ASSERT_EQUAL(2147483650, rotate_right(five, 1));
+    TEST_ASSERT_EQUAL(2684354560, rotate_right(five, 3));
 
-    TEST_ASSERT_EQUAL(sixtyThree, rotateRight(sixtyThree, 0));
-    TEST_ASSERT_EQUAL(2147483679, rotateRight(sixtyThree, 1));
-    TEST_ASSERT_EQUAL(3221225487, rotateRight(sixtyThree, 2));
-    TEST_ASSERT_EQUAL(3758096391, rotateRight(sixtyThree, 3));
+    TEST_ASSERT_EQUAL(sixtyThree, rotate_right(sixtyThree, 0));
+    TEST_ASSERT_EQUAL(2147483679, rotate_right(sixtyThree, 1));
+    TEST_ASSERT_EQUAL(3221225487, rotate_right(sixtyThree, 2));
+    TEST_ASSERT_EQUAL(3758096391, rotate_right(sixtyThree, 3));
 
-    TEST_ASSERT_EQUAL(max, rotateRight(max, 0));
-    TEST_ASSERT_EQUAL(max, rotateRight(max, 1));
-    TEST_ASSERT_EQUAL(max, rotateRight(max, 3));
+    TEST_ASSERT_EQUAL(max, rotate_right(max, 0));
+    TEST_ASSERT_EQUAL(max, rotate_right(max, 1));
+    TEST_ASSERT_EQUAL(max, rotate_right(max, 3));
 }
 
 void test_leftPadZeros(void){
     // Left pad zeros
-    TEST_ASSERT_EQUAL(0, leftPadZeros(0));
-    TEST_ASSERT_EQUAL(242, leftPadZeros(242));
-    TEST_ASSERT_EQUAL(1, leftPadZeros(1));
-    TEST_ASSERT_EQUAL(UINT8_MAX, leftPadZeros(UINT8_MAX));
+    TEST_ASSERT_EQUAL(0, left_pad_zeros(0));
+    TEST_ASSERT_EQUAL(242, left_pad_zeros(242));
+    TEST_ASSERT_EQUAL(1, left_pad_zeros(1));
+    TEST_ASSERT_EQUAL(UINT8_MAX, left_pad_zeros(UINT8_MAX));
 }
 
 void test_carry(void){
@@ -173,9 +173,9 @@ void test_negate(void){
 }
 
 void test_isNegative(void){
-  TEST_ASSERT_TRUE(isNegative(minus1));
-  TEST_ASSERT_TRUE(isNegative(minus42));
-  TEST_ASSERT_FALSE(isNegative(zero));
-  TEST_ASSERT_FALSE(isNegative(sixtyThree));
-  TEST_ASSERT_TRUE(isNegative(UINT32_MAX));
+  TEST_ASSERT_TRUE(is_negative(minus1));
+  TEST_ASSERT_TRUE(is_negative(minus42));
+  TEST_ASSERT_FALSE(is_negative(zero));
+  TEST_ASSERT_FALSE(is_negative(sixtyThree));
+  TEST_ASSERT_TRUE(is_negative(UINT32_MAX));
 }
