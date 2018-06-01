@@ -1,24 +1,17 @@
-ifeq ($(OS),Windows_NT)
-  ifeq ($(shell uname -s),) # not in a bash-like shell
-	CLEANUP = del /F /Q
-	MKDIR = mkdir
-  else # in a bash-like shell, like msys
-	CLEANUP = rm -f
-	MKDIR = mkdir -p
-  endif
-	TARGET_EXTENSION=.exe
-else
-	CLEANUP = rm -f
-	MKDIR = mkdir -p
-	TARGET_EXTENSION=out
-endif
-
 .PHONY: clean
 .PHONY: test
 
+CLEANUP = rm -f
+MKDIR = mkdir -p
+TARGET_EXTENSION = out
+
+
 PATHU = unity/
-PATHS = ../../src/
-PATHT = ../test/
+PATHS = ../
+PATHUT = ../utils/
+PATHEM = ../emulate/
+#PATHAS = $(PATHS)assemble/
+PATHT = ./
 PATHB = build/
 PATHD = build/depends/
 PATHO = build/objs/
@@ -33,7 +26,7 @@ SRCRUN = $(wildcard $(PATHRUN)*.c)
 COMPILE=gcc -c
 LINK=gcc
 DEPEND=gcc -MM -MG -MF
-CFLAGS=-I. -I$(PATHU) -I$(PATHS) -DTEST
+CFLAGS=-I. -I$(PATHU) -I$(PATHS) -I$(PATHUT) -I$(PATHEM) -I$(PATHAS) -DTEST
 
 RESULTS = $(patsubst $(PATHT)test_%.c,$(PATHR)test_%.txt,$(SRCT) )
 
@@ -54,7 +47,7 @@ test: $(BUILD_PATHS) $(RESULTS)
 $(PATHR)%.txt: $(PATHB)%.$(TARGET_EXTENSION)
 	-./$< > $@ 2>&1
 
-$(PATHB)test_%.$(TARGET_EXTENSION): $(PATHO)test_%_run.o $(PATHO)test_%.o $(PATHO)%.o $(PATHU)unity.o #$(PATHD)test_%.d
+$(PATHB)test_%.$(TARGET_EXTENSION): $(PATHO)test_%_run.o  $(PATHO)test_%.o $(PATHO)%.o $(PATHO)unity.o
 	$(LINK) -o $@ $^
 
 $(PATHO)%.o:: $(PATHT)%.c
@@ -67,6 +60,15 @@ $(PATHO)%_run.o:: $(PATHT)%.c
 
 $(PATHO)%.o:: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHO)%.o:: $(PATHUT)%.c
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHO)%.o:: $(PATHEM)%.c
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+#$(PATHO)%.o:: $(PATHAS)%.c
+#	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHO)%.o:: $(PATHU)%.c $(PATHU)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
@@ -93,7 +95,6 @@ clean:
 	$(CLEANUP) $(PATHO)*.o
 	$(CLEANUP) $(PATHB)*.$(TARGET_EXTENSION)
 	$(CLEANUP) $(PATHR)*.txt
-	$(CLEANUP) $(PATHRUN)*.c
 
 .PRECIOUS: $(PATHB)test_%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATHD)%.d

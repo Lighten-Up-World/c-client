@@ -5,8 +5,8 @@
 #ifndef ARM11_22_DECODE_H
 #define ARM11_22_DECODE_H
 
-#include "utils/arm.h"
-#include "utils/instructions.h"
+#include "../utils/arm.h"
+#include "../utils/instructions.h"
 
 // GENERAL INSTRUCTION DEFINITIONS
 #define COND_START 31
@@ -55,6 +55,6 @@
 
 #define SDT_RD_START 15
 
-instruction_t decodeWord(word_t word);
+instruction_t decode_word(word_t word);
 
 #endif

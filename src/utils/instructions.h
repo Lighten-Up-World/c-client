@@ -1,7 +1,11 @@
+/*
+ * Contains Data-Types for representing decoded instructions
+ */
+
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
-#include "utils/arm.h"
+#include "arm.h"
 
 typedef enum {
   DP,  // Data processing
