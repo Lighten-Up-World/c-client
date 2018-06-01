@@ -323,7 +323,7 @@ int execute_brn(state_t *state, brn_instruction_t instr) {
  *  @param state: pointer to the program state
  *  @param instr: the SDT instruction to execute
  */
-int executeSDT(state_t *state, sdt_instruction_t instr) {
+int execute_sdt(state_t *state, sdt_instruction_t instr) {
   shift_result_t barrel = evaluate_offset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
   word_t rn = get_register(state, instr.rn);

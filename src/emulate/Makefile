@@ -9,11 +9,11 @@ SRC = ../
 
 COMPILE = gcc -c $(CFLAGS) $< -o $@
 
-emulate: ./build/emulate.out
-	$(BUILD)emulate.out ../test/test_cases/
+emulate: build ./build/emulate.out
+	$(BUILD)emulate.out ../test/test_cases/add01
 
 $(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
-	gcc -c $(CFLAGS) $^ -o $(BUILD)emulate.out
+	gcc $^ -o $@
 
 dependencies:
 	grep '#include' *.[ch] | grep '"'
@@ -39,7 +39,7 @@ $(BUILD)bitops.o: $(UTIL)bitops.c $(UTIL)bitops.h
 $(BUILD)error.o: $(UTIL)error.c $(UTIL)error.h
 	$(COMPILE)
 
-build/:
+build:
 	mkdir -p build
 
 clean:
