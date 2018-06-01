@@ -1,4 +1,6 @@
-/// FILE DESCRIPTION ///
+/*
+ * Contains functions for getting/setting registers as well as PC and flags.
+ */
 
 #include <stdio.h>
 #include "../utils/arm.h"
@@ -11,7 +13,7 @@
  *  @param reg: the register's address
  *  @return the word stored at that register
  */
-word_t getRegister(state_t *state, reg_address_t reg) {
+word_t get_register(state_t *state, reg_address_t reg) {
   if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     return state->registers.r[reg];
   }
@@ -36,7 +38,7 @@ word_t getRegister(state_t *state, reg_address_t reg) {
  *  @param reg: the register's address
  *  @return void
  */
-void setRegister(state_t *state, reg_address_t reg, word_t value) {
+void set_register(state_t *state, reg_address_t reg, word_t value) {
   if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     state->registers.r[reg] = value;
   }
@@ -60,8 +62,8 @@ void setRegister(state_t *state, reg_address_t reg, word_t value) {
  *  @param state: a non-null pointer to the machine state
  *  @return the word stored in the PC
  */
-word_t getPC(state_t *state) {
-  return getRegister(state, REG_N_PC);
+word_t get_pc(state_t *state) {
+  return get_register(state, REG_N_PC);
 }
 
 /**
@@ -70,8 +72,8 @@ word_t getPC(state_t *state) {
  *  @param state: a non-null pointer to the machine state
  *  @param value: the value to set the PC to
  */
-void setPC(state_t *state, word_t value) {
-  setRegister(state, REG_N_PC, value);
+void set_pc(state_t *state, word_t value) {
+  set_register(state, REG_N_PC, value);
 }
 
 /**
@@ -79,8 +81,8 @@ void setPC(state_t *state, word_t value) {
  *
  *  @param state: a non-null pointer to the machine state
  */
-void incrementPC(state_t *state) {
-  setRegister(state, REG_N_PC, getPC(state) + 4);
+void increment_pc(state_t *state) {
+  set_register(state, REG_N_PC, get_pc(state) + 4);
 }
 
 /**
@@ -89,8 +91,8 @@ void incrementPC(state_t *state) {
  *  @param state: a non-null pointer to the machine state
  *  @return a byte with the 4 least significant bits set to the value of the flags
  */
-byte_t getFlags(state_t *state) {
-  return (getRegister(state, REG_N_CPSR) >> (sizeof(word_t) * 8 - NUM_FLAGS));
+byte_t get_flags(state_t *state) {
+  return (get_register(state, REG_N_CPSR) >> (sizeof(word_t) * 8 - NUM_FLAGS));
 }
 
 /**
@@ -100,6 +102,6 @@ byte_t getFlags(state_t *state) {
  *  @param value: a byte with the 4 least significant bits set to the flag values
  *  @return void
  */
-void setFlags(state_t *state, byte_t value) {
-  setRegister(state, REG_N_CPSR, value << (sizeof(word_t) * 8 - NUM_FLAGS));
+void set_flags(state_t *state, byte_t value) {
+  set_register(state, REG_N_CPSR, value << (sizeof(word_t) * 8 - NUM_FLAGS));
 }
