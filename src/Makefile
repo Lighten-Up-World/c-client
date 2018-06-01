@@ -1,85 +1,58 @@
 .PHONY: clean
-.PHONY: emulate_production
-.PHONY: emulate_debug
-.PHONY: production
-.PHONY: debug
 .PHONY: build/
-.ONESHELL:
-
-BUILD = ./build/
 
 CFLAGS = -Wall -Werror -pedantic
-DEBUG = -DDEBUG
-RUN = factorial
-COMPILE = gcc -c $(DEBUG) $(CFLAGS) $< -o $@
 
-emulate: build/ emulate.out
+RUN = add01
+
+BUILD = ./build/
+UTIL = ./utils/
+EMULATE = ./emulate/
+
+COMPILE = gcc -c $(CFLAGS) $< -o $@
+
+emulate: build ./build/emulate.out
 	$(BUILD)emulate.out ../test/test_cases/$(RUN)
 
-emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
-	gcc $(CFLAGS) $^ -o $(BUILD)emulate.out
+$(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
+	gcc $^ -o $@
 
 dependencies:
 	grep '#include' *.[ch] | grep '"'
 
-$(BUILD)emulate.o: emulate.c arm.h io.h execute.h decode.h register.h
+$(BUILD)emulate.o: emulate.c $(UTIL)arm.h $(UTIL)io.h $(EMULATE)execute.h $(EMULATE)decode.h $(EMULATE)register.h
 	$(COMPILE)
 
-$(BUILD)io.o: io.c io.h bitops.h
+$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h
 	$(COMPILE)
 
-$(BUILD)execute.o: execute.c execute.h bitops.h register.h
+$(BUILD)execute.o: $(EMULATE)execute.c $(EMULATE)execute.h $(UTIL)bitops.h $(EMULATE)register.h
 	$(COMPILE)
 
-$(BUILD)decode.o: decode.c decode.h arm.h instructions.h bitops.h
+$(BUILD)decode.o: $(EMULATE)decode.c $(EMULATE)decode.h $(UTIL)arm.h $(UTIL)instructions.h $(UTIL)bitops.h
 	$(COMPILE)
 
-$(BUILD)register.o: register.c register.h arm.h
+$(BUILD)register.o: $(EMULATE)register.c $(EMULATE)register.h $(UTIL)arm.h
 	$(COMPILE)
 
-$(BUILD)bitops.o: bitops.c bitops.h
+$(BUILD)bitops.o: $(UTIL)bitops.c $(UTIL)bitops.h
 	$(COMPILE)
 
-$(BUILD)error.o: error.c error.h
+$(BUILD)error.o: $(UTIL)error.c $(UTIL)error.h
 	$(COMPILE)
 
-build/:
+build:
 	mkdir -p build
 
 clean:
 	rm -rf $(BUILD)
 
-# PATHS = ./
 
-# PATHO = build/objs/
-#
-# BUILD_PATHS = $(PATHB) $(PATHO)
-#
-# SRC = $(wildcard $(PATHS)*.c)
-#
-# RESULTS = $(patsubst $(PATHS)%.c, $(SRC))
-#
-# CFLAGS=-I. -I$(PATHS) -DTEST -Wall -Werror -pedantic
-#
-# all: emulate assemble
-#
-# emulate: $(PATHB)emulate.out
-#
-# assemble: $(PATHB)assemble.out
-#
-# $(PATHB)%.out: $(PATHO)%.o
-# 	gcc -o $@ $^
-#
-# $(PATHO)%.o: $(PATHS)%.c $(PATHS)%.h
-# 	gcc -c $(CFLAGS) $< -o $@
-#
-# $(PATHB):
-# 	mkdir -p $(PATHB)
-#
-# $(PATHO):
-# 	mkdir -p $(PATHO)
-#
 
-# .PRECIOUS: $(PATHB)%.out
-# .PRECIOUS: $(PATHD)%.d
-# .PRECIOUS: $(PATHO)%.o
+
+
+
+
+
+
+

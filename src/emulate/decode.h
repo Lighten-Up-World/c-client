@@ -55,6 +55,6 @@
 
 #define SDT_RD_START 15
 
-instruction_t decodeWord(word_t word);
+instruction_t decode_word(word_t word);
 
 #endif
