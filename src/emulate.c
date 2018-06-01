@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include "arm.h"
-#include "io.h"
-#include "execute.h"
-#include "decode.h"
-#include "register.h"
+#include "utils/arm.h"
+#include "utils/io.h"
+#include "emulate/execute.h"
+#include "emulate/decode.h"
+#include "emulate/register.h"
 
 int main(int argc, char **argv) {
   assert(argc > 1);
@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   assert(state->pipeline.decoded != NULL);
   readFile(argv[1], state->memory, MEM_SIZE);
   DEBUG_PRINT("\n=========\nEmulating: %s\n=========\n", argv[1]);
+
   //Setup Pipeline
   setPC(state, 0x8);
   getMemWord(state, 0, &state->pipeline.fetched);
@@ -25,13 +26,12 @@ int main(int argc, char **argv) {
   DEBUG_PRINT("Initial Pipeline setup:\n\tPC (0x%08x)\n\tFetched (0x%08x)\n",
               getPC(state), state->pipeline.fetched);
 
-  while(state->pipeline.decoded->type != HAL){
-
+  while (state->pipeline.decoded->type != HAL) {
     DEBUG_PRINT("\n---------(PC=%04x PC@%04x)---------\n", getPC(state), getPC(state) - 0x8);
     DEBUG_CMD(printState(state));
     DEBUG_PRINT("Executing: %01x Instruction:\n\t", state->pipeline.decoded->type);
 
-    if(!execute(state)){
+    if (!execute(state)) {
       *state->pipeline.decoded = decodeWord(state->pipeline.fetched);
       DEBUG_PRINT("\nDecoded: %08x\n", state->pipeline.fetched);
       getMemWord(state, getPC(state), &state->pipeline.fetched);
@@ -40,7 +40,9 @@ int main(int argc, char **argv) {
     incrementPC(state);
     DEBUG_PRINT("\n---------(PC=%04x)---------\n\n", getPC(state));
   }
-  execute(state); // Execute HAL instruction
+
+  // Execute HAL instruction
+  execute(state);
   free(state->pipeline.decoded);
   free(state);
   return EXIT_SUCCESS;

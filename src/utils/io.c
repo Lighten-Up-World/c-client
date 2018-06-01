@@ -1,6 +1,8 @@
+/// FILE DESCRIPTION ///
+
 /*
- *  Contains IO related operations, operating on either the ARM machine state or local disk.
- */
+*  Contains IO related operations, operating on either the ARM machine state or local disk.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,13 +26,13 @@ int checkAddressValid(word_t addr) {
  *  @param dest: a non-null pointer to destination of loaded word
  *  @return an int indicating success or failure
  */
-int getMemWord(state_t* state, word_t byteAddr, word_t* dest) {
+int getMemWord(state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
   word_t word = 0;
-  if (checkAddressValid(byteAddr)){
+  if (checkAddressValid(byteAddr)) {
     return 1;
   }
-  for (size_t i = 0; i < 4; i++){
+  for (size_t i = 0; i < 4; i++) {
     word |= ((word_t) state->memory[byteAddr + i]) << (i * 8);
   }
   *dest = word;
@@ -45,13 +47,13 @@ int getMemWord(state_t* state, word_t byteAddr, word_t* dest) {
  * @param dest: a non-null pointer to destination of loaded word
  * @return an int indicating success or failure
  */
-int getMemWordBigEnd(state_t* state, word_t byteAddr, word_t* dest) {
+int getMemWordBigEnd(state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
   word_t word = 0;
-  if (checkAddressValid(byteAddr)){
+  if (checkAddressValid(byteAddr)) {
     return 1;
   }
-  for (size_t i = 0; i < 4; i++){
+  for (size_t i = 0; i < 4; i++) {
     word |= ((word_t) state->memory[byteAddr + 3 - i]) << (i * 8);
   }
   *dest = word;
@@ -66,11 +68,13 @@ int getMemWordBigEnd(state_t* state, word_t byteAddr, word_t* dest) {
  *  @param word: the word to write into memory
  *  @return: return 0 iff success
  */
-int setMemWord(state_t* state, word_t byteAddr, word_t word){
+int setMemWord(state_t *state, word_t byteAddr, word_t word) {
   assert(state != NULL);
   if (checkAddressValid(byteAddr)) { return 1; }
-  for (size_t i = 1; i < 5; i++){
-    DEBUG_PRINT("M[%04x] = %04x\n\t\t", byteAddr + (word_t) i - 1, getByte(word, (i * 8) - 1));
+  for (size_t i = 1; i < 5; i++) {
+    DEBUG_PRINT("M[%04x] = %04x\n\t\t",
+                byteAddr + (word_t) i - 1,
+                getByte(word, (i * 8) - 1));
     state->memory[byteAddr + i - 1] = getByte(word, (i * 8) - 1);
   }
   return 0;
@@ -83,23 +87,21 @@ int setMemWord(state_t* state, word_t byteAddr, word_t word){
  *  @param reg: the address of the register to print
  *  @return void
  */
-void printReg(state_t* state, reg_address_t reg) {
+void printReg(state_t *state, reg_address_t reg) {
   assert(reg >= 0 && reg < REG_N);
   assert(state != NULL);
-  if(reg == REG_N_LR || reg == REG_N_SP){
+  if (reg == REG_N_LR || reg == REG_N_SP) {
     return;
   }
-  if(reg >= 0 && reg < NUM_GENERAL_REGISTERS){
+  if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     printf("$%-3u:", reg);
-  }
-  else if(reg == REG_N_PC){
+  } else if (reg == REG_N_PC) {
     printf("PC  :");
-  }
-  else if(reg == REG_N_CPSR){
+  } else if (reg == REG_N_CPSR) {
     printf("CPSR:");
   }
   printf("%11d (0x%08x)\n", getRegister(state, reg), getRegister(state,
-                                                                    reg));
+                                                                 reg));
 }
 
 /**
@@ -113,7 +115,7 @@ void printMem(state_t *state) {
   assert(state != NULL);
   word_t memWord;
 
-  for (int addr = 0; addr < MEM_SIZE; addr+=4) {
+  for (int addr = 0; addr < MEM_SIZE; addr += 4) {
     getMemWordBigEnd(state, addr, &memWord);
     if (memWord == 0) { // halt when memory instr is 0.
       continue;
@@ -128,7 +130,7 @@ void printMem(state_t *state) {
  *  @param state - a pointer to the state of the ARM machine
  *  @return void
  */
-void printState(state_t* state) {
+void printState(state_t *state) {
   assert(state != NULL);
 
   printf("Registers:\n");
@@ -148,18 +150,18 @@ void printState(state_t* state) {
  *  @param buffer_size: the size of the buffer allocated
  *  @return a status code denoting the result
  */
-int writeFile(const char *path, byte_t *buffer, size_t buffer_size){
-  FILE* fp = fopen(path, "wb");
-  if(fp == NULL){
+int writeFile(const char *path, byte_t *buffer, size_t buffer_size) {
+  FILE *fp = fopen(path, "wb");
+  if (fp == NULL) {
     perror("fopen failed at path");
     return 1;
   }
   const int read = fwrite(buffer, buffer_size, 1, fp);
-  if(read != buffer_size && ferror(fp)){
+  if (read != buffer_size && ferror(fp)) {
     perror("Couldn't write file to completion");
     return 3;
   }
-  if(fclose(fp) != 0){
+  if (fclose(fp) != 0) {
     perror("Couldn't close file");
     return 4;
   }
@@ -174,24 +176,24 @@ int writeFile(const char *path, byte_t *buffer, size_t buffer_size){
 *  @param buffer_size: the size of the buffer allocated
 *  @return a status code denoting the result
 */
-int readFile(const char *path, byte_t *buffer, size_t buffer_size){
+int readFile(const char *path, byte_t *buffer, size_t buffer_size) {
   long file_size = 0;
-  FILE* fp = fopen(path, "rb");
-  if(fp == NULL){
+  FILE *fp = fopen(path, "rb");
+  if (fp == NULL) {
     perror("fopen failed at path");
     return 1;
   }
   file_size = ftell(fp);
-  if(file_size == -1){
+  if (file_size == -1) {
     perror("Couldn't determine file size");
     return 2;
   }
   const int read = fread(buffer, buffer_size, 1, fp);
-  if(read != file_size && ferror(fp)){
+  if (read != file_size && ferror(fp)) {
     perror("Couldn't read file to completion");
     return 3;
   }
-  if(fclose(fp) != 0){
+  if (fclose(fp) != 0) {
     perror("Couldn't close file");
     return 4;
   }

@@ -6,8 +6,9 @@
 #define REG_N_LR 14
 #define REG_N_PC 15
 #define REG_N_CPSR 16
+#define NUM_FLAGS 4
 
-#include "arm.h"
+#include "utils/arm.h"
 
 word_t getRegister(state_t *state, reg_address_t reg);
 void setRegister(state_t *state, reg_address_t reg, word_t value);

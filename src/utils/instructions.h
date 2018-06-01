@@ -1,7 +1,7 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
-#include "arm.h"
+#include "utils/arm.h"
 
 typedef enum {
   DP,  // Data processing

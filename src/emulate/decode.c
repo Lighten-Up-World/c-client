@@ -5,13 +5,12 @@
  *  process at the lowest level and work up.
  */
 
-#include "arm.h"
-#include "instructions.h"
-#include "bitops.h"
+#include "utils/arm.h"
+#include "utils/instructions.h"
+#include "utils/bitops.h"
 #include "decode.h"
 #include <assert.h>
 #include <stdio.h>
-
 
 /**
  *  Set the value of the operand when I is 0
@@ -20,21 +19,21 @@
  *  @param word: the instruction word
  *  @return void: modifies the operand value of the instruction
  */
-void decodeShiftedReg(operand_t* opPtr, word_t word) {
+void decodeShiftedReg(operand_t *opPtr, word_t word) {
 
   opPtr->reg.type = getBits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
   opPtr->reg.shiftBy = getFlag(word, OP_SHIFTBY_FLAG);
 
   //Shift by register
-  if(opPtr->reg.shiftBy){
-    opPtr->reg.shift.shiftreg = (op_shift_register_t){
+  if (opPtr->reg.shiftBy) {
+    opPtr->reg.shift.shiftreg = (op_shift_register_t) {
         .rs = getNibble(word, OP_START),
         .zeroPad = 0x0
     };
 
-  // Shift by constant
+    // Shift by constant
   } else {
-    opPtr->reg.shift.constant = (op_shift_const_t){
+    opPtr->reg.shift.constant = (op_shift_const_t) {
         .integer = getBits(word, OP_START, OP_IMM_START)
     };
   }
@@ -48,14 +47,14 @@ void decodeShiftedReg(operand_t* opPtr, word_t word) {
  *  @param word: the instruction word
  *  @return a populated operand based on the data in word
  */
-operand_t decodeOperand(flag_t I, word_t word){
+operand_t decodeOperand(flag_t I, word_t word) {
   operand_t op;
   //Immediate
-  if(I){
-    op.imm = (op_immediate_t){.rotated.rotate = getNibble(word, OP_START),
+  if (I) {
+    op.imm = (op_immediate_t) {.rotated.rotate = getNibble(word, OP_START),
         .rotated.value = getByte(word, OP_IMM_START)};
 
-  //Register
+    //Register
   } else {
     decodeShiftedReg(&op, word);
   }
@@ -69,15 +68,15 @@ operand_t decodeOperand(flag_t I, word_t word){
  *  @param word: the instruction word
  *  @return a populated operand based on the data in word
  */
-operand_t decodeOffset(flag_t I, word_t word){
+operand_t decodeOffset(flag_t I, word_t word) {
   operand_t op;
   //Register
-  if(I){
+  if (I) {
     decodeShiftedReg(&op, word);
 
-  //Immediate
+    //Immediate
   } else {
-    op.imm.fixed = getBits(word, OP_START,0);
+    op.imm.fixed = getBits(word, OP_START, 0);
   }
   return op;
 }
@@ -89,7 +88,7 @@ operand_t decodeOffset(flag_t I, word_t word){
  *  @param word: the instruction word
  *  @return void: modifies the instruction pointed to by instructionPtr
  */
-void decodeDp(instruction_t* instructionPtr, word_t word) {
+void decodeDp(instruction_t *instructionPtr, word_t word) {
   assert(instructionPtr != NULL);
 
   dp_instruction_t dp;
@@ -112,19 +111,19 @@ void decodeDp(instruction_t* instructionPtr, word_t word) {
  *  @param word: the instruction word
  *  @return void: modifies the instruction pointed to by instructionPtr
  */
-void decodeMul(instruction_t* instructionPtr, word_t word){
-    mul_instruction_t mul;
+void decodeMul(instruction_t *instructionPtr, word_t word) {
+  mul_instruction_t mul;
 
-    mul.pad0 = 0x0;
-    mul.A = getFlag(word, A_FLAG);
-    mul.S = getFlag(word, S_FLAG);
-    mul.rd = getNibble(word, MUL_RD_START);
-    mul.rn = getNibble(word, MUL_RN_START);
-    mul.rs = getNibble(word, REG_S_START);
-    mul.pad9 = 0x9;
-    mul.rm = getNibble(word, REG_M_START);
+  mul.pad0 = 0x0;
+  mul.A = getFlag(word, A_FLAG);
+  mul.S = getFlag(word, S_FLAG);
+  mul.rd = getNibble(word, MUL_RD_START);
+  mul.rn = getNibble(word, MUL_RN_START);
+  mul.rs = getNibble(word, REG_S_START);
+  mul.pad9 = 0x9;
+  mul.rm = getNibble(word, REG_M_START);
 
-    instructionPtr->i.mul = mul;
+  instructionPtr->i.mul = mul;
 }
 
 /**
@@ -134,7 +133,7 @@ void decodeMul(instruction_t* instructionPtr, word_t word){
  *  @param word: the instruction word
  *  @return void: modifies the instruction pointed to by instructionPtr
  */
-void decodeSdt(instruction_t *instructionPtr, word_t word){
+void decodeSdt(instruction_t *instructionPtr, word_t word) {
   sdt_instruction_t sdt;
 
   sdt.pad1 = 0x1;
@@ -165,8 +164,6 @@ void decodeBrn(instruction_t *instructionPtr, word_t word) {
   instructionPtr->i.brn = brn;
 }
 
-//// HAL ////
-
 /**
  *  Decode a Halt Instruction
  *
@@ -174,7 +171,7 @@ void decodeBrn(instruction_t *instructionPtr, word_t word) {
  *  @param word: the binary instruction
  *  @return void: modifies the instruction pointed to by instructionPtr
  */
-void decodeHalt(instruction_t* instructionPtr, word_t word) {
+void decodeHalt(instruction_t *instructionPtr, word_t word) {
 
   assert(instructionPtr != NULL);
   assert(word == 0x0000);
@@ -193,48 +190,48 @@ void decodeHalt(instruction_t* instructionPtr, word_t word) {
  *  @param word: is the binary instruction to decode
  *  @return void: modifies type field of the instruction pointed to by instructionPtr
  */
-void decodeInstructionType(instruction_t* instructionPtr, word_t word){
-    assert(instructionPtr != NULL);
+void decodeInstructionType(instruction_t *instructionPtr, word_t word) {
+  assert(instructionPtr != NULL);
 
-    instruction_type_t instruction_type;
+  instruction_type_t instruction_type;
 
-    if (word == 0x0){
-        instruction_type = HAL;
-        decodeHalt(instructionPtr, word);
-    }  else {
-        word_t selectionBits = getBits(word, INSTR_TYPE_START, INSTR_TYPE_END);
-        word_t pad9;
-        switch (selectionBits) {
-            case 0x0:
-                pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
-                if (!(pad9 ^ 0x9)) {
-                  instruction_type = MUL;
-                  decodeMul(instructionPtr, word);
-                } else {
-                  instruction_type = DP;
-                  decodeDp(instructionPtr, word);
-                }
-                break;
-            case 0x1:
-                instruction_type = DP;
-                decodeDp(instructionPtr, word);
-                break;
-            case 0x2:
-            case 0x3:
-              instruction_type = SDT;
-              decodeSdt(instructionPtr, word);
-              break;
-            case 0x5:
-                instruction_type = BRN;
-                decodeBrn(instructionPtr, word);
-                break;
-            default: //Shouldn't be default makes errors really difficult to debug
-                assert(false); //TODO: Add error code
-                break;
+  if (word == 0x0) {
+    instruction_type = HAL;
+    decodeHalt(instructionPtr, word);
+  } else {
+    word_t selectionBits = getBits(word, INSTR_TYPE_START, INSTR_TYPE_END);
+    word_t pad9;
+    switch (selectionBits) {
+      case 0x0:
+        pad9 = getBits(word, MUL_TYPE_START, MUL_TYPE_END);
+        if (!(pad9 ^ 0x9)) {
+          instruction_type = MUL;
+          decodeMul(instructionPtr, word);
+        } else {
+          instruction_type = DP;
+          decodeDp(instructionPtr, word);
         }
+        break;
+      case 0x1:
+        instruction_type = DP;
+        decodeDp(instructionPtr, word);
+        break;
+      case 0x2:
+      case 0x3:
+        instruction_type = SDT;
+        decodeSdt(instructionPtr, word);
+        break;
+      case 0x5:
+        instruction_type = BRN;
+        decodeBrn(instructionPtr, word);
+        break;
+      default: //Shouldn't be default makes errors really difficult to debug
+        assert(false); //TODO: Add error code
+        break;
     }
+  }
 
-    instructionPtr->type = instruction_type;
+  instructionPtr->type = instruction_type;
 }
 
 /**
@@ -243,12 +240,12 @@ void decodeInstructionType(instruction_t* instructionPtr, word_t word){
  *  @param word: is the binary instruction to decode
  *  @return the decoded instruction.
  */
-instruction_t decodeWord(word_t word){
-    instruction_t instruction;
-    DEBUG_PRINT("\nWord: %08x\n", word);
-    instruction.cond = getNibble(word, COND_START);
-    DEBUG_PRINT("Word: %01x\n", instruction.cond);
-    decodeInstructionType(&instruction, word);
+instruction_t decodeWord(word_t word) {
+  instruction_t instruction;
+  DEBUG_PRINT("\nWord: %08x\n", word);
+  instruction.cond = getNibble(word, COND_START);
+  DEBUG_PRINT("Word: %01x\n", instruction.cond);
+  decodeInstructionType(&instruction, word);
 
-    return instruction;
+  return instruction;
 }

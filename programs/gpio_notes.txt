@@ -1,3 +1,5 @@
+compiled with: http://shell-storm.org/online/Online-Assembler-and-Disassembler/
+
 This clears pin 16 by writing 0b1 to bit 16 of the word below
 Use this to turn a pin 'off' to turn off an LED directly connected here
 mov r0,#0x10000
