@@ -10,7 +10,7 @@ SRC = ../
 COMPILE = gcc -c $(CFLAGS) $< -o $@
 
 emulate: build ./build/emulate.out
-	$(BUILD)emulate.out ../test/test_cases/add01
+	$(BUILD)emulate.out ../../test/test_cases/add01
 
 $(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
 	gcc $^ -o $@
