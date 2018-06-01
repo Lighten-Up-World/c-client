@@ -1,6 +1,7 @@
 #ifndef IO_H
 #define IO_H
 
+#include <stdio.h>
 #include "arm.h"
 #include "../emulate/register.h"
 

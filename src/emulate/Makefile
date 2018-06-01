@@ -7,13 +7,13 @@ BUILD = ./build/
 UTIL = ../utils/
 SRC = ../
 
-COMPILE = gcc $(CFLAGS) $< -o $@
+COMPILE = gcc -c $(CFLAGS) $< -o $@
 
 emulate: ./build/emulate.out
 	$(BUILD)emulate.out ../test/test_cases/
 
 $(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
-	gcc $(CFLAGS) $^ -o $(BUILD)emulate.out
+	gcc -c $(CFLAGS) $^ -o $(BUILD)emulate.out
 
 dependencies:
 	grep '#include' *.[ch] | grep '"'

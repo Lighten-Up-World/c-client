@@ -3,7 +3,7 @@
  */
 
 #include <stdio.h>
-#include "utils/arm.h"
+#include "../utils/arm.h"
 #include "register.h"
 
 /**
@@ -82,7 +82,7 @@ void set_pc(state_t *state, word_t value) {
  *  @param state: a non-null pointer to the machine state
  */
 void increment_pc(state_t *state) {
-  set_register(state, REG_N_PC, getPC(state) + 4);
+  set_register(state, REG_N_PC, get_pc(state) + 4);
 }
 
 /**
