@@ -2,7 +2,7 @@
 #define IO_H
 
 #include "arm.h"
-#include "emulate/register.h"
+#include "../emulate/register.h"
 
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
