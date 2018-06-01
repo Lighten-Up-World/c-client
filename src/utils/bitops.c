@@ -10,7 +10,7 @@
 #include "bitops.h"
 #include "arm.h"
 
-const uint8_t U_ONE = 1;
+#define U_ONE ((uint8_t) 1)
 
 /**
  *  Get the bit at a given position, return it as a boolean flag
