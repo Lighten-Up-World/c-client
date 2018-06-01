@@ -34,6 +34,8 @@ int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *word){
   w |= opShiftReg.type;
   w <<=1;
   w |= opShiftReg.shiftBy;
+  w <<= 4;
+  w |= opShiftReg.rm;
   *word = w;
   return EC_OK;
 }
@@ -76,7 +78,9 @@ int encode_offset(instruction_t *instr, word_t *word){
   if (instr->i.dp.I){ //Offset is shifted register
     return encode_shifted_reg(instr->i.sdt.offset, word);
   }else{  //Offset is 12-bit immediate value
-
+    word_t w = *word;
+    w <<= 12;
+    w |= instr->i.sdt.offset.imm.fixed;
   }
   return 0;
 }
@@ -191,8 +195,41 @@ int encode_mul(instruction_t *instr, word_t *word){
 int encode_sdt(instruction_t *instr, word_t *word){
   assert(word != NULL);
   assert(instr != NULL);
-  //TODO
-  return 0;
+
+  word_t w = *word;
+
+  w <<= 2;
+  w |= 1;
+
+  w <<= 1;
+  w |= instr->i.sdt.I;
+
+  w <<= 1;
+  w |= instr->i.sdt.P;
+
+  w <<= 1;
+  w |= instr->i.sdt.U;
+
+  w <<= 3;
+  w |= instr->i.sdt.L;
+
+  if (instr->i.sdt.rn >= NUM_GENERAL_REGISTERS){
+    return EC_INVALID_PARAM;
+  }
+  w <<= 4;
+  w |= instr->i.sdt.rn;
+
+  if (instr->i.sdt.rd >= NUM_GENERAL_REGISTERS){
+    return EC_INVALID_PARAM;
+  }
+  w <<= 4;
+  w |= instr->i.sdt.rd;
+
+  if(encode_offset(instr, word)){
+    return EC_INVALID_PARAM;
+  }
+
+  return EC_OK;
 }
 
 /**
@@ -219,8 +256,10 @@ int encode_brn(instruction_t *instr, word_t *word){
 int encode_hal(instruction_t *instr, word_t *word){
   assert(word != NULL);
   assert(instr != NULL);
-  //TODO
-  return 0;
+  if (instr->i.hal.pad0){
+    return EC_INVALID_PARAM;
+  }
+  return EC_OK;
 }
 
 
@@ -235,7 +274,6 @@ int encode_hal(instruction_t *instr, word_t *word){
 int encode_cond(instruction_t *instr, word_t *word){
   assert(word != NULL);
   assert(instr != NULL);
-  word_t w = *word;
   switch (instr->cond){
     case EQ:
     case NE:
@@ -244,9 +282,7 @@ int encode_cond(instruction_t *instr, word_t *word){
     case GT:
     case LE:
     case AL:
-      w <<= 4;
-      w |= instr->cond;
-      *word = w;
+      *word = instr->cond;
       return EC_OK;
     default:
       return EC_INVALID_PARAM;
