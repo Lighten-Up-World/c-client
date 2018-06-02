@@ -6,6 +6,13 @@
 #include "referencemap.h"
 #include "assemble.h"
 
+/**
+ *
+ * @param lines : number of lines of the input file
+ * @param lineLength : standard length of input file lines
+ * @return : pointer to the array containing input, with memory allocated but
+ * not initialised.
+ */
 char **allocate_input(int lines, int lineLength) {
   char **in;
   unsigned int i;
