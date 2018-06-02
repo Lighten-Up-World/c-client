@@ -4,12 +4,6 @@
 
 int consume_token(token_t *arr, token_type_t type);
 
-/*typedef struct {
-  instruction_type_t type;
-  byte_t cond : 4;
-  instructions_t i;
-} instruction_t;*/
-
 int parse_dp(token_t *tkns, instruction_t *inst) {
   inst->type = DP;
   inst->i = {
@@ -23,18 +17,40 @@ int parse_dp(token_t *tkns, instruction_t *inst) {
   };
 }
 
-int parse_mul(token_t *tkns, instruction_t *inst) {
+char remove_first_char(char *string) {
+  return *(string + 1);
+}
+
+int parse_mul(token_t *tokens, instruction_t *inst) {
   inst->type = MUL;
-  inst->i = {
-      0x0,
+
+  flag_t A;
+  flag_t S = false;
+
+  //check these work
+  reg_address_t rd = (reg_address_t) remove_first_char(*tokens[1].str);
+  reg_address_t rn = (reg_address_t) remove_first_char(*tokens[2].str);
+  reg_address_t rs = (reg_address_t) remove_first_char(*tokens[3].str);
+  reg_address_t rm = 0;
+
+  if (*tokens[0].str == "mul") {
+    A = 0;
+  } else {
+    A = 1;
+    rm = (reg_address_t) remove_first_char(*tokens[0].str);
+  }
+
+  inst->i = (mul_instruction_t) {
+      (byte_t) 0x0,
       A,
       S,
       rd,
       rn,
       rs,
-      0x1001,
+      (byte_t) 0x1001,
       rm
   };
+  return 0;
 }
 
 int parse_sdt(token_t *tkns, instruction_t *inst) {
