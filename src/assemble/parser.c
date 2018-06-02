@@ -4,12 +4,71 @@
 
 int consume_token(token_t *arr, token_type_t type);
 
-int parse_dp(token_t *tkns, instruction_t *inst);
-int parse_mul(token_t *tkns, instruction_t *inst);
-int parse_sdt(token_t *tkns, instruction_t *inst);
-int parse_brn(token_t *tkns, instruction_t *inst);
-int parse_lsl(token_t *tkns, instruction_t *inst);
-int parse_halt(token_t *tkns, instruction_t *inst);
+/*typedef struct {
+  instruction_type_t type;
+  byte_t cond : 4;
+  instructions_t i;
+} instruction_t;*/
+
+int parse_dp(token_t *tkns, instruction_t *inst) {
+  inst->type = DP;
+  inst->i = {
+      padding,
+      I,
+      opcode,
+      S,
+      rn,
+      rd,
+      operand2
+  };
+}
+
+int parse_mul(token_t *tkns, instruction_t *inst) {
+  inst->type = MUL;
+  inst->i = {
+      0x0,
+      A,
+      S,
+      rd,
+      rn,
+      rs,
+      0x1001,
+      rm
+  };
+}
+
+int parse_sdt(token_t *tkns, instruction_t *inst) {
+  inst->type = SDT;
+  inst->i = {
+      0x01,
+      I,
+      P,
+      U,
+      0x0,
+      L,
+      rn,rd,
+      offset
+  };
+}
+
+int parse_brn(token_t *tkns, instruction_t *inst) {
+  inst->type = BRN;
+  inst->i = {
+      0x1010,
+      offset
+  };
+}
+
+int parse_lsl(token_t *tkns, instruction_t *inst) {
+  // convert this then call...
+}
+
+
+int parse_halt(token_t *tkns, instruction_t *inst) {
+  inst->type = HAL;
+  inst->i = {0u};
+  return 0;
+}
 
 bool is_label(token_t *tkns) { return true; }
 void parse_label();
@@ -45,7 +104,8 @@ const op_to_parser oplist[] = {
 
 /**
  *  Translates a list of tokens comprising a line of assembly
- *  into its corresponding instruction_t form.
+ *  into its corresponding instruction_t form by calling the appropriate
+ *  sub-functions
  *
  *  @param tokens: a pointer to the array of tokens
  *  @param inst: a pointer to the instruction to be stored
