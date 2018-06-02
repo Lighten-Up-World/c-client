@@ -16,7 +16,7 @@ typedef enum{
 
 typedef struct {
   token_type_t type;
-  char *str;
+  char *str[];
 } token_t;
 
 /**

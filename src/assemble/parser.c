@@ -8,16 +8,40 @@ int parse_dp(token_t *tkns, instruction_t *inst);
 int parse_mul(token_t *tkns, instruction_t *inst);
 int parse_sdt(token_t *tkns, instruction_t *inst);
 int parse_brn(token_t *tkns, instruction_t *inst);
+int parse_lsl(token_t *tkns, instruction_t *inst);
+int parse_halt(token_t *tkns, instruction_t *inst);
 
+bool is_label(token_t *tkns) { return true; }
 void parse_label();
 
-int (*parse_func_arr[]) (token_t*, instruction_t*) = {
-    parse_dp,
-    parse_mul,
-    parse_sdt,
-    parse_brn
-};
+// TODO: find out how to use the map and convert this
+typedef struct {
+  char op[];
+  int (*parse_func) (token_t*, instruction_t*);
+} op_to_parser;
 
+const NUM_NON_BRANCH_OPS = 16;
+const op_to_parser oplist[] = {
+    {"add", parse_dp},
+    {"sub", parse_dp},
+    {"rsb", parse_dp},
+    {"and", parse_dp},
+    {"eor", parse_dp},
+    {"orr", parse_dp},
+    {"mov", parse_dp},
+    {"tst", parse_dp},
+    {"teq", parse_dp},
+    {"cmp", parse_dp},
+
+    {"mul", parse_mul},
+    {"mla", parse_mul},
+
+    {"ldr", parse_sdt},
+    {"str", parse_sdt},
+
+    {"lsl", parse_lsl},
+    {"andeq", parse_halt}
+};
 
 /**
  *  Translates a list of tokens comprising a line of assembly
@@ -27,36 +51,32 @@ int (*parse_func_arr[]) (token_t*, instruction_t*) = {
  *  @param inst: a pointer to the instruction to be stored
  */
 int parse(token_t *tokens, instruction_t *inst) {
-  // If the line is a label:
-  if (is_label) {
+  // If the assembly line is a label
+  if (is_label(tokens)) {
     parse_label();
     return 0;
   }
 
+  // Get the pointer to the first token - this will be the opcode
+  char *opcode[] = tokens[0].str;
 
+  // Parse a branch instruction and its condition
+  if (*opcode[0] == 'b') {
+    parse_brn(tokens, inst);
+    return 0;
+  }
 
-  // Set the cond (common to all instructions)
-  inst->cond = tokens.cond;
+  // Not a branch instruction so set condition to always execute
+  inst->cond = 0xE; //0b1110
 
-  // Parse a particular instruction by its opcode
+  // Calculate function pointer to parse an instruction from the opcode
+  // TODO: find out how to use the map and convert this
+  for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
+    if (oplist[i].op == *opcode) {
+      return oplist[i].parse_func(tokens, inst);
+    }
+  }
 
-  // Pointer to func to use to parse tokens
-  char opcode = tokens[opcode]; //get the token which has type T_OPCODE
-
-  // Calculate function pointer from opcode
-  // - easier to build a map from mnemonic to function?
-  int x = 5;
-
-  // Call correct parse function on the tokens
-  int res = parse_func_arr[x](tokens, inst);
-
-  switch(inst->opcode) {
-    case ADD:
-    case MUL:
-    case SUB:
-      parse_dp(tokens, inst);
-
-    etc...
-  } // look for a nicer way to do this with function pointers
-
+  // Throw an error here, unsupported opcode
+  return 1;
 }
