@@ -2,7 +2,28 @@
 #include <assert.h>
 #include "utils/arm.h"
 #include "utils/io.h"
+#include "symbolmap.h"
+#include "referencemap.h"
 #include "assemble.h"
+
+char **allocate_input(int lines, int lineLength) {
+  char **in;
+  unsigned int i;
+
+  in = malloc(lines * sizeof(char *));
+  // ^^ do I need to cast here even though it's implicit?
+
+  in[0] = malloc(lines * lineLength * sizeof(char));
+  if (!in[0]) {
+    return NULL; // failed;
+  }
+
+  for (i = 0; i < lines; i++) {
+    in[i] = in[i-1] + lineLength;
+  }
+
+  return in;
+}
 
 /**
  * Allocate memory for the program.
@@ -10,9 +31,18 @@
  * @return : a pointer to an uninitialised program.
  */
 program_t *program_new(void) {
-  program_t *program = malloc(sizeof(program_t));
-  assert(program != NULL);
-  return &program;
+  program_t *program;
+  program = malloc(sizeof(program_t));
+  if (!program) {
+    //ERROR
+  }
+
+  program->sym_m = smap_new(/* some capacity */);
+  program->ref_m = rmap_new(/* some capacity */);
+
+  program->in = allocate_input(/* num lines */, /* line length */);
+
+  return program;
 }
 
 /**
@@ -22,8 +52,15 @@ program_t *program_new(void) {
  * @return : free will always succeed so returns 0.
  */
 int program_delete(program_t *program) {
+  // free input characters
+  free(program->in[0]);
+  free(program->in);
+  // free data structures
+  smap_delete(program->sym_m);
+  rmap_delete(program->ref_m);
+  // free rest of program
   free(program);
-  return 0;
+  return 1;
 }
 
 /**
@@ -59,11 +96,11 @@ void program_toString(program_t *program, char *string) {
   word_t binInstr;
 
   for (int wordAddr = 0; wordAddr < program->lines; wordAddr += 4) {
-    binInstr = program->mPC;
+    binInstr = program->out[wordAddr];// do I need a getMemWord style func here?
     if (binInstr == 0) { // halt when memory instr is 0.
       continue;
     }
-    printf("0x%08x: 0b%032b\n", wordAddr, binInstr);
+    printf("%08x: %08  ....", wordAddr, binInstr); // what are the .s all about?
   }
 }
 
