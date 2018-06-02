@@ -19,8 +19,11 @@ typedef struct {
 
 program_t *program_new();
 int program_delete(program_t *);
-int program_add_symbol(program_t *, label_t, address_t);
-int program_add_reference(program_t *, label_t, address_t);
-void program_toString(program_t *, char *);
+int program_add_symbol(program_t *, label_t, address_t); // parser
+// returns a label, adds to symbolTable and checks reference and
+// removes/updates any references from refMap
+int program_add_reference(program_t *, label_t, address_t); // parser
+// requests a label, add reference of the instr to the refMap.
+void program_toString(program_t *, char *); //Print addr: and instr:
 
 #endif
