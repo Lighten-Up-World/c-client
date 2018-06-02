@@ -126,7 +126,7 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
   //   return 0;
   // }
 
-  if(bucket->count = 0){
+  if(bucket->count == 0){
     bucket->symbols = malloc(sizeof(symbol_t));
     if(bucket->symbols == NULL){
       free(new_label);
