@@ -15,6 +15,7 @@ int parse_dp(token_t *tkns, instruction_t *inst) {
       rd,
       operand2
   };
+  return 0;
 }
 
 char remove_first_char(char *string) {
@@ -53,7 +54,7 @@ int parse_mul(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
-int parse_sdt(token_t *tkns, instruction_t *inst) {
+int parse_sdt(token_t *tokens, instruction_t *inst) {
   inst->type = SDT;
   inst->i = {
       0x01,
@@ -65,28 +66,56 @@ int parse_sdt(token_t *tkns, instruction_t *inst) {
       rn,rd,
       offset
   };
+  return 0;
 }
 
-int parse_brn(token_t *tkns, instruction_t *inst) {
+int parse_brn(token_t *tokens, instruction_t *inst) {
   inst->type = BRN;
+
+  // encode condition
+  switch(remove_first_char(*tokens[0].str)) {
+    case "eq":
+    case "ne":
+    case "ge":
+    case "lt":
+    case "gt":
+    case "le":
+    case "al":
+      break;
+    default:
+      //handle error here
+  }
+
+  // encode offset
+
+
   inst->i = {
       0x1010,
       offset
   };
+  return 0;
 }
 
-int parse_lsl(token_t *tkns, instruction_t *inst) {
-  // convert this then call...
+int parse_lsl(token_t *tokens, instruction_t *inst) {
+  //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
+
+  //might need to malloc here to avoid changing ROM
+  //where do we free?
+
+  token_t *mod_tokens;
+  parse_sdt(mod_tokens, inst);
+
+  return -1;
 }
 
 
-int parse_halt(token_t *tkns, instruction_t *inst) {
+int parse_halt(token_t *tokens, instruction_t *inst) {
   inst->type = HAL;
   inst->i = {0u};
   return 0;
 }
 
-bool is_label(token_t *tkns) { return true; }
+bool is_label(token_t *tokens) { return true; }
 void parse_label();
 
 // TODO: find out how to use the map and convert this
