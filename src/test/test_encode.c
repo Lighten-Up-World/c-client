@@ -139,6 +139,23 @@ void test_encode_sdt_with_invalidreg(void){
   if(!encode(&sdt_and_invalidreg_i,&result)){
     TEST_ASSERT_MESSAGE(false, "Missing Error");
   }
+
+  void test_encodeBrn(void) {
+    word_t brn_w = 0xAA000032;
+    instruction_t brn_i = {
+            .type = BRN,
+            .cond = 0xA,
+            .i.brn = {
+                    .padA = 0xA,
+                    .offset = 0x32
+            }
+    };
+    word_t result;
+    if(encode(&brn_i,&result)){
+      TEST_ASSERT_MESSAGE(false, "False Error");
+    }
+    compareBinary(brn_w, result);
+  }
 }
 
 

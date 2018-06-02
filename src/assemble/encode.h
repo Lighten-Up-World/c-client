@@ -32,6 +32,10 @@
 #define SDT_PAD1_SIZE 2
 #define SDT_PAD0_SIZE 2
 
+///BRN
+
+#define BRN_PADA_SIZE 4
+#define BRN_OFFSET_SIZE 24;
 
 int encode(instruction_t *instr, word_t *w);
 // int encodeCond(instruction_t *instr, word_t *word);

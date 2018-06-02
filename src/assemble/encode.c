@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <error.h>
 #include <stdio.h>
+#include <instructions.h>
 
 /**
  * encode shifted register for DP or SDT instruction
@@ -236,8 +237,13 @@ int encode_sdt(instruction_t *instr, word_t *w){
 int encode_brn(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
-  //TODO
-  return 0;
+
+  *w <<= BRN_PADA_SIZE;
+  *w |= instr->i.brn.padA;
+  *w <<= BRN_OFFSET_SIZE;
+  *w |= instr->i.brn.offset;
+
+  return EC_OK;
 }
 
 /**
