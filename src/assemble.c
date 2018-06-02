@@ -78,6 +78,12 @@ int program_delete(program_t *program) {
  * @return
  */
 int program_add_symbol(program_t *program, label_t label, address_t addr) {
+  // add symbol to symbol map in program.
+  if (!smap_put(program->sym_m, label, addr)) {
+    return 0;
+  }
+
+  // TODO: check refmap to see if symbol appears and remove/update references
   return 1;
 }
 
@@ -89,6 +95,10 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
  * @return
  */
 int program_add_reference(program_t *program, label_t label, address_t addr) {
+  // adds reference to ref_map.
+  if (!rmap_put(program->ref_m, label, addr)) {
+    return 0;
+  }
   return 1;
 }
 
