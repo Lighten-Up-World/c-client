@@ -1,4 +1,5 @@
 #include <string.h>
+#include <utils/instructions.h>
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/instructions.h"
@@ -77,7 +78,7 @@ int parse_dp(token_t *tokens, instruction_t *inst) {
 
   // Get opcode enum
   char *opcode = tokens[0].str;
-  operand_t op_enum;
+  opcode_t op_enum;
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (strcmp(oplist[i].op, opcode) == 0) {
       op_enum = oplist[i].op_enum;
@@ -204,13 +205,36 @@ int parse_brn(token_t *tokens, instruction_t *inst) {
 }*/
 
 int parse_lsl(token_t *tokens, instruction_t *inst) {
+  //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
+  reg_address_t r = (reg_address_t) atoi(remove_first_char(tokens[1].str));
+
+  inst->i.dp.padding = 0x00;
+  inst->i.dp.I = 0;
+  inst->i.dp.opcode = MOV;
+  inst->i.dp.S = 1;
+  inst->i.dp.rn = r;
+  inst->i.dp.rd = r;
+  //TODO: set this properly
+  //inst->i.dp.operand2.reg.shift.constant.integer = get_op2(tokens[2].str).imm.fixed;
+  inst->i.dp.operand2.reg.type = LSL;
+  inst->i.dp.operand2.reg.shiftBy = 0; //case where this (bit 4) is 1 is optional
+  inst->i.dp.operand2.reg.rm = r;
+}
+
+// Only use this if we support mov with a shifted register in DP - TODO
+int parse_lsl_conversion(token_t *tokens, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
-  //malloc here
-  token_t *mod_tokens;
+  // Create new instruction in memory, to be parsed by sdt
+  token_t *mod_tokens = malloc(4 * sizeof(token_t));
+  mod_tokens[0].type = T_OPCODE;
+  mod_tokens[0].str = "mov";
+  //etc...
+
   parse_sdt(mod_tokens, inst);
 
-  //free here
+  // Free up the memory used for the mnodified tokens
+  free(mod_tokens);
 
   return -1;
 }
