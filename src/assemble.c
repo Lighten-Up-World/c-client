@@ -115,7 +115,7 @@ int program_add_reference(program_t *program, label_t label, address_t addr) {
 }
 
 /**
- * Create the string representation of the program 
+ * Create the string representation of the program
  *
  * @param program : pointer to the program information DataType
  * @param string : output string representation of the program
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
   instruction_t *instr = NULL;
   instr = malloc(sizeof(instruction_t));
 
-  word_t *word = 0;
+  word_t *word = NULL;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; ++i) {
@@ -165,7 +165,6 @@ int main(int argc, char **argv) {
     } while (word != 0);
     instr = NULL; //probably wrong
     lineTokens = NULL; // probably wrong
-    word = 0;
   }
 
   char **stringRep = allocate_input(program->lines, MAX_LINE_LENGTH);
