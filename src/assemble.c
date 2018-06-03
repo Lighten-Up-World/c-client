@@ -10,6 +10,7 @@
 #include "assemble.h"
 
 /**
+ * Allocate memory for the input stored in the program
  *
  * @param lines : number of lines of the input file
  * @param lineLength : length of input file lines
@@ -76,11 +77,12 @@ int program_delete(program_t *program) {
 }
 
 /**
+ * Add a symbol to the symbol table in the program and update reference table
  *
  * @param program : pointer to the program information DataType
  * @param label : represents a point to branch off to
  * @param addr : address accompanied by label
- * @return
+ * @return : 0 or 1 depending whether the addition was successful or not
  */
 int program_add_symbol(program_t *program, label_t label, address_t addr) {
   if (!smap_put(program->sym_m, label, addr)) {
@@ -103,9 +105,9 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
 /**
  *
  * @param program : pointer to the program information DataType
- * @param label
- * @param addr
- * @return
+ * @param label : represents a point to branch off to
+ * @param addr : address accompanied by label
+ * @return : 0 or 1 depending whether the addition was successful or not
  */
 int program_add_reference(program_t *program, label_t label, address_t addr) {
   // adds reference to ref_map.
@@ -113,6 +115,7 @@ int program_add_reference(program_t *program, label_t label, address_t addr) {
 }
 
 /**
+ * Create the string representation of the program 
  *
  * @param program : pointer to the program information DataType
  * @param string : output string representation of the program
