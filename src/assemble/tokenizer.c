@@ -24,6 +24,8 @@ int token_type(char *src){
       return T_EQ_EXPR;
     case '#':
       return T_HASH_EXPR;
+    case ':':
+      return T_LABEL;
     case 'r':
       return T_REGISTER;
     default:
@@ -111,7 +113,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
 int tokenize(char *line, token_t **out){
 
   char **token_strs = NULL;
-  int n = str_separate(line, "[,]", ' ', &token_strs);
+  int n = str_separate(line, "[],#:", ' ', &token_strs);
   *out = malloc(n * sizeof(token_t));
   if(*out == NULL){
     return -1;
