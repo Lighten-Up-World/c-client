@@ -11,6 +11,9 @@ out/
 car.sh
 temp.c
 
+#ignore object files for make
+.o
+
 #ignore CLion files
 CMakeLists.txt
 .idea/

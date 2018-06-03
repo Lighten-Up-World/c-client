@@ -1,3 +1,8 @@
+/*
+ * Contains the definitons of error codes and structure of an error.
+ * Uses preprocessor directives to accomplish this.
+ */
+
 #ifndef ERROR_H
 #define ERROR_H
 

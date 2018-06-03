@@ -5,6 +5,8 @@
 #include <string.h>
 #include "arm.h"
 
+#define MAX_S_MAP_CAPACITY 20
+
 typedef struct {
   label_t label;
   address_t address;

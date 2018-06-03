@@ -1,3 +1,8 @@
+/*
+ * Contains the function used to throw errors
+ * Interacts with the error.h file to convert system errors to error codes.
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include "error.h"

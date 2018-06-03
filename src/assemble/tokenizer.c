@@ -27,13 +27,12 @@ int token_type(char *src){
     case 'r':
       return T_REGISTER;
     default:
-      return T_SHIFTNAME;
+      return T_SHIFT;
   }
 }
 
+
 /**
-* Takes a source string, one character separator and a pointer to an external
-* character separator used for returning sub strings.
 *
 * @param src: the source string. Assumes NULL terminated string
 * @param sep: the char separator
@@ -44,47 +43,61 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   assert(src != NULL && output != NULL);
 
   int len = strlen(src);
-  int n = 0;
-  int j = 0;
-  int lastString = 0;
+  for (int i = 0; i < len; i++) {
+    char chr = src[i];
+  }
 
+  // Loops through src to count number of tokens needed
+  int splits = 0;
+  int noSpaces = 0;
   for(int i = 0; i < len; i++){
+    if(strchr(tokens, src[i])){
+      splits++;
+      if((i+1 < len) && !(src[i+1]==sep) && !strchr(tokens, src[i+1])){ //
+        splits++;
+      }
+    }
     if(src[i] == sep){
-      if(lastString){
-        n++;
+      noSpaces++;
+      if((i+1 < len) && src[i+1] != sep && !strchr(tokens, src[i+1]) ){
+        splits++;
       }
-      j++;
-      lastString = 0;
     }
-    else if(strchr(tokens, src[i])){
-      n++;
-      if(lastString){
-        n++;
-      }
-      mem[j] = src[i];
-      j++;
-      lastString = 0;
-    }
-    else{
-      mem[j] = src[i];
-      if(strchr(tokens,src[i+1])){
+  }
+  int n = splits + 1;
+  printf("%u\n", n);
+  *output = malloc(n * sizeof(char *)); // Allocated memory for 2D array outer
+  if(output == NULL){
+    return -EC_NULL_POINTER;
+  }
+  char **currentpart = *output;
+  int mem_size = len + n - noSpaces;
+  char *mem = calloc(mem_size, sizeof(char)); // Allocate memory for inner array
+  if(mem == NULL){
+    return -EC_NULL_POINTER;
+  }
+
+  // Loop through source and place in correct position in mem
+  int j = 0;
+  for (int i = 0; i < len; i++) {
+    if(src[i]==sep){ //Sep
+      if(src[i-1]!=sep){
         j++;
       }
-      lastString++;
+      continue;
     }
+    mem[j] = src[i];
     j++;
-  }
+    if(strchr(tokens,src[i]) && src[i+1]!=sep){ //Token
+      j++;
+    }
+    else if(strchr(tokens,src[i+1])){
+      j++;
+    }
 
-  *output = malloc(n * sizeof(char *));
-  char **currentpart = *output;
-  int mem_size = len + n - 1;
-  char *mem = calloc(mem_size, sizeof(char));
+  }
+  // Allocated outer pointers to correct position in memory
   *currentpart = mem;
-
-  if(currentpart == NULL){
-    return 1;
-  }
-
   for (int j = 0; j < mem_size; j++) {
     if(mem[j]=='\0'){
       currentpart++;
@@ -110,17 +123,3 @@ int tokenize(char *line, token_t **out){
   free(token_strs);
   return n;
 }
-
-// int main(int argc, char const *argv[]) {
-//   char str[] = "str r3,[r2,#3]";
-//   token_t *out = NULL;
-//   printf("%p\n", (void *) &out);
-//   int n = tokenize(str, &out);
-//   printf("%p\n", (void *) out);
-//   for (int i = 0; i < n; i++) {
-//     printf("%s\n", out[i].str);
-//   }
-//   free(out[0].str);
-//   free(out);
-//   return 0;
-// }

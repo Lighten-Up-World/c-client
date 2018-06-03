@@ -3,15 +3,16 @@
 #include "map.h"
 #include "referencemap.h"
 
-static entry_t *get_entry(bucket_t *bucket, const label_t label){
+
+static entry_t *get_entry(bucket_t *bucket, const label_t label) {
   size_t n = bucket->count;
-	if (n == 0) {
-		return NULL;
-	}
+  if (n == 0) {
+    return NULL;
+  }
   entry_t *entry = bucket->entries;
-  for(size_t i = 0; i < n; i++){
-    if(entry->label != NULL){
-      if(strcmp(entry->label, label) == 0){
+  for (size_t i = 0; i < n; i++) {
+    if (entry->label != NULL) {
+      if (strcmp(entry->label, label) == 0) {
         return entry;
       }
     }
@@ -20,16 +21,17 @@ static entry_t *get_entry(bucket_t *bucket, const label_t label){
   return NULL;
 }
 
-reference_map_t *rmap_new(size_t capacity){
+
+reference_map_t *rmap_new(size_t capacity) {
   reference_map_t *map;
   map = calloc(1, sizeof(reference_map_t));
-  if(map == NULL){
+  if (map == NULL) {
     //ERROR
     return NULL;
   }
   map->count = capacity;
   map->buckets = calloc(map->count, sizeof(bucket_t));
-  if(map->buckets == NULL){
+  if (map->buckets == NULL) {
     free(map);
     //ERROR
     return NULL;
@@ -37,14 +39,15 @@ reference_map_t *rmap_new(size_t capacity){
   return map;
 }
 
-int rmap_delete(reference_map_t *map){
-  if(map == NULL){
+
+int rmap_delete(reference_map_t *map) {
+  if (map == NULL) {
     return 0;
   }
   bucket_t *bucket = map->buckets;
-  for(size_t i = 0; i < map->count; i++){
+  for (size_t i = 0; i < map->count; i++) {
     entry_t *entry = bucket->entries;
-    for(size_t j = 0; j < bucket->count; j++){
+    for (size_t j = 0; j < bucket->count; j++) {
       free(entry->label);
       free(entry->references.address);
       entry++;
@@ -57,61 +60,68 @@ int rmap_delete(reference_map_t *map){
   return 1;
 }
 
-int rmap_get_references(const reference_map_t *map, const label_t label, address_t *out, size_t out_size){
-  if(map == NULL){
+
+int rmap_get_references(const reference_map_t *map, const label_t label,
+                        address_t *out, size_t out_size) {
+  if (map == NULL) {
     return 0;
   }
-  if(label == NULL){
+  if (label == NULL) {
     return 0;
   }
   size_t ind = hash(label) % map->count;
   bucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
-  if(entry == NULL){
+  if (entry == NULL) {
     return 0;
   }
-  if(out_size < entry->references.count){
+  if (out_size < entry->references.count) {
     return entry->references.count;
   }
-  if(out == NULL){
+  if (out == NULL) {
     return 0;
   }
   memcpy(out, entry->references.address, out_size * sizeof(address_t));
   return 1;
 }
 
-int rmap_address_exists(address_t *address, size_t count, address_t new_address){
-  if(address == NULL){// || address == NULL){
+
+int rmap_address_exists(address_t *address, size_t count, address_t new_address) {
+  if (address == NULL) {// || address == NULL){
     return 0;
   }
   for (size_t i = 0; i < count; i++) {
-    if(address[i] == new_address){
+    if (address[i] == new_address) {
       return 1;
     }
   }
   return 0;
 }
 
-int rmap_exists(const reference_map_t *map, const label_t label){
-  if(map == NULL){
+
+int rmap_exists(const reference_map_t *map, const label_t label) {
+  if (map == NULL) {
     return 0;
   }
-  if(label == NULL){
+  if (label == NULL) {
     return 0;
   }
   size_t ind = hash(label) % map->count;
   bucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
-  if(entry == NULL){
+  if (entry == NULL) {
     return 0;
   }
   return 1;
 }
-int rmap_put(const reference_map_t *map, const label_t label, const address_t new_address){
-  if(map == NULL){
+
+
+int rmap_put(const reference_map_t *map, const label_t label,
+             const address_t new_address) {
+  if (map == NULL) {
     return 0;
   }
-  if(label == NULL){// || address == NULL){
+  if (label == NULL) {// || address == NULL){
     return 0;
   }
   size_t label_len = strlen(label);
@@ -120,71 +130,66 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
   bucket_t *bucket = &(map->buckets[ind]);
 
   entry_t *entry;
-  if((entry = get_entry(bucket, label)) != NULL){
+  if ((entry = get_entry(bucket, label)) != NULL) {
     address_t *address = entry->references.address;
-    if(rmap_address_exists(address, entry->references.count, new_address) == 1){
+    if (rmap_address_exists(address, entry->references.count, new_address)
+        == 1) {
       return 0;
-    }
-    else {
+    } else {
       size_t address_len = entry->references.count;
-      address_t *tmp_references_address = realloc(address, (address_len + 1) * sizeof(address_t));
-      if(tmp_references_address == NULL){
+      address_t *tmp_references_address =
+          realloc(address, (address_len + 1) * sizeof(address_t));
+      if (tmp_references_address == NULL) {
         return 0;
       }
       address = tmp_references_address;
       address[address_len] = new_address;
-      entry->references.count ++;
+      entry->references.count++;
       return 1;
     }
   }
-
   label_t new_label = malloc(label_len);
-  if(new_label == NULL){
+  if (new_label == NULL) {
     return 0;
   }
-
-  if(bucket->count = 0){
+  if (bucket->count = 0) {
     bucket->entries = malloc(sizeof(entry_t));
-    if(bucket->entries == NULL){
+    if (bucket->entries == NULL) {
       free(new_label);
       return 0;
     }
     bucket->count = 1;
-  }
-  else {
+  } else {
     bucket->count += 1;
-    entry_t *tmp_entries = realloc(bucket->entries, bucket->count * sizeof(entry_t));
-    if(tmp_entries == NULL){
+    entry_t *tmp_entries =
+        realloc(bucket->entries, bucket->count * sizeof(entry_t));
+    if (tmp_entries == NULL) {
       free(new_label);
       bucket->count -= 1;
       return 0;
     }
     bucket->entries = tmp_entries;
-
   }
-
   entry = &(bucket->entries[bucket->count - 1]);
 
   size_t address_len = entry->references.count;
 
   entry->label = new_label;
   memcpy(entry->label, label, label_len);
-
-
-
-  if(address_len == 0){
+  if (address_len == 0) {
     entry->references.address = malloc(sizeof(address_t));
-    if(entry->references.address == NULL){
+    if (entry->references.address == NULL) {
       free(new_label);
       free(bucket->entries);
       return 0;
     }
     entry->references.count = 1;
-  }
-  else {
+  } else {
     entry->references.count += 1;
-    address_t *tmp_references_address = realloc(entry->references.address, entry->references.count * sizeof(address_t));
-    if(tmp_references_address == NULL){
+    address_t *tmp_references_address = realloc(entry->references.address,
+                                                entry->references.count
+                                                    * sizeof(address_t));
+    if (tmp_references_address == NULL) {
       free(new_label);
       free(bucket->entries);
       bucket->count -= 1;
@@ -198,17 +203,18 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
   return 1;
 }
 
-int rmap_enum(reference_map_t *map, map_func_t func, const void *obj){
-  if(map == NULL){
+
+int rmap_enum(reference_map_t *map, map_func_t func, const void *obj) {
+  if (map == NULL) {
     return 0;
   }
-  if(func == NULL){
+  if (func == NULL) {
     return 0;
   }
   bucket_t *bucket = map->buckets;
-  for(size_t i = 0; i < map->count; i++){
+  for (size_t i = 0; i < map->count; i++) {
     entry_t *entry = bucket->entries;
-    for(size_t j = 0; j < bucket->count; j++){
+    for (size_t j = 0; j < bucket->count; j++) {
       address_t *address = entry->references.address;
       for (size_t k = 0; k < entry->references.count; k++) {
         func(entry->label, *address, obj);
@@ -221,15 +227,16 @@ int rmap_enum(reference_map_t *map, map_func_t func, const void *obj){
   return 1;
 }
 
-int rmap_get_count(reference_map_t *map){
+
+int rmap_get_count(reference_map_t *map) {
   size_t count = 0;
-  if(map == NULL){
+  if (map == NULL) {
     return 0;
   }
   bucket_t *bucket = map->buckets;
-  for(size_t i = 0; i < map->count; i++){
+  for (size_t i = 0; i < map->count; i++) {
     entry_t *entry = bucket->entries;
-    for(size_t j = 0; j < bucket->count; j++){
+    for (size_t j = 0; j < bucket->count; j++) {
       count++;
       entry++;
     }
@@ -238,9 +245,12 @@ int rmap_get_count(reference_map_t *map){
   return count;
 }
 
-void print_entry(const label_t label, const address_t val, const void *obj){
+
+void print_entry(const label_t label, const address_t val, const void *obj) {
   printf("(%s, %d) \n", label, val);
 }
+
+
 // MOVE TO TEST
 // int main(int argc, char const *argv[]) {
 //   reference_map_t *rm;
