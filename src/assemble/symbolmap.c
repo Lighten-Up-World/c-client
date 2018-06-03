@@ -1,6 +1,7 @@
 #include "map.h"
 #include "symbolmap.h"
 
+
 static symbol_t *get_symbol(bucket_t *bucket, const label_t label){
   size_t n = bucket->count;
 	if (n == 0) {
@@ -18,6 +19,7 @@ static symbol_t *get_symbol(bucket_t *bucket, const label_t label){
   return NULL;
 }
 
+
 symbol_map_t *smap_new(size_t capacity){
   symbol_map_t *map;
   map = calloc(1, sizeof(symbol_map_t));
@@ -34,6 +36,7 @@ symbol_map_t *smap_new(size_t capacity){
   }
   return map;
 }
+
 
 int smap_delete(symbol_map_t *map){
   if(map == NULL){
@@ -54,6 +57,7 @@ int smap_delete(symbol_map_t *map){
   free(map);
   return 1;
 }
+
 
 int smap_get_address(const symbol_map_t *map, const label_t label, address_t *out, size_t out_size){
   if(map == NULL){
@@ -78,6 +82,8 @@ int smap_get_address(const symbol_map_t *map, const label_t label, address_t *ou
   //memcpy(out, symbol->address, out_size);
   return 1;
 }
+
+
 int smap_exists(const symbol_map_t *map, const label_t label){
   if(map == NULL){
     return 0;
@@ -93,6 +99,8 @@ int smap_exists(const symbol_map_t *map, const label_t label){
   }
   return 1;
 }
+
+
 int smap_put(const symbol_map_t *map, const label_t label, const address_t address){
   if(map == NULL){
     return 0;
@@ -125,7 +133,6 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
   //   free(new_label);
   //   return 0;
   // }
-
   if(bucket->count == 0){
     bucket->symbols = malloc(sizeof(symbol_t));
     if(bucket->symbols == NULL){
@@ -154,6 +161,7 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
   return 1;
 }
 
+
 int smap_enum(symbol_map_t *map, map_func_t func, const void *obj){
   if(map == NULL){
     return 0;
@@ -172,16 +180,20 @@ int smap_enum(symbol_map_t *map, map_func_t func, const void *obj){
   }
   return 1;
 }
+
+
 void smap_count_func(const label_t label, const address_t val, const void *obj){
   size_t *cnt = (size_t *) obj;
   *cnt += 1;
 }
+
 
 int smap_get_count(symbol_map_t *map){
   size_t count = 0;
   smap_enum(map, &smap_count_func, &count);
   return count;
 }
+
 
 void print_symbol(const label_t label, const address_t val, const void *obj){
   printf("(%s, %d) \n", label, val);

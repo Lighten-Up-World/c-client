@@ -2,14 +2,14 @@
 #include <assert.h>
 #include "utils/arm.h"
 #include "utils/io.h"
-#include "symbolmap.h"
-#include "referencemap.h"
+#include "assemble/symbolmap.h"
+#include "assemble/referencemap.h"
 #include "assemble.h"
 
 /**
  *
  * @param lines : number of lines of the input file
- * @param lineLength : standard length of input file lines
+ * @param lineLength : length of input file lines
  * @return : pointer to the array containing input, with memory allocated but
  * not initialised.
  */
@@ -19,7 +19,6 @@ char **allocate_input(int lines, int lineLength) {
 
   in = malloc(lines * sizeof(char *));
   // ^^ do I need to cast here even though it's implicit?
-
   in[0] = malloc(lines * lineLength * sizeof(char));
   if (!in[0]) {
     return NULL; // failed;
@@ -44,10 +43,13 @@ program_t *program_new(void) {
     //ERROR
   }
 
-  program->sym_m = smap_new(/* some capacity */);
-  program->ref_m = rmap_new(/* some capacity */);
+  program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
+  program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
 
   program->in = allocate_input(/* num lines */, /* line length */);
+  if (program->in == NULL) {
+    //ERROR : empty input or file not read
+  }
 
   return program;
 }
@@ -80,11 +82,11 @@ int program_delete(program_t *program) {
 int program_add_symbol(program_t *program, label_t label, address_t addr) {
   // add symbol to symbol map in program.
   if (!smap_put(program->sym_m, label, addr)) {
-    return 0;
+    return 1;
   }
 
   // TODO: check refmap to see if symbol appears and remove/update references
-  return 1;
+  return 0;
 }
 
 /**
@@ -97,9 +99,9 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
 int program_add_reference(program_t *program, label_t label, address_t addr) {
   // adds reference to ref_map.
   if (!rmap_put(program->ref_m, label, addr)) {
-    return 0;
+    return 1;
   }
-  return 1;
+  return 0;
 }
 
 /**

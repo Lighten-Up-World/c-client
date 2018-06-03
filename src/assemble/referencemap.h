@@ -1,9 +1,11 @@
-#ifndef SYMBOL_MAP_H
-#define SYMBOL_MAP_H
+#ifndef REFERENCE_MAP_H
+#define REFERENCE_MAP_H
 
 #include <stdlib.h>
 #include <string.h>
 #include "../utils/arm.h"
+
+#define MAX_R_MAP_CAPACITY 30
 
 typedef struct {
   address_t *address;
