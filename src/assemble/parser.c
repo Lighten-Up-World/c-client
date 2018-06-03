@@ -5,31 +5,39 @@
 #include "../utils/instructions.h"
 typedef struct {
   char *op;
-  opcode_t op_enum;
+  mnemonic_t op_enum;
   int (*parse_func) (token_t*, instruction_t*);
-} op_to_parser;
+} mnemonic_to_parser;
 
 const int NUM_NON_BRANCH_OPS = 16;
-const op_to_parser oplist[] = {
-    {"add", ADD, parse_dp},
-    {"sub", SUB,  parse_dp},
-    {"rsb", RSB, parse_dp},
-    {"and", AND,  parse_dp},
-    {"eor", TEQ,  parse_dp},
-    {"orr", ORR,  parse_dp},
-    {"mov", MOV,  parse_dp},
-    {"tst", TST,  parse_dp},
-    {"teq", TEQ,  parse_dp},
-    {"cmp", CMP,  parse_dp},
+const mnemonic_to_parser oplist[] = {
+    {"add", M_ADD, parse_dp},
+    {"sub", M_SUB,  parse_dp},
+    {"rsb", M_RSB, parse_dp},
+    {"and", M_AND,  parse_dp},
+    {"eor", M_TEQ,  parse_dp},
+    {"orr", M_ORR,  parse_dp},
+    {"mov", M_MOV,  parse_dp},
+    {"tst", M_TST,  parse_dp},
+    {"teq", M_TEQ,  parse_dp},
+    {"cmp", M_CMP,  parse_dp},
 
-    {"mul", (opcode_t) 0xE, parse_mul},
-    {"mla", (opcode_t) 0xE, parse_mul},
+    {"mul", M_MUL, parse_mul},
+    {"mla", M_MLA, parse_mul},
 
-    {"ldr", (opcode_t) 0xE, parse_sdt},
-    {"str", (opcode_t) 0xE, parse_sdt},
+    {"ldr", M_LDR, parse_sdt},
+    {"str", M_STR, parse_sdt},
 
-    {"lsl", (opcode_t) 0xE, parse_lsl},
-    {"andeq", (opcode_t) 0xE, parse_halt}
+    {"beq", M_BEQ, parse_brn},
+    {"bne", M_BNE, parse_brn},
+    {"blt", M_BLT, parse_brn},
+    {"bgt", M_BGT, parse_brn},
+    {"ble", M_BLE, parse_brn},
+    {"b", M_B, parse_brn},
+    {"bal", M_B, parse_brn},
+
+    {"lsl", M_LSL, parse_lsl},
+    {"andeq", M_ANDEQ, parse_halt}
 };
 
 int consume_token(token_t *arr, token_type_t type);
@@ -226,17 +234,19 @@ int parse_lsl_conversion(token_t *tokens, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
   // Create new instruction in memory, to be parsed by sdt
-  token_t *mod_tokens = malloc(4 * sizeof(token_t));
-  mod_tokens[0].type = T_OPCODE;
-  mod_tokens[0].str = "mov";
-  //etc...
+  token_t mod_tokens[] = {
+    {T_OPCODE, "mov"},
+    tokens[1],
+    tokens[2],
+    tokens[1],
+    tokens[2],
+    {T_SHIFT, "lsl"},
+    tokens[3]
+  };
 
-  parse_sdt(mod_tokens, inst);
 
-  // Free up the memory used for the mnodified tokens
-  free(mod_tokens);
 
-  return -1;
+  return parse_sdt(&mod_tokens, inst);
 }
 
 int parse_halt(token_t *tokens, instruction_t *inst) {
@@ -245,7 +255,10 @@ int parse_halt(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
-bool is_label(token_t *tokens) { return false; }
+bool is_label(token_t *tokens, int tkn) {
+  return tokens[tkn - 1].type == T_LABEL;
+}
+
 void parse_label() {}
 
 /**
@@ -256,9 +269,9 @@ void parse_label() {}
  *  @param tokens: a pointer to the array of tokens
  *  @param inst: a pointer to the instruction to be stored
  */
-int parse(token_t *tokens, instruction_t *inst) {
+int parse(token_t *tokens, instruction_t *inst, int tkn) {
   // If the assembly line is a label
-  if (is_label(tokens)) {
+  if (is_label(tokens, tkn)) {
     parse_label();
     return 0;
   }

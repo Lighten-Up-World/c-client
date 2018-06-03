@@ -6,7 +6,7 @@
 
 int consume_token(token_t *arr, token_type_t type);
 
-int parse(token_t *tkns, instruction_t *inst);
+int parse(token_t *tkns, instruction_t *inst, int tkn);
 
 int parse_dp(token_t *tkns, instruction_t *inst);
 int parse_mul(token_t *tkns, instruction_t *inst);
