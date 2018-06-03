@@ -2,9 +2,11 @@
 #include <assert.h>
 #include "utils/arm.h"
 #include "utils/io.h"
-#include "assemble/tokenizer.h"
 #include "assemble/symbolmap.h"
 #include "assemble/referencemap.h"
+#include "assemble/tokenizer.h"
+#include "assemble/parser.h"
+#include "assemble/encode.h"
 #include "assemble.h"
 
 /**
@@ -76,8 +78,8 @@ int program_delete(program_t *program) {
 /**
  *
  * @param program : pointer to the program information DataType
- * @param label
- * @param addr
+ * @param label : represents a point to branch off to
+ * @param addr : address accompanied by label
  * @return
  */
 int program_add_symbol(program_t *program, label_t label, address_t addr) {
@@ -125,11 +127,12 @@ void program_toString(program_t *program, char *string) {
     if (binInstr == 0) { // halt when memory instr is 0.
       continue;
     }
-    // add word addr and bininstr to string, memcpy or strcat?
+    // add word addr and binInstr to string, memcpy or strcat?
   }
 }
 
 
+// main assembly loop.
 int main(int argc, char **argv) {
   assert(argc > 1);
 
@@ -139,6 +142,34 @@ int main(int argc, char **argv) {
   }
   char ***out;
   program->lines = str_separate(program->in,"", "\n", out);
+
+  // set up variables for assembler
+  token_t *lineTokens = NULL;
+  lineTokens = malloc(MAX_NUM_TOKENS * sizeof(token_t));
+
+  instruction_t *instr = NULL;
+  instr = malloc(sizeof(instruction_t));
+
+  word_t *word = 0;
+
+  //convert each line to binary
+  for (int i = 0; i < program->lines; ++i) {
+    do {
+      tokenize(program->in[i], lineTokens);
+      parse(lineTokens, instr);
+      encode(instr, word);
+      program->out[i * 4] = word;
+    } while (word != 0);
+    instr = NULL; //probably wrong
+    lineTokens = NULL; // probably wrong
+    word = 0;
+  }
+
+  char **stringRep = allocate_input(program->lines, MAX_LINE_LENGTH);
+
+  program_toString(program, stringRep); // need to print this somehow
+
+  // FREE MEMORY
 }
 
 
