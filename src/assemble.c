@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "utils/arm.h"
 #include "utils/io.h"
+#include "assemble/tokenizer.h"
 #include "assemble/symbolmap.h"
 #include "assemble/referencemap.h"
 #include "assemble.h"
@@ -34,21 +35,21 @@ char **allocate_input(int lines, int lineLength) {
 /**
  * Allocate memory for the program.
  *
- * @return : a pointer to an uninitialised program.
+ * @return : pointer to an uninitialised program.
  */
 program_t *program_new(void) {
-  program_t *program;
+  program_t *program = NULL;
   program = malloc(sizeof(program_t));
   if (!program) {
-    //ERROR
+    //ERROR : set program to null?
   }
 
   program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
   program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
 
-  program->in = allocate_input(/* num lines */, /* line length */);
+  program->in = allocate_input(MAX_NUM_LINES, MAX_LINE_LENGTH);
   if (program->in == NULL) {
-    //ERROR : empty input or file not read
+    //ERROR : unable to allocate input
   }
 
   return program;
@@ -57,8 +58,8 @@ program_t *program_new(void) {
 /**
  * Free program memory
  *
- * @param program : the desired program to remove from memory.
- * @return : free will always succeed so returns 0.
+ * @param program : desired program to remove from memory.
+ * @return : free will always succeed so returns 1.
  */
 int program_delete(program_t *program) {
   // free input characters
@@ -74,40 +75,45 @@ int program_delete(program_t *program) {
 
 /**
  *
- * @param program
+ * @param program : pointer to the program information DataType
  * @param label
  * @param addr
  * @return
  */
 int program_add_symbol(program_t *program, label_t label, address_t addr) {
-  // add symbol to symbol map in program.
   if (!smap_put(program->sym_m, label, addr)) {
-    return 1;
+    return 0; // already in symbol map
   }
 
-  // TODO: check refmap to see if symbol appears and remove/update references
-  return 0;
+  address_t *outReferences = calloc();
+  int outsize;
+  // check if symbol exists in ref_map and update/remove accordingly
+  if (rmap_exists(program->ref_m, label)) {
+    if (rmap_get_references(program->ref_m, label, outReferences, outsize)) {
+      //TODO : check if addr is  in the list of references already.
+    }
+  }
+  rmap_put(program->ref_m, label, addr);
+
+  return 1;
 }
 
 /**
  *
- * @param program
+ * @param program : pointer to the program information DataType
  * @param label
  * @param addr
  * @return
  */
 int program_add_reference(program_t *program, label_t label, address_t addr) {
   // adds reference to ref_map.
-  if (!rmap_put(program->ref_m, label, addr)) {
-    return 1;
-  }
-  return 0;
+  return !rmap_put(program->ref_m, label, addr);
 }
 
 /**
  *
- * @param program : a pointer to the program information DataType
- * @param string : NO IDEA WHAT THIS IS FOR
+ * @param program : pointer to the program information DataType
+ * @param string : output string representation of the program
  */
 void program_toString(program_t *program, char *string) {
   assert(program != NULL);
@@ -119,13 +125,20 @@ void program_toString(program_t *program, char *string) {
     if (binInstr == 0) { // halt when memory instr is 0.
       continue;
     }
-    printf("%08x: %08  ....", wordAddr, binInstr); // what are the .s all about?
+    // add word addr and bininstr to string, memcpy or strcat?
   }
 }
 
 
 int main(int argc, char **argv) {
   assert(argc > 1);
+
+  program_t *program = program_new();
+  if (read_file(argv[1], program->in, sizeof(program->in))) {
+    return 0; // failed to read input. Need this in emulate too?
+  }
+  char ***out;
+  program->lines = str_separate(program->in,"", "\n", out);
 }
 
 

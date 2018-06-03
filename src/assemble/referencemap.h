@@ -31,7 +31,8 @@ reference_map_t *rmap_new(size_t capacity);
 
 int rmap_delete(reference_map_t *map);
 
-int rmap_get_address(const reference_map_t *map, const label_t label, address_t *out, size_t out_size);
+int rmap_get_references(const reference_map_t *map, const label_t label,
+                      address_t *out, size_t out_size);
 int rmap_exists(const reference_map_t *map, const label_t label);
 int rmap_put(const reference_map_t *map, const label_t label, const address_t address);
 

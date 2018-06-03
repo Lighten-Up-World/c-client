@@ -5,6 +5,9 @@
 #include "arm.h"
 #include "../emulate/register.h"
 
+#define MAX_LINE_LENGTH 20
+#define MAX_NUM_LINES 20
+
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
 
