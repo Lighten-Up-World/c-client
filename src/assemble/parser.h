@@ -12,5 +12,7 @@ int parse_dp(token_t *tkns, instruction_t *inst);
 int parse_mul(token_t *tkns, instruction_t *inst);
 int parse_sdt(token_t *tkns, instruction_t *inst);
 int parse_brn(token_t *tkns, instruction_t *inst);
+int parse_lsl(token_t *tokens, instruction_t *inst);
+int parse_halt(token_t *tokens, instruction_t *inst);
 
 #endif

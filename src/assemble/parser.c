@@ -1,46 +1,125 @@
-#include <memory.h>
-#include <complex.h>
+#include <string.h>
+#include "parser.h"
 #include "tokenizer.h"
 #include "../utils/instructions.h"
+typedef struct {
+  char *op;
+  opcode_t op_enum;
+  int (*parse_func) (token_t*, instruction_t*);
+} op_to_parser;
+
+const int NUM_NON_BRANCH_OPS = 16;
+const op_to_parser oplist[] = {
+    {"add", ADD, parse_dp},
+    {"sub", SUB,  parse_dp},
+    {"rsb", RSB, parse_dp},
+    {"and", AND,  parse_dp},
+    {"eor", TEQ,  parse_dp},
+    {"orr", ORR,  parse_dp},
+    {"mov", MOV,  parse_dp},
+    {"tst", TST,  parse_dp},
+    {"teq", TEQ,  parse_dp},
+    {"cmp", CMP,  parse_dp},
+
+    {"mul", (opcode_t) 0xE, parse_mul},
+    {"mla", (opcode_t) 0xE, parse_mul},
+
+    {"ldr", (opcode_t) 0xE, parse_sdt},
+    {"str", (opcode_t) 0xE, parse_sdt},
+
+    {"lsl", (opcode_t) 0xE, parse_lsl},
+    {"andeq", (opcode_t) 0xE, parse_halt}
+};
 
 int consume_token(token_t *arr, token_type_t type);
 
-char remove_first_char(char *string) {
-  return *(string + 1);
+char *remove_first_char(char *string) {
+  return (string + 1);
+}
+
+//TODO: rotated values
+/**
+ * Get the immediate value from operand2
+ * @param operand2: a string containing the immediate value
+ * @return the operand
+ */
+operand_t get_op2(char *operand2) {
+  operand_t result;
+
+  // Determine the base being (hex or decimal)
+  uint8_t base = (uint8_t) ((strncmp("x", operand2, 1) == 0) ? 10 : 16);
+
+  // Strip leading hash from immediate value and convert from string
+  uint64_t raw_val = (uint64_t) strtoul(remove_first_char(operand2), NULL, base);
+
+  // Num cannot be represented if it is larger than 32 bits
+  uint64_t big_mask = UINT64_MAX - UINT32_MAX;
+  if ((raw_val & big_mask) != 0) {
+    // Throw error, we can't represent a number this big
+    perror("number cannot be represented");
+  }
+
+  // If num is bigger than 8 bits we must use a rotate
+  uint16_t small_mask = UINT16_MAX - UINT8_MAX;
+  if ((raw_val & small_mask) != 0) {
+    // Rotate is needed
+    result.imm.rotated.value = 0; //TODO
+    result.imm.rotated.rotate = 0; //TODO
+  } else {
+    result.imm.fixed = (uint8_t) raw_val;
+  }
+
+  return result;
 }
 
 int parse_dp(token_t *tokens, instruction_t *inst) {
   inst->type = DP;
 
-  const char *opcode[] = tokens[0].str;
-
-  reg_address_t rn;
-  reg_address_t rd;
+  // Get opcode enum
+  char *opcode = tokens[0].str;
+  operand_t op_enum;
+  for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
+    if (strcmp(oplist[i].op, opcode) == 0) {
+      op_enum = oplist[i].op_enum;
+    }
+  }
 
   // Set Rd as second token
-  rd = (reg_address_t) remove_first_char(*tokens[1].str); //cast to integer for reg-address
+  reg_address_t rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
 
-  // Set whether the CPSR flags should be set
+  // Set whether the CPSR flags should be set, and the location of operand2
   bool S;
+  int op2_pos;
+  reg_address_t rn;
   if (strcmp("tst", opcode) == 0 || strcmp("teq", opcode) == 0 || strcmp("cmp", opcode) == 0) {
     S = 1;
-    rn = (reg_address_t) remove_first_char(*tokens[1].str);
+    op2_pos = 2;
+    rn = (reg_address_t) atoi(remove_first_char(tokens[1].str));
   } else {
+    if (strcmp("mov", opcode) == 0) {
+      op2_pos = 2;
+    } else {
+      op2_pos = 3;
+    }
     S = 0;
   }
 
+  // TODO: add support for shifted registers (optional)
+  // Get operand 2
+  char *operand2 = tokens[op2_pos].str;
+  operand_t op2 = get_op2(operand2);
+  bool I = 1; //change to 0 for a shifted register
+
   inst->i.dp.padding = 0x00;
   inst->i.dp.I = I;
-  inst->i.dp.opcode = opcode; //do we have to use the enum for this
+  inst->i.dp.opcode = op_enum;
   inst->i.dp.S = S;
   inst->i.dp.rn = rn;
   inst->i.dp.rd = rd;
-  inst->i.dp.operand2 = operand2;
+  inst->i.dp.operand2 = op2;
 
   return 0;
 }
-
-
 
 int parse_mul(token_t *tokens, instruction_t *inst) {
   inst->type = MUL;
@@ -48,17 +127,16 @@ int parse_mul(token_t *tokens, instruction_t *inst) {
   flag_t A;
   flag_t S = false;
 
-  //check these work - need to cast to integer from string first
-  reg_address_t rd = (reg_address_t) remove_first_char(*tokens[1].str);
-  reg_address_t rn = (reg_address_t) remove_first_char(*tokens[2].str);
-  reg_address_t rs = (reg_address_t) remove_first_char(*tokens[3].str);
+  reg_address_t rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
+  reg_address_t rn = (reg_address_t) atoi(remove_first_char(tokens[2].str));
+  reg_address_t rs = (reg_address_t) atoi(remove_first_char(tokens[3].str));
   reg_address_t rm = 0;
 
-  if (strcmp(*tokens[0].str, "mul") == 0) {
+  if (strcmp(tokens[0].str, "mul") == 0) {
     A = 0;
   } else {
     A = 1;
-    rm = (reg_address_t) remove_first_char(*tokens[0].str);
+    rm = (reg_address_t) atoi(remove_first_char(tokens[0].str));
   }
 
   inst->i.mul.pad0 = (byte_t) 0x0;
@@ -73,6 +151,11 @@ int parse_mul(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
+//TODO
+int parse_sdt(token_t *tokens, instruction_t *inst) {
+  return 0;
+}
+/*
 int parse_sdt(token_t *tokens, instruction_t *inst) {
   inst->type = SDT;
 
@@ -87,8 +170,13 @@ int parse_sdt(token_t *tokens, instruction_t *inst) {
   inst->i.sdt.offset = offset;
 
   return 0;
-}
+}*/
 
+//TODO
+int parse_brn(token_t *tokens, instruction_t *inst) {
+  return 0;
+}
+/*
 int parse_brn(token_t *tokens, instruction_t *inst) {
   inst->type = BRN;
 
@@ -113,16 +201,16 @@ int parse_brn(token_t *tokens, instruction_t *inst) {
   inst->i.brn.offset = offset;
 
   return 0;
-}
+}*/
 
 int parse_lsl(token_t *tokens, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
-  //might need to malloc here to avoid changing ROM
-  //where do we free?
-
+  //malloc here
   token_t *mod_tokens;
   parse_sdt(mod_tokens, inst);
+
+  //free here
 
   return -1;
 }
@@ -133,37 +221,8 @@ int parse_halt(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
-bool is_label(token_t *tokens) { return true; }
-void parse_label();
-
-// TODO: find out how to use the map and convert this
-typedef struct {
-  char *op[];
-  int (*parse_func) (token_t*, instruction_t*);
-} op_to_parser;
-
-const int NUM_NON_BRANCH_OPS = 16;
-const op_to_parser oplist[] = {
-    {"add", parse_dp},
-    {"sub", parse_dp},
-    {"rsb", parse_dp},
-    {"and", parse_dp},
-    {"eor", parse_dp},
-    {"orr", parse_dp},
-    {"mov", parse_dp},
-    {"tst", parse_dp},
-    {"teq", parse_dp},
-    {"cmp", parse_dp},
-
-    {"mul", parse_mul},
-    {"mla", parse_mul},
-
-    {"ldr", parse_sdt},
-    {"str", parse_sdt},
-
-    {"lsl", parse_lsl},
-    {"andeq", parse_halt}
-};
+bool is_label(token_t *tokens) { return false; }
+void parse_label() {}
 
 /**
  *  Translates a list of tokens comprising a line of assembly
@@ -181,10 +240,10 @@ int parse(token_t *tokens, instruction_t *inst) {
   }
 
   // Get the pointer to the first token - this will be the opcode
-  char *opcode[] = tokens[0].str;
+  char *opcode = tokens[0].str;
 
   // Parse a branch instruction and its condition
-  if (strcmp(*opcode[0], 'b') == 0) {
+  if (strncmp(opcode, "b", 1) == 0) {
     parse_brn(tokens, inst);
     return 0;
   }
@@ -195,7 +254,7 @@ int parse(token_t *tokens, instruction_t *inst) {
   // Calculate function pointer to parse an instruction from the opcode
   // TODO: find out how to use the map and convert this
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
-    if (strcmp(oplist[i].op, *opcode) == 0) {
+    if (strcmp(oplist[i].op, opcode) == 0) {
       return oplist[i].parse_func(tokens, inst);
     }
   }
