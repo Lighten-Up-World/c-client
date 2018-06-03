@@ -140,8 +140,8 @@ int main(int argc, char **argv) {
   if (read_file(argv[1], program->in, sizeof(program->in))) {
     return 0; // failed to read input. Need this in emulate too?
   }
-  char ***out;
-  program->lines = str_separate(program->in,"", "\n", out);
+  char **out;
+  program->lines = str_separate(program->in,"", "\n", &out);
 
   // set up variables for assembler
   token_t *lineTokens = NULL;
@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
 
   program_toString(program, stringRep); // need to print this somehow
 
-  // FREE MEMORY
+  // TODO : FREE MEMORY
 }
 
 
