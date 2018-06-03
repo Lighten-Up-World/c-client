@@ -6,7 +6,7 @@
 #include "../utils/error.h"
 
 /**
-* Determins token type by first character for all types except opcode
+* Determines token type by first character for all types except opcode
 */
 int token_type(char *src){
   switch (src[0]) {
@@ -44,16 +44,16 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   assert(src != NULL && output != NULL);
 
   int len = strlen(src);
-
-
-
   int n = 0;
+  int j = 0;
   int lastString = 0;
+
   for(int i = 0; i < len; i++){
     if(src[i] == sep){
       if(lastString){
         n++;
       }
+      j++;
       lastString = 0;
     }
     else if(strchr(tokens, src[i])){
@@ -61,12 +61,20 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
       if(lastString){
         n++;
       }
+      mem[j] = src[i];
+      j++;
       lastString = 0;
     }
     else{
+      mem[j] = src[i];
+      if(strchr(tokens,src[i+1])){
+        j++;
+      }
       lastString++;
     }
+    j++;
   }
+
   *output = malloc(n * sizeof(char *));
   char **currentpart = *output;
   int mem_size = len + n - 1;
@@ -76,26 +84,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   if(currentpart == NULL){
     return 1;
   }
-  int j = 0;
-  for (int i = 0; i < len; i++) {
-    if(src[i]==sep){ //Sep
-      j++;
-      continue;
-    }
-    if(strchr(tokens,src[i])){ //Token
-      mem[j] = src[i];
-      j++;
-    }
-    else{ //Character
-      mem[j] = src[i];
-      if(strchr(tokens,src[i+1])){
-        j++;
-      }
-    }
-    j++;
-  }
 
-  //TODO: Merge loops together.
   for (int j = 0; j < mem_size; j++) {
     if(mem[j]=='\0'){
       currentpart++;
