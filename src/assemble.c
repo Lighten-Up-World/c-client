@@ -2,12 +2,15 @@
 #include <assert.h>
 #include "utils/arm.h"
 #include "utils/io.h"
-#include "assemble/tokenizer.h"
 #include "assemble/symbolmap.h"
 #include "assemble/referencemap.h"
+#include "assemble/tokenizer.h"
+#include "assemble/parser.h"
+#include "assemble/encode.h"
 #include "assemble.h"
 
 /**
+ * Allocate memory for the input stored in the program
  *
  * @param lines : number of lines of the input file
  * @param lineLength : length of input file lines
@@ -74,11 +77,12 @@ int program_delete(program_t *program) {
 }
 
 /**
+ * Add a symbol to the symbol table in the program and update reference table
  *
  * @param program : pointer to the program information DataType
- * @param label
- * @param addr
- * @return
+ * @param label : represents a point to branch off to
+ * @param addr : address accompanied by label
+ * @return : 0 or 1 depending whether the addition was successful or not
  */
 int program_add_symbol(program_t *program, label_t label, address_t addr) {
   if (!smap_put(program->sym_m, label, addr)) {
@@ -101,9 +105,9 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
 /**
  *
  * @param program : pointer to the program information DataType
- * @param label
- * @param addr
- * @return
+ * @param label : represents a point to branch off to
+ * @param addr : address accompanied by label
+ * @return : 0 or 1 depending whether the addition was successful or not
  */
 int program_add_reference(program_t *program, label_t label, address_t addr) {
   // adds reference to ref_map.
@@ -111,6 +115,7 @@ int program_add_reference(program_t *program, label_t label, address_t addr) {
 }
 
 /**
+ * Create the string representation of the program
  *
  * @param program : pointer to the program information DataType
  * @param string : output string representation of the program
@@ -125,11 +130,12 @@ void program_toString(program_t *program, char *string) {
     if (binInstr == 0) { // halt when memory instr is 0.
       continue;
     }
-    // add word addr and bininstr to string, memcpy or strcat?
+    // add word addr and binInstr to string, memcpy or strcat?
   }
 }
 
 
+// main assembly loop.
 int main(int argc, char **argv) {
   assert(argc > 1);
 
@@ -137,8 +143,35 @@ int main(int argc, char **argv) {
   if (read_file(argv[1], program->in, sizeof(program->in))) {
     return 0; // failed to read input. Need this in emulate too?
   }
-  char ***out;
-  program->lines = str_separate(program->in,"", "\n", out);
+  char **out;
+  program->lines = str_separate(program->in,"", "\n", &out);
+
+  // set up variables for assembler
+  token_t *lineTokens = NULL;
+  lineTokens = malloc(MAX_NUM_TOKENS * sizeof(token_t));
+
+  instruction_t *instr = NULL;
+  instr = malloc(sizeof(instruction_t));
+
+  word_t *word = NULL;
+
+  //convert each line to binary
+  for (int i = 0; i < program->lines; ++i) {
+    do {
+      tokenize(program->in[i], lineTokens);
+      parse(lineTokens, instr);
+      encode(instr, word);
+      program->out[i * 4] = word;
+    } while (word != 0);
+    instr = NULL; //probably wrong
+    lineTokens = NULL; // probably wrong
+  }
+
+  char **stringRep = allocate_input(program->lines, MAX_LINE_LENGTH);
+
+  program_toString(program, stringRep); // need to print this somehow
+
+  // TODO : FREE MEMORY
 }
 
 

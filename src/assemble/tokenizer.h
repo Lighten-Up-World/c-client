@@ -1,6 +1,8 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
+#define MAX_NUM_TOKENS
+
 typedef enum{
   T_OPCODE,
   T_REGISTER,

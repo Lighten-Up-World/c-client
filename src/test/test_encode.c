@@ -67,10 +67,10 @@ void test_encode_dp_rotated_immediate(void) {
 }
 
 void test_encode_dp_shifted_register(void){
-  word_t dp_ORR_op2shiftedR_w = 0xF1900260;
+  word_t dp_ORR_op2shiftedR_w = 0xA1900260;
   instruction_t dp_ORR_op2shiftedR_i = {
           .type = DP,
-          .cond = 0xF,
+          .cond = 0xA,
           .i.dp = {
                   .padding = 0x0,
                   .I = 0,
