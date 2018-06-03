@@ -1,11 +1,10 @@
-#include "../utils/instructions.h"
+#include <assert.h>
+#include <stdio.h>
+
+#include "../utils/error.h"
+#include "../utils/arm.h"
 #include "../utils/bitops.h"
 #include "encode.h"
-#include <assert.h>
-#include <error.h>
-#include <stdio.h>
-#include <instructions.h>
-
 /**
  * encode shifted register for DP or SDT instruction
  *

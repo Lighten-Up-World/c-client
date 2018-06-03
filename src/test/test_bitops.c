@@ -179,5 +179,3 @@ void test_isNegative(void){
   TEST_ASSERT_FALSE(is_negative(sixtyThree));
   TEST_ASSERT_TRUE(is_negative(UINT32_MAX));
 }
-
-
