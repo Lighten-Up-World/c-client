@@ -9,6 +9,12 @@
 #include "assemble/encode.h"
 #include "assemble.h"
 
+typedef struct {
+  program_t *prog;
+  label_t label;
+  address_t addr;
+} prog_collection_t;
+
 /**
  * Allocate memory for the input stored in the program
  *
@@ -82,6 +88,20 @@ int program_delete(program_t *program) {
 }
 
 /**
+* Updates memory according to reference entry
+*
+* @param label : current string representation of the label in entry
+* @param val : current value of entry
+* @param obj : A prog_collection_t object which collects, program, label and addr.
+*/
+void ref_entry(const label_t label, const address_t val, const void *obj){
+  prog_collection_t prog_coll = (prog_collection_t) obj;
+  if(label == prog_coll.label){
+    prog_coll.prog->out[val] = prog_coll.addr;
+  }
+}
+
+/**
  * Add a symbol to the symbol table in the program and update reference table
  *
  * @param program : pointer to the program information DataType
@@ -93,15 +113,15 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
   if (!smap_put(program->sym_m, label, addr)) {
     return 0; // already in symbol map
   }
-
+  prog_collection_t prog_coll = {program, label, addr};
   // check if symbol exists in ref_map and update/remove accordingly
   if (rmap_exists(program->ref_m, label)) {
-
-      //TODO : check if addr is  in the list of references already.
+    rmap_enum(program->ref_m, ref_entry, prog_coll);
   }
 
   return 1;
 }
+
 
 /**
  * add a symbol to the reference map stored in the program
@@ -181,5 +201,3 @@ int main(int argc, char **argv) {
 
   program_delete(program);
 }
-
-
