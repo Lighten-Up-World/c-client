@@ -104,6 +104,7 @@ void ref_entry(const label_t label, const address_t val, const void *obj){
   }
 }
 
+
 /**
  * Add a symbol to the symbol table in the program and update reference table
  *
@@ -156,6 +157,26 @@ void program_toString(program_t *program, char *string) {
       continue;
     }
     strcat(string, /* Can't pass binInstr in here! */);
+  }
+}
+
+// To string for debugging
+void to_string(byte_t out[], int lines) {
+  int grouping = 2;
+  int per_row = 8;
+
+  int wordAddr;
+  for (wordAddr = 0; wordAddr < lines; wordAddr += 1) {
+    printf("%x", out[wordAddr]);
+    if ((wordAddr + 1) % grouping == 0) {
+      printf(" ");
+    }
+    if ((wordAddr + 1) % per_row == 0) {
+      printf("\n");
+    }
+  }
+  if ((wordAddr + 1) % 4 != 0) {
+    printf("\n");
   }
 }
 
