@@ -22,7 +22,6 @@ char **allocate_input(int lines, int lineLength) {
   unsigned int i;
 
   in = malloc(lines * sizeof(char *));
-  // ^^ do I need to cast here even though it's implicit?
   in[0] = malloc(lines * lineLength * sizeof(char));
   if (!in[0]) {
     return NULL; // failed;
@@ -49,6 +48,12 @@ program_t *program_new(void) {
 
   program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
   program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
+  if (program->sym_m == NULL) {
+    //ERROR : failed to allocate sym map
+  }
+  if (program->ref_m == NULL) {
+    //ERROR : failed to allocate ref map
+  }
 
   program->in = allocate_input(MAX_NUM_LINES, MAX_LINE_LENGTH);
   if (program->in == NULL) {
@@ -69,8 +74,8 @@ int program_delete(program_t *program) {
   free(program->in[0]);
   free(program->in);
   // free data structures
-  smap_delete(program->sym_m);
   rmap_delete(program->ref_m);
+  smap_delete(program->sym_m);
   // free rest of program
   free(program);
   return 1;
@@ -89,20 +94,17 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
     return 0; // already in symbol map
   }
 
-  address_t *outReferences = calloc();
-  int outsize;
   // check if symbol exists in ref_map and update/remove accordingly
   if (rmap_exists(program->ref_m, label)) {
-    if (rmap_get_references(program->ref_m, label, outReferences, outsize)) {
+
       //TODO : check if addr is  in the list of references already.
-    }
   }
-  rmap_put(program->ref_m, label, addr);
 
   return 1;
 }
 
 /**
+ * add a symbol to the reference map stored in the program
  *
  * @param program : pointer to the program information DataType
  * @param label : represents a point to branch off to
@@ -147,22 +149,24 @@ int main(int argc, char **argv) {
   program->lines = str_separate(program->in,"", "\n", &out);
 
   // set up variables for assembler
-  token_t *lineTokens = NULL;
+  token_t *lineTokens;
   lineTokens = malloc(MAX_NUM_TOKENS * sizeof(token_t));
 
-  instruction_t *instr = NULL;
+  instruction_t *instr;
   instr = malloc(sizeof(instruction_t));
 
-  word_t *word = NULL;
+  word_t *word;
+  word = malloc(sizeof(word_t));
 
   //convert each line to binary
   for (int i = 0; i < program->lines; ++i) {
-    do {
-      tokenize(program->in[i], lineTokens);
-      parse(lineTokens, instr);
-      encode(instr, word);
-      program->out[i * 4] = word;
-    } while (word != 0);
+    tokenize(program->in[i], lineTokens);
+    parse(lineTokens, instr);
+    encode(instr, word);
+    program->out[i * 4] = word;
+    if (word == 0) {
+      continue;
+    }
     instr = NULL; //probably wrong
     lineTokens = NULL; // probably wrong
   }
@@ -171,7 +175,11 @@ int main(int argc, char **argv) {
 
   program_toString(program, stringRep); // need to print this somehow
 
-  // TODO : FREE MEMORY
+  free(word);
+  free(instr);
+  free(lineTokens);
+
+  program_delete(program);
 }
 
 
