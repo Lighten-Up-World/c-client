@@ -175,13 +175,37 @@ int parse_mul(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
-//TODO: parse_sdt
-int parse_sdt(token_t *tokens, instruction_t *inst) {
-  return 0;
-}
-/*
+//TODO: calculate offset and corresponding flags
 int parse_sdt(token_t *tokens, instruction_t *inst) {
   inst->type = SDT;
+
+  flag_t L;
+  if (strcmp("ldr", tokens[0].str) == 0) {
+    L = 1;
+  } else if (strcmp("str", tokens[0].str) == 0) {
+    L = 0;
+  } else {
+    perror("opcode not recognised\n");
+  }
+
+  // Offset is one of: constant, pre-index address, post-indexed address
+  flag_t I; //immediate
+  flag_t P; //post/pre-indexing
+  flag_t U; //up bit (not supported, optional for +/-)
+  reg_address_t rn; //base register address
+  word_t offset;
+
+  // Immediate value
+  if (tokens[2].str[0] == '=') {
+    I = 0;
+    if (offset <= 0xFF) {
+      //convert to mov
+      return 0;
+    }
+    // ...
+    // needs to be set in here, since structure of unions depends on imm...
+    inst->i.sdt.offset.imm.fixed = offset;
+  }
 
   inst->i.sdt.pad0 = 0x01;
   inst->i.sdt.I = I;
@@ -190,11 +214,10 @@ int parse_sdt(token_t *tokens, instruction_t *inst) {
   inst->i.sdt.pad0 = 0x0;
   inst->i.sdt.L = L;
   inst->i.sdt.rn = rn;
-  inst->i.sdt.rd = rd;
-  inst->i.sdt.offset = offset;
+  inst->i.sdt.rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
 
   return 0;
-}*/
+}
 
 // TODO: calculate offset
 int parse_brn(token_t *tokens, instruction_t *inst) {
