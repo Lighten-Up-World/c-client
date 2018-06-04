@@ -91,7 +91,7 @@ int program_delete(program_t *program) {
 }
 
 /**
-* Updates memory according to reference entry
+* Update memory according to reference entry
 *
 * @param label : current string representation of the label in entry
 * @param val : current value of entry
@@ -155,7 +155,7 @@ void program_toString(program_t *program, char *string) {
     if (binInstr == 0) { // halt when memory instr is 0.
       continue;
     }
-    // add word addr and binInstr to string, memcpy or strcat?
+    strcat(string, /* Can't pass binInstr in here! */);
   }
 }
 
@@ -164,13 +164,20 @@ void program_toString(program_t *program, char *string) {
 int main(int argc, char **argv) {
   assert(argc > 2);
 
-  program_t *program = program_new();
+  char fileContents[MAX_NUM_LINES * MAX_LINE_LENGTH];
   // readfile takes a byte* and program->in is a char**
-  if (read_file(argv[1], program->in, sizeof(program->in))) {
-    return 0; // failed to read input. Need this in emulate too?
+  if (read_file(argv[1], fileContents, sizeof(fileContents))) {
+    return EC_SYS; // failed to read input. Need this in emulate too?
   }
+
+  int numLines;
   char **out;
-  program->lines = str_separate(program->in,"", "\n", &out);
+  numLines = str_separate(fileContents,"", "\n", &out);
+
+  program_t *program = program_new();
+  program->lines = numLines;
+  memcpy(program->in, out, sizeof(out));
+
   free(out); // maybe not
 
   // set up variables for assembler
@@ -196,8 +203,7 @@ int main(int argc, char **argv) {
     lineTokens = NULL; // probably wrong
   }
 
-  char **stringRep = allocate_input(program->lines, MAX_LINE_LENGTH);
-
+  write_file(argv[2], program->out, sizeof(program->out));
 
   free(word);
   free(instr);
