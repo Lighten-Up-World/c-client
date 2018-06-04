@@ -1,8 +1,12 @@
 #include <string.h>
-#include <utils/instructions.h>
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/instructions.h"
+
+typedef struct {
+  char *suffix;
+  byte_t cond;
+} branch_suffix_to_cond;
 typedef struct {
   char *op;
   mnemonic_t op_enum;
@@ -10,6 +14,17 @@ typedef struct {
 } mnemonic_to_parser;
 
 const int NUM_NON_BRANCH_OPS = 16;
+const int NUM_BRN_SUFFIXES = 8;
+const branch_suffix_to_cond brn_suffixes[] = {
+    {"eq", 0b0000},
+    {"ne", 0b0001},
+    {"ge", 0b1010},
+    {"lt", 0b1011},
+    {"gt", 0b1100},
+    {"le", 0b1101},
+    {"al", 0b1110},
+    {"", 0b1110}
+};
 const mnemonic_to_parser oplist[] = {
     {"add", M_ADD, parse_dp},
     {"sub", M_SUB,  parse_dp},
@@ -160,7 +175,7 @@ int parse_mul(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
-//TODO
+//TODO: parse_sdt
 int parse_sdt(token_t *tokens, instruction_t *inst) {
   return 0;
 }
@@ -181,36 +196,34 @@ int parse_sdt(token_t *tokens, instruction_t *inst) {
   return 0;
 }*/
 
-//TODO
-int parse_brn(token_t *tokens, instruction_t *inst) {
-  return 0;
-}
-/*
+// TODO: calculate offset
 int parse_brn(token_t *tokens, instruction_t *inst) {
   inst->type = BRN;
 
-  // encode condition
-  switch(remove_first_char(*tokens[0].str)) {
-    case "eq":
-    case "ne":
-    case "ge":
-    case "lt":
-    case "gt":
-    case "le":
-    case "al":
-      break;
-    default:
-      //handle error here
-      break;
+  // Parse for condition
+  char *suffix = remove_first_char(tokens[0].str);
+  for (int i = 0; i < NUM_BRN_SUFFIXES; i++) {
+    if (strcmp(brn_suffixes[i].suffix, suffix) == 0) {
+      inst->cond = brn_suffixes[i].cond;
+    }
   }
 
-  // encode offset
-
   inst->i.brn.padA = (byte_t) 0x1010;
+
+  // Parse for offset
+  word_t offset;
+
+  // Check if offset is a label
+  if (offset_is_label(offset)) {
+    // do something
+  } else {
+    // need to calculate offset for address given?
+    // what's our current address?
+  }
   inst->i.brn.offset = offset;
 
   return 0;
-}*/
+}
 
 int parse_lsl(token_t *tokens, instruction_t *inst) {
   //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
@@ -229,7 +242,7 @@ int parse_lsl(token_t *tokens, instruction_t *inst) {
   inst->i.dp.operand2.reg.rm = r;
 }
 
-// Only use this if we support mov with a shifted register in DP - TODO
+// TODO: use this if we support mov with a shifted register in DP
 int parse_lsl_conversion(token_t *tokens, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
