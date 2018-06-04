@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "utils/arm.h"
 #include "utils/io.h"
+#include "utils/error.h"
 #include "assemble/symbolmap.h"
 #include "assemble/referencemap.h"
 #include "assemble/tokenizer.h"
@@ -40,24 +41,25 @@ char **allocate_input(int lines, int lineLength) {
  * @return : pointer to an uninitialised program.
  */
 program_t *program_new(void) {
-  program_t *program = NULL;
+  program_t *program;
   program = malloc(sizeof(program_t));
   if (!program) {
-    //ERROR : set program to null?
+    return NULL;
   }
 
   program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
   program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
   if (program->sym_m == NULL) {
-    //ERROR : failed to allocate sym map
+    return NULL;
   }
   if (program->ref_m == NULL) {
-    //ERROR : failed to allocate ref map
+    return NULL;
   }
 
+  // Ideally use function to count the number of lines
   program->in = allocate_input(MAX_NUM_LINES, MAX_LINE_LENGTH);
   if (program->in == NULL) {
-    //ERROR : unable to allocate input
+    return NULL;
   }
 
   return program;
@@ -67,7 +69,7 @@ program_t *program_new(void) {
  * Free program memory
  *
  * @param program : desired program to remove from memory.
- * @return : free will always succeed so returns 1.
+ * @return : free will always succeed so returns EC_OK.
  */
 int program_delete(program_t *program) {
   // free input characters
@@ -78,7 +80,8 @@ int program_delete(program_t *program) {
   smap_delete(program->sym_m);
   // free rest of program
   free(program);
-  return 1;
+
+  return EC_OK;
 }
 
 /**
@@ -96,8 +99,7 @@ int program_add_symbol(program_t *program, label_t label, address_t addr) {
 
   // check if symbol exists in ref_map and update/remove accordingly
   if (rmap_exists(program->ref_m, label)) {
-
-      //TODO : check if addr is  in the list of references already.
+    //TODO : check if addr is  in the list of references already.
   }
 
   return 1;
@@ -139,14 +141,16 @@ void program_toString(program_t *program, char *string) {
 
 // main assembly loop.
 int main(int argc, char **argv) {
-  assert(argc > 1);
+  assert(argc > 2);
 
   program_t *program = program_new();
+  // readfile takes a byte* and program->in is a char**
   if (read_file(argv[1], program->in, sizeof(program->in))) {
     return 0; // failed to read input. Need this in emulate too?
   }
   char **out;
   program->lines = str_separate(program->in,"", "\n", &out);
+  free(out); // maybe not
 
   // set up variables for assembler
   token_t *lineTokens;
@@ -156,13 +160,13 @@ int main(int argc, char **argv) {
   instr = malloc(sizeof(instruction_t));
 
   word_t *word;
-  word = malloc(sizeof(word_t));
 
   //convert each line to binary
   for (int i = 0; i < program->lines; ++i) {
     tokenize(program->in[i], lineTokens);
     parse(lineTokens, instr);
     encode(instr, word);
+
     program->out[i * 4] = word;
     if (word == 0) {
       continue;
@@ -173,7 +177,7 @@ int main(int argc, char **argv) {
 
   char **stringRep = allocate_input(program->lines, MAX_LINE_LENGTH);
 
-  program_toString(program, stringRep); // need to print this somehow
+  //
 
   free(word);
   free(instr);
