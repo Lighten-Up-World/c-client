@@ -23,7 +23,7 @@ op_rotate_immediate_t make_rotation(uint32_t value) {
   for (byte_t r = 0; r < 31; r+=2) {
     if (rotate_left(value, r) & mask == 0) {
       op.value = (byte_t) rotate_left(value, r);
-      op.rotate = r;
+      op.rotate = (byte_t) (r / 2);
       return op;
     }
   }
@@ -31,7 +31,6 @@ op_rotate_immediate_t make_rotation(uint32_t value) {
   return NULL;
 }
 
-//TODO: rotated values
 /**
  * Get the immediate value from operand2
  *
