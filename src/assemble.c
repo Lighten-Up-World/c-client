@@ -46,7 +46,7 @@ char **allocate_input(int lines, int lineLength) {
  *
  * @return : pointer to an uninitialised program.
  */
-program_t *program_new(void) {
+program_t *program_new(int numLines) {
   program_t *program;
   program = malloc(sizeof(program_t));
   if (!program) {
@@ -63,7 +63,7 @@ program_t *program_new(void) {
   }
 
   // Ideally use function to count the number of lines
-  program->in = allocate_input(MAX_NUM_LINES, MAX_LINE_LENGTH);
+  program->in = allocate_input(numLines, MAX_LINE_LENGTH);
   if (program->in == NULL) {
     return NULL;
   }
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
   char **out;
   numLines = str_separate(fileContents,"", "\n", &out);
 
-  program_t *program = program_new();
+  program_t *program = program_new(numLines);
   if (program == NULL) {
     return EC_SYS; // unable to allocate space for program.
   }
@@ -207,19 +207,12 @@ int main(int argc, char **argv) {
 
   // set up variables for assembler
   token_t *lineTokens;
-  lineTokens = malloc(MAX_NUM_TOKENS * sizeof(token_t));
-
   instruction_t *instr;
-  instr = malloc(sizeof(instruction_t));
-
   word_t *word;
 
   //convert each line to binary
   for (int i = 0; i < numLines; ++i) {
-    tokenize(program->in[i], lineTokens);
-
-    // TODO: check if line is label
-
+    numTokens = tokenize(program->in[i], lineTokens);
     parse(lineTokens, instr);
     encode(instr, word);
 
@@ -229,13 +222,10 @@ int main(int argc, char **argv) {
     }
     program->mPC += 4;
 
-    instr = NULL; //probably wrong
-    lineTokens = NULL; // probably wrong
   }
 
   write_file(argv[2], program->out, sizeof(program->out));
 
-  free(word);
   free(instr);
   free(lineTokens);
 
