@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <utils/instructions.h>
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/instructions.h"
@@ -11,34 +12,55 @@ char *remove_first_char(char *string) {
   return (string + 1);
 }
 
+/**
+ *
+ * @param value
+ * @return
+ */
+op_rotate_immediate_t make_rotation(uint32_t value) {
+  op_rotate_immediate_t op;
+
+
+
+
+
+
+
+
+
+  return op;
+}
+
 //TODO: rotated values
 /**
  * Get the immediate value from operand2
+ *
  * @param operand2: a string containing the immediate value
  * @return the operand
  */
 operand_t get_op2(char *operand2) {
   operand_t result;
 
-  // Determine the base being (hex or decimal)
-  uint8_t base = (uint8_t) ((strncmp("x", operand2, 1) == 0) ? 10 : 16);
+  // Strip leading equals sign
+  char *strVal = remove_first_char(operand2);
 
-  // Strip leading hash from immediate value and convert from string
-  uint64_t raw_val = (uint64_t) strtoul(remove_first_char(operand2), NULL, base);
+  // Determine the base (hex or decimal) and convert to int
+  uint8_t base = (uint8_t) ((strncmp("0x", operand2, 2) == 0) ? 16 : 10);
+  if (base == 16) {
+    strVal = remove_first_char(remove_first_char(strVal));
+  }
+  uint64_t raw_val = (uint64_t) strtoul(strVal, NULL, base);
 
   // Num cannot be represented if it is larger than 32 bits
   uint64_t big_mask = UINT64_MAX - UINT32_MAX;
   if ((raw_val & big_mask) != 0) {
-    // Throw error, we can't represent a number this big
     perror("number cannot be represented");
   }
 
   // If num is bigger than 8 bits we must use a rotate
-  uint16_t small_mask = UINT16_MAX - UINT8_MAX;
+  uint32_t small_mask = UINT32_MAX - UINT8_MAX;
   if ((raw_val & small_mask) != 0) {
-    // Rotate is needed
-    result.imm.rotated.value = 0; //TODO
-    result.imm.rotated.rotate = 0; //TODO
+    result.imm.rotated = make_rotation((uint32_t) raw_val);
   } else {
     result.imm.fixed = (uint8_t) raw_val;
   }
@@ -51,39 +73,37 @@ int parse_dp(token_t *tokens, instruction_t *inst) {
 
   // Get opcode enum
   char *opcode = tokens[0].str;
-  opcode_t op_enum;
+  opcode_t op_enum = NULL;
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (strcmp(oplist[i].op, opcode) == 0) {
       op_enum = oplist[i].op_enum;
     }
   }
+  if (op_enum == NULL) return -1;
 
-  // Set Rd as second token
+  // Set Rd as second token (this does not affect if we only set CPSR flags)
   reg_address_t rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
 
-  // Set whether the CPSR flags should be set, and the location of operand2
-  bool S;
-  int op2_pos;
-  reg_address_t rn;
+  // Set whether the CPSR flags should be set, position of rn and position of operand2
+  bool S = 0;
+  int rn_pos = 2;
   if (strcmp("tst", opcode) == 0 || strcmp("teq", opcode) == 0 || strcmp("cmp", opcode) == 0) {
     S = 1;
-    op2_pos = 2;
-    rn = (reg_address_t) atoi(remove_first_char(tokens[1].str));
-  } else {
-    if (strcmp("mov", opcode) == 0) {
-      op2_pos = 2;
-    } else {
-      op2_pos = 3;
-    }
-    S = 0;
+    rn_pos = 1;
+  } else if (strcmp("tst", opcode) == 0) {
+    rn_pos = 1;
   }
 
-  // TODO: add support for shifted registers (optional)
-  // Get operand 2
-  char *operand2 = tokens[op2_pos].str;
-  operand_t op2 = get_op2(operand2);
-  bool I = 1; //change to 0 for a shifted register
+  // Set rn
+  reg_address_t rn = (reg_address_t) atoi(remove_first_char(tokens[rn_pos].str));
 
+  // Set operand 2
+  // TODO: add support for shifted registers (optional)
+  bool I = 1;
+  char *operand2 = tokens[rn_pos + 1].str;
+  operand_t op2 = get_op2(operand2);
+
+  // Set all instruction fields
   inst->i.dp.padding = 0x00;
   inst->i.dp.I = I;
   inst->i.dp.opcode = op_enum;
@@ -275,7 +295,6 @@ int parse(token_t *tokens, instruction_t *inst, int tkn) {
   inst->cond = 0xE; //0b1110
 
   // Calculate function pointer to parse an instruction from the opcode
-  // TODO: find out how to use the map and convert this
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (strcmp(oplist[i].op, opcode) == 0) {
       return oplist[i].parse_func(tokens, inst);
