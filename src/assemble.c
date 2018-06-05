@@ -146,7 +146,7 @@ int program_add_reference(program_t *program, label_t label, address_t addr) {
  * @param program : pointer to the program information DataType
  * @param string : output string representation of the program
  */
-void program_toString(program_t *program, char *string) {
+void program_toString(program_t *program) {
   assert(program != NULL);
   assert(string != NULL);
   word_t binInstr;
@@ -156,12 +156,12 @@ void program_toString(program_t *program, char *string) {
     if (binInstr == 0) { // halt when memory instr is 0.
       continue;
     }
-    strcat(string, /* Can't pass binInstr in here! */);
+    printf("%08x: %08x",wordAddr, binInstr);
   }
 }
 
 // To string for debugging
-void to_string(byte_t out[], int lines) {
+void print_bin_instr(byte_t *out, int lines) {
   int grouping = 2;
   int per_row = 8;
 
@@ -196,10 +196,14 @@ int main(int argc, char **argv) {
   numLines = str_separate(fileContents,"", "\n", &out);
 
   program_t *program = program_new();
+  if (program == NULL) {
+    return EC_SYS; // unable to allocate space for program.
+  }
   program->lines = numLines;
   memcpy(program->in, out, sizeof(out));
+  program->mPC = 0;
 
-  free(out); // maybe not
+  free(out);
 
   // set up variables for assembler
   token_t *lineTokens;
@@ -211,8 +215,11 @@ int main(int argc, char **argv) {
   word_t *word;
 
   //convert each line to binary
-  for (int i = 0; i < program->lines; ++i) {
+  for (int i = 0; i < numLines; ++i) {
     tokenize(program->in[i], lineTokens);
+
+    // TODO: check if line is label
+
     parse(lineTokens, instr);
     encode(instr, word);
 
@@ -220,6 +227,8 @@ int main(int argc, char **argv) {
     if (word == 0) {
       continue;
     }
+    program->mPC += 4;
+
     instr = NULL; //probably wrong
     lineTokens = NULL; // probably wrong
   }
@@ -231,6 +240,8 @@ int main(int argc, char **argv) {
   free(lineTokens);
 
   program_delete(program);
+
+  return EC_OK;
 }
 
 
