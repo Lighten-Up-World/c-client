@@ -63,7 +63,7 @@ program_t *program_new(int numLines) {
   }
 
   // Ideally use function to count the number of lines
-  program->in = allocate_input(numLines, MAX_LINE_LENGTH);
+  program->in = allocate_input(numLines, LINE_SIZE);
   if (program->in == NULL) {
     return NULL;
   }
@@ -185,7 +185,7 @@ void print_bin_instr(byte_t *out, int lines) {
 int main(int argc, char **argv) {
   assert(argc > 2);
 
-  char fileContents[MAX_NUM_LINES * MAX_LINE_LENGTH];
+  char fileContents[MAX_NUM_LINES * LINE_SIZE];
   // readfile takes a byte* and program->in is a char**
   if (read_file(argv[1], fileContents, sizeof(fileContents))) {
     return EC_SYS; // failed to read input. Need this in emulate too?
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
 
   int numLines;
   char **out;
-  numLines = str_separate(fileContents,"", "\n", &out);
+  numLines = str_separate(fileContents,"", '\n', &out);
 
   program_t *program = program_new(numLines);
   if (program == NULL) {
@@ -207,14 +207,15 @@ int main(int argc, char **argv) {
 
   // set up variables for assembler
   token_t *lineTokens;
-  instruction_t *instr;
-  word_t *word;
+  int numTokens;
+  instruction_t instr;
+  word_t word;
 
   //convert each line to binary
   for (int i = 0; i < numLines; ++i) {
-    numTokens = tokenize(program->in[i], lineTokens);
-    parse(lineTokens, instr);
-    encode(instr, word);
+    numTokens = tokenize(program->in[i], &lineTokens);
+    parse(lineTokens, &instr, numTokens, program);
+    encode(&instr, &word);
 
     program->out[i * 4] = word;
     if (word == 0) {
@@ -222,12 +223,10 @@ int main(int argc, char **argv) {
     }
     program->mPC += 4;
 
+    free(lineTokens);
   }
 
   write_file(argv[2], program->out, sizeof(program->out));
-
-  free(instr);
-  free(lineTokens);
 
   program_delete(program);
 

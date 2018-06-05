@@ -7,6 +7,7 @@
 #include "assemble/map.h"
 
 #define LINE_SIZE 511
+#define MAX_NUM_LINES 50
 
 typedef struct {
   byte_t out[MEM_SIZE];
