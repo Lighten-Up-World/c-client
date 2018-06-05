@@ -1,10 +1,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <utils/instructions.h>
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/instructions.h"
+#include "../utils/bitops.h"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tokens[Rn].str))
 #define COMPARE_OP(str) (strcmp(str, opcode) == 0)
@@ -22,19 +22,18 @@ char *remove_first_char(char *string) {
  */
 op_rotate_immediate_t make_rotation(uint32_t value) {
   op_rotate_immediate_t op;
-
-
-
-
-
-
-
-
-
-  return op;
+  uint64_t mask = UINT64_MAX - UINT8_MAX;
+  for (byte_t r = 0; r < 31; r+=2) {
+    if (rotate_left(value, r) & mask == 0) {
+      op.value = (byte_t) rotate_left(value, r);
+      op.rotate = (byte_t) (r / 2);
+      return op;
+    }
+  }
+  perror("immediate value cannot be represented");
+  return NULL;
 }
 
-//TODO: rotated values
 /**
  * Get the immediate value from operand2
  *
@@ -57,7 +56,7 @@ operand_t get_op2(char *operand2) {
   // Num cannot be represented if it is larger than 32 bits
   uint64_t big_mask = UINT64_MAX - UINT32_MAX;
   if ((raw_val & big_mask) != 0) {
-    perror("number cannot be represented");
+    perror("immediate value cannot be represented");
   }
 
   // If num is bigger than 8 bits we must use a rotate

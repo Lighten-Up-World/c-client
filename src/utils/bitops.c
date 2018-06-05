@@ -188,9 +188,9 @@ word_t a_shift_right(word_t value, byte_t shift) {
 /**
  *  Rotate right
  *
- *  @param value: the value to shift
+ *  @param value: the value to rotate
  *  @param rotate: the amount to rotate by
- *  @return the shifted value
+ *  @return the rotated value
  */
 word_t rotate_right(word_t value, byte_t rotate) {
   assert(rotate >= 0);
@@ -202,6 +202,24 @@ word_t rotate_right(word_t value, byte_t rotate) {
     value = value | (lsb << ((sizeof(word_t) * 8) - 1));
   }
 
+  return value;
+}
+
+/**
+ *  Rotate left
+ *
+ *  @param value: the value to rotated
+ *  @param rotate: the amount to rotate by
+ *  @return the rotated value
+ */
+word_t rotate_left(word_t value, byte_t rotate) {
+  assert(rotate >= 0);
+  word_t msb_as_lsb;
+  for (int i = 0; i < rotate; i++) {
+    msb_as_lsb = value >> (sizeof(word_t) * 8 - 1);
+    value = value << U_ONE;
+    value = value | msb_as_lsb;
+  }
   return value;
 }
 
