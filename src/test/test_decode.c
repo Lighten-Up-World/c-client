@@ -184,6 +184,7 @@ void test_decodeMul(void) {
   instruction_t expected = mul_i;
   compareInstructions(expected, decoded);
 }
+
 void test_decodeBrn(void) {
   word_t brn_w = 0xAA000032;
   instruction_t brn_i = {
