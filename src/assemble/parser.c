@@ -1,15 +1,24 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <utils/instructions.h>
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/instructions.h"
-#include "../utils/bitops.h"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tokens[Rn].str))
 #define COMPARE_OP(str) (strcmp(str, opcode) == 0)
 
-int consume_token(token_t *arr, token_type_t type);
+int str_to_enum(char *opcode){
+  opcode_t op_enum = NULL;
+  for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
+    if (COMPARE_OP(oplist[i].op)) {
+      op_enum = oplist[i].op_enum;
+    }
+  }
+  if (op_enum == NULL) return -1;
+  return op_enum;
+}
 
 char *remove_first_char(char *string) {
   return (string + 1);
@@ -22,18 +31,19 @@ char *remove_first_char(char *string) {
  */
 op_rotate_immediate_t make_rotation(uint32_t value) {
   op_rotate_immediate_t op;
-  uint64_t mask = UINT64_MAX - UINT8_MAX;
-  for (byte_t r = 0; r < 31; r+=2) {
-    if (rotate_left(value, r) & mask == 0) {
-      op.value = (byte_t) rotate_left(value, r);
-      op.rotate = (byte_t) (r / 2);
-      return op;
-    }
-  }
-  perror("immediate value cannot be represented");
-  return NULL;
+
+
+
+
+
+
+
+
+
+  return op;
 }
 
+//TODO: rotated values
 /**
  * Get the immediate value from operand2
  *
@@ -56,7 +66,7 @@ operand_t get_op2(char *operand2) {
   // Num cannot be represented if it is larger than 32 bits
   uint64_t big_mask = UINT64_MAX - UINT32_MAX;
   if ((raw_val & big_mask) != 0) {
-    perror("immediate value cannot be represented");
+    perror("number cannot be represented");
   }
 
   // If num is bigger than 8 bits we must use a rotate
@@ -70,19 +80,17 @@ operand_t get_op2(char *operand2) {
   return result;
 }
 
-int parse_dp(token_t *tokens, instruction_t *inst) {
+/*=============================================>>>>>
+= DATA PROCESSING INSTRUCTION
+===============================================>>>>>*/
+
+int parse_dp(program_t* prog, token_t *tokens, instruction_t *inst) {
   // Get opcode enum
   char *opcode = tokens[0].str;
-  opcode_t op_enum = NULL;
-  for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
-    if (COMPARE_OP(oplist[i].op)) {
-      op_enum = oplist[i].op_enum;
-    }
-  }
-  if (op_enum == NULL) return -1;
-
-  // Set whether the CPSR flags should be set, position of rn and position of operand2
+  opcode_t op_enum = str_to_enum(opcode);
+  // Set whether the CPSR flags should be set
   bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
+  // Set position of rn and position of operand2
   int rn_pos = S ? 1 : 2;
 
   // Set all instruction fields
@@ -95,10 +103,13 @@ int parse_dp(token_t *tokens, instruction_t *inst) {
   inst->i.dp.rd = PARSE_REG(1);
   inst->i.dp.operand2 = get_op2(tokens[rn_pos + 1].str);
 
-  return 0;
+  return EC_OK;
 }
 
-int parse_mul(token_t *tokens, instruction_t *inst) {
+/*= End of DATA PROCESSING INSTRUCTION =*/
+/*=============================================<<<<<*/
+
+int parse_mul(program_t* prog, token_t *tokens, instruction_t *inst) {
   flag_t A = strcmp(tokens[0].str, "mul");
 
   reg_address_t rd = PARSE_REG(1);
@@ -116,28 +127,19 @@ int parse_mul(token_t *tokens, instruction_t *inst) {
   inst->i.mul.pad9 = (byte_t) 0x1001;
   inst->i.mul.rm   = rm;
 
-  return 0;
+  return EC_OK;
 }
 
 //TODO: calculate offset and corresponding flags
-int parse_sdt(token_t *tokens, instruction_t *inst) {
-  inst->type = SDT;
 
-  flag_t L;
-  if (strcmp("ldr", tokens[0].str) == 0) {
-    L = 1;
-  } else if (strcmp("str", tokens[0].str) == 0) {
-    L = 0;
-  } else {
-    perror("opcode not recognised\n");
-  }
+/*=============================================>>>>>
+= SINGLE DATA TRANSFER
+===============================================>>>>>*/
 
-  // Offset is one of: constant, pre-index address, post-indexed address
-  flag_t I; //immediate
-  flag_t P; //post/pre-indexing
-  flag_t U; //up bit (not supported, optional for +/-)
-  reg_address_t rn; //base register address
-  word_t offset;
+/**
+* Starts at 
+*/
+int parse_sdt_address(program_t* prog, token_t *tokens, instruction_t *inst){
 
   // Immediate value
   if (tokens[2].str[0] == '=') {
@@ -150,7 +152,31 @@ int parse_sdt(token_t *tokens, instruction_t *inst) {
     // needs to be set in here, since structure of unions depends on imm...
     inst->i.sdt.offset.imm.fixed = offset;
   }
+}
 
+/**
+* Parses a Single Data Transfer instruction
+* Syntax is: <code> Rd, <address>
+* <code>    - ldr|str
+* <address> - <=expression>|[Rn]|[Rn, <#expression>]|[Rn,{+/-}Rm{,<shift>}]
+              |[Rn],<#expression>| [Rn],{+/-}Rm{,<shift>}
+*/
+int parse_sdt(program_t* prog, token_t *tokens, instruction_t *inst) {
+  char *opcode = tokens[0].str;
+  flag_t L = COMPARE_OP("ldr");
+  if(!L && !COMPARE_OP("str")){
+    perror("Opcode not recognised\n");
+  }
+
+  // Offset is one of: constant, pre-index address, post-indexed address
+  flag_t I; //immediate
+  flag_t P; //post/pre-indexing
+  flag_t U; //up bit (not supported, optional for +/-)
+  reg_address_t rn; //base register address
+  word_t offset;
+
+
+  inst->type = SDT;
   inst->i.sdt.pad0 = 0x01;
   inst->i.sdt.I = I;
   inst->i.sdt.P = P;
@@ -163,10 +189,24 @@ int parse_sdt(token_t *tokens, instruction_t *inst) {
   return 0;
 }
 
-// TODO: calculate offset
-int parse_brn(token_t *tokens, instruction_t *inst) {
-  inst->type = BRN;
+/*= End of SINGLE DATA TRANSFER =*/
+/*=============================================<<<<<*/
 
+// TODO: calculate offset
+/**
+* Parses a branch instruction
+* Syntax is: b<code> <expression>
+* <code>       - eq|ne|ge|lt|gt|al|
+* <expression> - Label name whose address is retreived
+*
+* The <expression> is the target address, which may be a label.
+* The assembler should compute the offset between the current address and
+* the label, taking into account the off-by-8 bytes effect that will occur
+* due to the ARM pipeline. This signed offset should be 26 bits in length,
+* before being shifted right two bits and having the lower 24 bits stored
+* in the Offset field
+*/
+int parse_brn(program_t* prog, token_t *tokens, instruction_t *inst) {
   // Parse for condition
   char *suffix = remove_first_char(tokens[0].str);
   for (int i = 0; i < NUM_BRN_SUFFIXES; i++) {
@@ -174,8 +214,6 @@ int parse_brn(token_t *tokens, instruction_t *inst) {
       inst->cond = brn_suffixes[i].cond;
     }
   }
-
-  inst->i.brn.padA = (byte_t) 0x1010;
 
   // Parse for offset
   word_t offset;
@@ -187,12 +225,14 @@ int parse_brn(token_t *tokens, instruction_t *inst) {
     // need to calculate offset for address given?
     // what's our current address?
   }
+  inst->type = BRN;
+  inst->i.brn.padA = (byte_t) 0x1010;
   inst->i.brn.offset = offset;
 
-  return 0;
+  return EC_OK;
 }
 
-int parse_lsl(token_t *tokens, instruction_t *inst) {
+int parse_lsl(program_t* prog, token_t *tokens, instruction_t *inst) {
   //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
   reg_address_t r = PARSE_REG(1);
 
@@ -232,7 +272,7 @@ int parse_lsl_conversion(token_t *tokens, instruction_t *inst) {
 int parse_halt(token_t *tokens, instruction_t *inst) {
   inst->type = HAL;
   inst->i.hal.pad0 = 0u;
-  return 0;
+  return EC_OK;
 }
 
 bool is_label(token_t *tokens, int tkn) {
@@ -249,7 +289,7 @@ void parse_label() {}
  *  @param tokens: a pointer to the array of tokens
  *  @param inst: a pointer to the instruction to be stored
  */
-int parse(token_t *tokens, instruction_t *inst, int tkn) {
+int parse(program_t *prog, token_t *tokens, instruction_t *inst, int tkn) {
   // If the assembly line is a label
   if (is_label(tokens, tkn)) {
     parse_label();
@@ -261,8 +301,7 @@ int parse(token_t *tokens, instruction_t *inst, int tkn) {
 
   // Parse a branch instruction and its condition
   if (strncmp(opcode, "b", 1) == 0) {
-    parse_brn(tokens, inst);
-    return 0;
+    return parse_brn(prog, tokens, inst);
   }
 
   // Not a branch instruction so set condition to always execute
@@ -271,10 +310,10 @@ int parse(token_t *tokens, instruction_t *inst, int tkn) {
   // Calculate function pointer to parse an instruction from the opcode
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (strcmp(oplist[i].op, opcode) == 0) {
-      return oplist[i].parse_func(tokens, inst);
+      return oplist[i].parse_func(prog, tokens, inst);
     }
   }
 
   // Throw an error here, unsupported opcode
-  return 1;
+  return EC_UNSUPPORTED_OP;
 }
