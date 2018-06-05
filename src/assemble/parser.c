@@ -6,6 +6,9 @@
 #include "tokenizer.h"
 #include "../utils/instructions.h"
 
+#define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tokens[Rn].str))
+#define COMPARE_OP(str) (strcmp(str, opcode) == 0)
+
 int consume_token(token_t *arr, token_type_t type);
 
 char *remove_first_char(char *string) {
@@ -69,78 +72,50 @@ operand_t get_op2(char *operand2) {
 }
 
 int parse_dp(token_t *tokens, instruction_t *inst) {
-  inst->type = DP;
-
   // Get opcode enum
   char *opcode = tokens[0].str;
   opcode_t op_enum = NULL;
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
-    if (strcmp(oplist[i].op, opcode) == 0) {
+    if (COMPARE_OP(oplist[i].op)) {
       op_enum = oplist[i].op_enum;
     }
   }
   if (op_enum == NULL) return -1;
 
-  // Set Rd as second token (this does not affect if we only set CPSR flags)
-  reg_address_t rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
-
   // Set whether the CPSR flags should be set, position of rn and position of operand2
-  bool S = 0;
-  int rn_pos = 2;
-  if (strcmp("tst", opcode) == 0 || strcmp("teq", opcode) == 0 || strcmp("cmp", opcode) == 0) {
-    S = 1;
-    rn_pos = 1;
-  } else if (strcmp("tst", opcode) == 0) {
-    rn_pos = 1;
-  }
-
-  // Set rn
-  reg_address_t rn = (reg_address_t) atoi(remove_first_char(tokens[rn_pos].str));
-
-  // Set operand 2
-  // TODO: add support for shifted registers (optional)
-  bool I = 1;
-  char *operand2 = tokens[rn_pos + 1].str;
-  operand_t op2 = get_op2(operand2);
+  bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
+  int rn_pos = S ? 1 : 2;
 
   // Set all instruction fields
+  inst->type = DP;
   inst->i.dp.padding = 0x00;
-  inst->i.dp.I = I;
+  inst->i.dp.I = 1;
   inst->i.dp.opcode = op_enum;
   inst->i.dp.S = S;
-  inst->i.dp.rn = rn;
-  inst->i.dp.rd = rd;
-  inst->i.dp.operand2 = op2;
+  inst->i.dp.rn = PARSE_REG(rn_pos);
+  inst->i.dp.rd = PARSE_REG(1);
+  inst->i.dp.operand2 = get_op2(tokens[rn_pos + 1].str);
 
   return 0;
 }
 
 int parse_mul(token_t *tokens, instruction_t *inst) {
+  flag_t A = strcmp(tokens[0].str, "mul");
+
+  reg_address_t rd = PARSE_REG(1);
+  reg_address_t rn = PARSE_REG(2);
+  reg_address_t rs = PARSE_REG(3);
+  reg_address_t rm = A ? PARSE_REG(0) : 0;
+
   inst->type = MUL;
-
-  flag_t A;
-  flag_t S = false;
-
-  reg_address_t rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
-  reg_address_t rn = (reg_address_t) atoi(remove_first_char(tokens[2].str));
-  reg_address_t rs = (reg_address_t) atoi(remove_first_char(tokens[3].str));
-  reg_address_t rm = 0;
-
-  if (strcmp(tokens[0].str, "mul") == 0) {
-    A = 0;
-  } else {
-    A = 1;
-    rm = (reg_address_t) atoi(remove_first_char(tokens[0].str));
-  }
-
   inst->i.mul.pad0 = (byte_t) 0x0;
-  inst->i.mul.A = A;
-  inst->i.mul.S = S;
-  inst->i.mul.rd = rd;
-  inst->i.mul.rn = rn;
-  inst->i.mul.rs = rs;
-  inst->i.mul.pad9 =(byte_t) 0x1001;
-  inst->i.mul.rm = rm;
+  inst->i.mul.A    = A;
+  inst->i.mul.S    = false;
+  inst->i.mul.rd   = rd;
+  inst->i.mul.rn   = rn;
+  inst->i.mul.rs   = rs;
+  inst->i.mul.pad9 = (byte_t) 0x1001;
+  inst->i.mul.rm   = rm;
 
   return 0;
 }
@@ -184,7 +159,7 @@ int parse_sdt(token_t *tokens, instruction_t *inst) {
   inst->i.sdt.pad0 = 0x0;
   inst->i.sdt.L = L;
   inst->i.sdt.rn = rn;
-  inst->i.sdt.rd = (reg_address_t) atoi(remove_first_char(tokens[1].str));
+  inst->i.sdt.rd = PARSE_REG(1);
 
   return 0;
 }
@@ -220,7 +195,7 @@ int parse_brn(token_t *tokens, instruction_t *inst) {
 
 int parse_lsl(token_t *tokens, instruction_t *inst) {
   //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
-  reg_address_t r = (reg_address_t) atoi(remove_first_char(tokens[1].str));
+  reg_address_t r = PARSE_REG(1);
 
   inst->i.dp.padding = 0x00;
   inst->i.dp.I = 0;
