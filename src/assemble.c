@@ -141,26 +141,11 @@ int program_add_reference(program_t *program, label_t label, address_t addr) {
 }
 
 /**
- * Create the string representation of the program
+ * Print out the string representation of the program
  *
- * @param program : pointer to the program information DataType
- * @param string : output string representation of the program
+ * @param out : Current binary stored in memory
+ * @param lines : Number of lines to print
  */
-void program_toString(program_t *program) {
-  assert(program != NULL);
-  assert(string != NULL);
-  word_t binInstr;
-
-  for (int wordAddr = 0; wordAddr < program->lines; wordAddr += 4) {
-    binInstr = program->out[wordAddr];// do I need a getMemWord style func here?
-    if (binInstr == 0) { // halt when memory instr is 0.
-      continue;
-    }
-    printf("%08x: %08x",wordAddr, binInstr);
-  }
-}
-
-// To string for debugging
 void print_bin_instr(byte_t *out, int lines) {
   int grouping = 2;
   int per_row = 8;
@@ -186,7 +171,6 @@ int main(int argc, char **argv) {
   assert(argc > 2);
 
   char fileContents[MAX_NUM_LINES * LINE_SIZE];
-  // readfile takes a byte* and program->in is a char**
   if (read_file(argv[1], fileContents, sizeof(fileContents))) {
     return EC_SYS; // failed to read input. Need this in emulate too?
   }
@@ -213,17 +197,24 @@ int main(int argc, char **argv) {
 
   //convert each line to binary
   for (int i = 0; i < numLines; ++i) {
+
     numTokens = tokenize(program->in[i], &lineTokens);
-    parse(lineTokens, &instr, numTokens, program);
-    encode(&instr, &word);
+
+    if (parse(lineTokens, &instr, numTokens, program)) {
+      free(lineTokens);
+      return EC_SYS; //parse failed
+    }
+    free(lineTokens);
+
+    if (encode(&instr, &word)) {
+      return EC_SYS; // encode failed
+    }
 
     program->out[i * 4] = word;
     if (word == 0) {
       continue;
     }
     program->mPC += 4;
-
-    free(lineTokens);
   }
 
   write_file(argv[2], program->out, sizeof(program->out));
