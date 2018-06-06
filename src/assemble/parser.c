@@ -228,7 +228,7 @@ int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
     char *newline = NULL;
     asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
     tokenize(newline, tlst);
-    return parse_sdr(prog, tlst, inst);
+    return parse_sdt(prog, tlst, inst);
   }
 
   // Case 2: [Rn]
