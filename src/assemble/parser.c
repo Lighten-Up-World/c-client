@@ -64,7 +64,7 @@ char *remove_first_char(char *string) {
   return (string + 1);
 }
 
-//TODO: Remove magic numbers
+
 /**
  *
  * @param : value
@@ -211,50 +211,76 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 * Case 4: <code> Rd, [Rn],<#expression>     {8}
 * Case 4b: <code> Rd, [Rn],{+/-}Rm{,<shift>} {8-12}
 */
-int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
+int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
+
+  char *opcode = GET_STR(0);
+  flag_t L = COMPARE_OP("ldr");
+  if(!L && !COMPARE_OP("str")){
+    perror("Opcode not recognised\n");
+  }
+  inst->i.sdt.L = L;
+  inst->i.sdt.pad1 = 1;
+  inst->i.sdt.pad0 = 0;
+  inst->i.sdt.rd = PARSE_REG(1);
+
   int address = 0;
-  // Case 1: =expr
-  if (tlst->numOfTkns == 4) {
-    address = PARSE_EXPR(GET_STR(3));
 
-    if(address <= 0xFF){
-      char * immVal = GET_STR(3);
-      immVal[0] = '#';
-      token_t mod_tkns[] = {
-        {T_OPCODE, "mov"},
-          GET_TKN(1),
-          GET_TKN(2), //comma
-        {GET_TYPE(3), immVal},
-      };
-      token_list_t mod_tlst = {mod_tkns, 4};
+  switch (tlst->numOfTkns){
+    // Case 1: =expr
+    case 4:
+      address = PARSE_EXPR(GET_STR(3));
 
-      return parse_dp(prog, &mod_tlst, inst);
-    }
+      if(address <= 0xFF){
+        char * immVal = GET_STR(3);
+        immVal[0] = '#';
+        token_t mod_tkns[] = {
+                {T_OPCODE, "mov"},
+                GET_TKN(1),
+                GET_TKN(2), //comma
+                {GET_TYPE(3), immVal},
+        };
+        token_list_t mod_tlst = {mod_tkns, 4};
 
-    int offset = address - prog->mPC - 8;
+        return parse_dp(prog, &mod_tlst, inst);
+      }
 
-    char *newline = NULL;
-    asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
-    tokenize(newline, tlst);
-    return parse_sdt(prog, tlst, inst);
+      int offset = address; // - prog->mPC - 8; Isn't this just for branch?
+
+      char *newline = NULL;
+      asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
+      tokenize(newline, tlst);
+      return parse_sdt(prog, tlst, inst);
+
+      // Case 2: [Rn]
+    case 6:
+      inst->i.sdt.I = 0;
+      inst->i.sdt.offset.imm.fixed = 0;
+      inst->i.sdt.rn = PARSE_REG(4);
+      inst->i.sdt.U = 0;
+      /*Could be either, change accordingly to test case */
+      inst->i.sdt.P = 0;
+      /*Also could be either, change accordingly to test case*/
+      return EC_OK;
+    case 8:
+      inst->i.sdt.rn = PARSE_REG(4);
+      inst->i.sdt.U = 1;
+      inst->i.sdt.I = 0;
+      // Case 3: [Rn, #expression]
+      if(GET_TYPE(6) == T_COMMA){
+        inst->i.sdt.P = 1;
+        inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
+        return EC_OK;
+      }
+      // Case 4: [Rn],<#expression>
+      if(GET_TYPE(6) == T_R_BRACKET){
+        inst->i.sdt.P = 0;
+        inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
+        return EC_OK;
+      }
+    default:
+      return EC_UNSUPPORTED_OP;
   }
 
-  // Case 2: [Rn]
-  if(tlst->numOfTkns == 6){
-
-  }
-
-  if(tlst->numOfTkns == 8){
-    // Case 3: [Rn, #expression]
-    if(GET_TYPE(6) == T_COMMA){
-
-    }
-    // Case 4: [Rn],<#expression>
-    if(GET_TYPE(6) == T_R_BRACKET){
-
-    }
-  }
-  return EC_UNSUPPORTED_OP;
 }
 
 /**
@@ -266,6 +292,7 @@ int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
  * @param: Same as other parse methods
  *
  */
+ /*
 int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   char *opcode = GET_STR(0);
   flag_t L = COMPARE_OP("ldr");
@@ -293,7 +320,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   //TODO:
   return 0;
 }
-
+*/
 /*= End of SINGLE DATA TRANSFER =*/
 /*=============================================<<<<<*/
 
