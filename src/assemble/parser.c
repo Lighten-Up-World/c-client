@@ -64,6 +64,7 @@ char *remove_first_char(char *string) {
   return (string + 1);
 }
 
+//TODO: Remove magic numbers
 /**
  *
  * @param : value
@@ -77,6 +78,7 @@ op_rotate_immediate_t make_rotation(word_t value) {
     value = rotate_left(value, 2);
     rot += 1;
   }
+
   if(rot == 16){
     perror("Cannot convert value");
   }
@@ -138,6 +140,7 @@ operand_t get_imm_op2(char *operand2) {
  * @param :
  * @return :
  */
+
 int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   // Get opcode enum
   char *opcode = GET_STR(0);
@@ -179,7 +182,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->type = MUL;
   inst->i.mul.pad0 = (byte_t) 0x0;
   inst->i.mul.A    = A;
-  inst->i.mul.S    = false;
+  inst->i.mul.S    = 0;
   inst->i.mul.rd   = rd;
   inst->i.mul.rn   = rn;
   inst->i.mul.rs   = rs;
@@ -193,6 +196,8 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 /*=============================================<<<<<*/
 
 //TODO: calculate offset and corresponding flags
+
+
 
 /*=============================================>>>>>
 = SINGLE DATA TRANSFER
@@ -209,7 +214,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
   int address = 0;
   // Case 1: =expr
-  if (tlst->n == 4) {
+  if (tlst->numOfTkns == 4) {
     address = PARSE_EXPR(GET_TKN(4));
 
     if(address <= 0xFF){
@@ -233,11 +238,11 @@ int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
   }
 
   // Case 2: [Rn]
-  if(tlst->n == 6){
+  if(tlst->numOfTkns == 6){
 
   }
 
-  if(tlst->n == 8){
+  if(tlst->numOfTkns == 8){
     // Case 3: [Rn, #expression]
     if(GET_TYPE(6) == T_COMMA){
 

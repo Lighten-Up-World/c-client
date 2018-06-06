@@ -24,7 +24,7 @@ typedef struct {
 
 typedef struct {
   token_t *tkns;
-  int n;
+  int numOfTkns;
 } token_list_t;
 
 int str_separate(char *src, char *tokens, char sep, char ***output);
