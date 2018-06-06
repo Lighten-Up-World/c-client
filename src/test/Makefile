@@ -1,16 +1,12 @@
 .PHONY: clean
 .PHONY: test
 
-CLEANUP = rm -f
-MKDIR = mkdir -p
-TARGET_EXTENSION = out
-
 
 PATHU = unity/
 PATHS = ../
 PATHUT = ../utils/
 PATHEM = ../emulate/
-#PATHAS = $(PATHS)assemble/
+PATHAS = ../assemble/
 PATHT = ./
 PATHB = build/
 PATHD = build/depends/
@@ -44,10 +40,10 @@ test: $(BUILD_PATHS) $(RESULTS)
 	@echo "$(PASSED)"
 	@echo "\nDONE"
 
-$(PATHR)%.txt: $(PATHB)%.$(TARGET_EXTENSION)
+$(PATHR)%.txt: $(PATHB)%.out
 	-./$< > $@ 2>&1
 
-$(PATHB)test_%.$(TARGET_EXTENSION): $(PATHO)test_%_run.o  $(PATHO)test_%.o $(PATHO)%.o $(PATHO)unity.o
+$(PATHB)test_%.out: $(PATHO)test_%_run.o  $(PATHO)test_%.o $(PATHO)%.o $(PATHO)unity.o
 	$(LINK) -o $@ $^
 
 $(PATHO)%.o:: $(PATHT)%.c
@@ -56,7 +52,6 @@ $(PATHO)%.o:: $(PATHT)%.c
 $(PATHO)%_run.o:: $(PATHT)%.c
 	ruby $(PATHU)generate_test_runner.rb $< $(PATHRUN)$(*F).c
 	$(COMPILE) $(CFLAGS) $(PATHRUN)$(*F).c -o $@
-
 
 $(PATHO)%.o:: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
@@ -67,8 +62,8 @@ $(PATHO)%.o:: $(PATHUT)%.c
 $(PATHO)%.o:: $(PATHEM)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-#$(PATHO)%.o:: $(PATHAS)%.c
-#	$(COMPILE) $(CFLAGS) $< -o $@
+$(PATHO)%.o:: $(PATHAS)%.c
+	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHO)%.o:: $(PATHU)%.c $(PATHU)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
@@ -77,26 +72,25 @@ $(PATHD)%.d:: $(PATHT)%.c
 	$(DEPEND) $@ $<
 
 $(PATHB):
-	$(MKDIR) $(PATHB)
+	mkdir -p $(PATHB)
 
 $(PATHD):
-	$(MKDIR) $(PATHD)
+	mkdir -p $(PATHD)
 
 $(PATHO):
-	$(MKDIR) $(PATHO)
+	mkdir -p $(PATHO)
 
 $(PATHR):
-	$(MKDIR) $(PATHR)
+	mkdir -p $(PATHR)
 
 $(PATHRUN):
-	$(MKDIR) $(PATHRUN)
+	mkdir -p $(PATHRUN)
 
 clean:
-	$(CLEANUP) $(PATHO)*.o
-	$(CLEANUP) $(PATHB)*.$(TARGET_EXTENSION)
-	$(CLEANUP) $(PATHR)*.txt
+	rm -f $(PATHO)*.o
+	rm -f $(PATHB)*.out
+	rm -f $(PATHR)*.txt
 
-.PRECIOUS: $(PATHB)test_%.$(TARGET_EXTENSION)
-.PRECIOUS: $(PATHD)%.d
+.PRECIOUS: $(PATHB)test_%.out
 .PRECIOUS: $(PATHO)%.o
 .PRECIOUS: $(PATHR)%.txt

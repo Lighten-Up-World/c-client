@@ -184,6 +184,7 @@ void test_decodeMul(void) {
   instruction_t expected = mul_i;
   compareInstructions(expected, decoded);
 }
+
 void test_decodeBrn(void) {
   word_t brn_w = 0xAA000032;
   instruction_t brn_i = {
@@ -198,6 +199,37 @@ void test_decodeBrn(void) {
   instruction_t expected = brn_i;
   compareInstructions(expected, decoded);
 }
+
+void test_decodeBrn2(void) {
+  word_t brn_w = 0xAAFFFFFF;
+  instruction_t brn_i = {
+      .type = BRN,
+      .cond = 0xA,
+      .i.brn = {
+          .padA = 0xA,
+          .offset = 0xFFFFFF
+      }
+  };
+  instruction_t decoded = decode_word(brn_w);
+  instruction_t expected = brn_i;
+  compareInstructions(expected, decoded);
+}
+
+void test_decodeBrn3(void) {
+  word_t brn_w = 0x3A800001;
+  instruction_t brn_i = {
+      .type = BRN,
+      .cond = 0x3,
+      .i.brn = {
+          .padA = 0xA,
+          .offset = 0x800001
+      }
+  };
+  instruction_t decoded = decode_word(brn_w);
+  instruction_t expected = brn_i;
+  compareInstructions(expected, decoded);
+}
+
 void test_decodeHal(void) {
   word_t hal_w = 0x00000000;
   instruction_t hal_i = {
@@ -214,17 +246,8 @@ void test_decodeHal(void) {
 // main to test decodeBrn decode.c
 /*int main() {
   instruction_t inst;
-  word_t w1 = 0b10101010111111111111111111111111;
   word_t w2 = 0b11111010111111111111111111111111;
   word_t w3 = 0b00001010000000000000000000000000;
-  word_t w4 = 0b00111010100000000000000000000001;
-
-  inst = decode_word(w1);
-  assert(inst.type == BRN);
-  assert(inst.cond == 0b1010);
-  assert(inst.i.brn.offset == 0b111111111111111111111111);
-  assert(inst.i.brn.pad5 == 0b101);
-  assert(inst.i.brn.pad0 == 0b0);
 
   inst = decode_word(w2);
   assert(inst.type == BRN);
@@ -240,14 +263,6 @@ void test_decodeHal(void) {
   assert(inst.i.brn.pad5 == 0b101);
   assert(inst.i.brn.pad0 == 0b0);
 
-  inst = decode_word(w4);
-  assert(inst.type == BRN);
-  assert(inst.cond == 0b0011);
-  assert(inst.i.brn.offset == 0b100000000000000000000001);
-  assert(inst.i.brn.pad5 == 0b101);
-  assert(inst.i.brn.pad0 == 0b0);
-
-  return 0;
 }*/
 
 

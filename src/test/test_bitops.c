@@ -1,4 +1,4 @@
-#include <test/unity/unity.h>
+#include "unity/unity.h"
 #include "../utils/bitops.h"
 
 word_t minus42 = -42;
@@ -188,5 +188,3 @@ void test_isNegative(void){
   TEST_ASSERT_FALSE(is_negative(sixtyThree));
   TEST_ASSERT_TRUE(is_negative(UINT32_MAX));
 }
-
-
