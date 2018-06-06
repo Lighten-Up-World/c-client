@@ -113,7 +113,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
 int tokenize(char *line, token_list_t *out){
 
   char **token_strs = NULL;
-  int n = str_separate(line, "[],#:", ' ', &token_strs);
+  int n = str_separate(line, "[],:", ' ', &token_strs);
   token_t *tkns = malloc(n * sizeof(token_t));
   if(tkns == NULL){
     return -1;

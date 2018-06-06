@@ -148,7 +148,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   // Set whether the CPSR flags should be set
   bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
   // Set position of rn and position of operand2
-  int rn_pos = S ? 1 : 2;
+  int rn_pos = S ? 1 : 3;
 
   // Set all instruction fields
   inst->type = DP;
@@ -158,7 +158,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.dp.S = S;
   inst->i.dp.rn = PARSE_REG(rn_pos);
   inst->i.dp.rd = PARSE_REG(1);
-  inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 1));
+  inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
 
   return EC_OK;
 }
@@ -175,9 +175,9 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   flag_t A = (flag_t) strcmp(GET_STR(0), "mul");
 
   reg_address_t rd = PARSE_REG(1);
-  reg_address_t rm = PARSE_REG(2);
-  reg_address_t rs = PARSE_REG(3);
-  reg_address_t rn = A ? PARSE_REG(4) : 0;
+  reg_address_t rm = PARSE_REG(3);
+  reg_address_t rs = PARSE_REG(5);
+  reg_address_t rn = A ? PARSE_REG(7) : 0;
 
   inst->type = MUL;
   inst->i.mul.pad0 = (byte_t) 0x0;
@@ -218,15 +218,15 @@ int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
     address = PARSE_EXPR(GET_STR(3));
 
     if(address <= 0xFF){
-      char * immVal = GET_STR(2);
+      char * immVal = GET_STR(3);
       immVal[0] = '#';
       token_t mod_tkns[] = {
         {T_OPCODE, "mov"},
           GET_TKN(1),
-        {GET_TYPE(2), immVal}
-        //TODO: What is to do?
+          GET_TKN(2), //comma
+        {GET_TYPE(3), immVal},
       };
-      token_list_t mod_tlst = {mod_tkns, 7};
+      token_list_t mod_tlst = {mod_tkns, 4};
 
       return parse_dp(prog, &mod_tlst, inst);
     }
