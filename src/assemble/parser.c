@@ -10,7 +10,7 @@
 #include "../utils/instructions.h"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tlst->tkns[Rn].str))
-#define PARSE_EXPR(tok) ((int) strtol((tok)+1, NULL, 0))
+#define PARSE_EXPR(tok) ((int) strtol(remove_first_char(tok), NULL, 0))
 #define COMPARE_OP(str) (strcmp(str, opcode) == 0)
 #define GET_TKN(i) tlst->tkns[i]
 #define GET_STR(i) tlst->tkns[i].str
@@ -215,14 +215,16 @@ int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
   int address = 0;
   // Case 1: =expr
   if (tlst->numOfTkns == 4) {
-    address = PARSE_EXPR(GET_TKN(4));
+    address = PARSE_EXPR(GET_STR(3));
 
     if(address <= 0xFF){
+      char * immVal = GET_STR(2);
+      immVal[0] = '#';
       token_t mod_tkns[] = {
         {T_OPCODE, "mov"},
-        GET_TKN(1),
-        GET_TKN(2)
-        //TODO:
+          GET_TKN(1),
+        {GET_TYPE(2), immVal}
+        //TODO: What is to do?
       };
       token_list_t mod_tlst = {mod_tkns, 7};
 
