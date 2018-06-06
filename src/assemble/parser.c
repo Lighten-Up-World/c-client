@@ -250,12 +250,14 @@ int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
 }
 
 /**
-* Parses a Single Data Transfer instruction
-* Syntax is: <code> Rd, <address>
-* <code>    - ldr|str
-* <address> - <=expression>|[Rn]|[Rn, <#expression>]|[Rn,{+/-}Rm{,<shift>}]
-              |[Rn],<#expression>| [Rn],{+/-}Rm{,<shift>}
-*/
+ * Parses a Single Data Transfer instruction
+ * Syntax is: <code> Rd, <address>
+ * <code>    - ldr|str
+ * <address> - <=expression>|[Rn]|[Rn, <#expression>]|[Rn,{+/-}Rm{,<shift>}]
+               |[Rn],<#expression>| [Rn],{+/-}Rm{,<shift>}
+ * @param: Same as other parse methods
+ *
+ */
 int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   char *opcode = GET_STR(0);
   flag_t L = COMPARE_OP("ldr");
