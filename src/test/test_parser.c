@@ -98,4 +98,32 @@ void test_parse_dp(void){
   compareInstructions(mov_i, result);
 }
 
+void test_parse_sdt_imm(void) {
+
+  instruction_t sdt_i = {
+      .type = SDT,
+      .cond = 0xE,
+      .i.sdt = {
+          .pad1 = 0x1,
+          .I = 0,
+          .P = 1,
+          .U = 1,
+          .pad0 = 0x0,
+          .L = 1,
+          .rn = 1,
+          .rd = 2,
+          .offset.imm.fixed = 0x0F0
+      }
+  };
+  token_t tokens[3] = {{.type=T_OPCODE, .str="ldr"},
+                      {.type=T_REGISTER, .str="r2"},
+                      {.type=T_EQ_EXPR, .str="0xF0"}};
+
+  instruction_t result;
+  if (parse(tokens, &result, 3)){
+    TEST_ASSERT_MESSAGE(false, "False Error");
+  }
+  compareInstructions(sdt_i, result);
+
+}
 
