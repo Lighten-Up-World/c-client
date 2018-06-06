@@ -93,7 +93,7 @@ op_rotate_immediate_t make_rotation(word_t value) {
  * @param operand2: a string containing the immediate value
  * @return the operand
  */
-operand_t get_op2(char *operand2) {
+operand_t get_imm_op2(char *operand2) {
   operand_t result;
 
   // Strip leading hash sign
@@ -149,7 +149,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.dp.S = S;
   inst->i.dp.rn = PARSE_REG(rn_pos);
   inst->i.dp.rd = PARSE_REG(1);
-  inst->i.dp.operand2 = get_op2(GET_STR(rn_pos + 1));
+  inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 1));
 
   return EC_OK;
 }
@@ -201,7 +201,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 * Case 4b: <code> Rd, [Rn],{+/-}Rm{,<shift>} {8-12}
 */
 int parse_sdt_address(program_t* prog, token_list_t *tlst, instruction_t *inst){
-  int addess = 0;
+  int address = 0;
   // Case 1: =expr
   if (tlst->n == 4) {
     address = PARSE_EXPR(GET_TKN(4));
