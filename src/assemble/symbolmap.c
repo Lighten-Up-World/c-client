@@ -17,7 +17,7 @@ unsigned long hash(const label_t label){
 * @param bucket : Pointer to bucket structure containing symbols in bucket
 * @returns The corresponding symbol for that label in that bucket.
 */
-static symbol_t *get_symbol(bucket_t *bucket, const label_t label){
+static symbol_t *get_symbol(sbucket_t *bucket, const label_t label){
   size_t n = bucket->count;
 	if (n == 0) {
 		return NULL;
@@ -47,7 +47,7 @@ symbol_map_t *smap_new(size_t capacity){
     return NULL;
   }
   map->count = capacity;
-  map->buckets = calloc(map->count, sizeof(bucket_t));
+  map->buckets = calloc(map->count, sizeof(sbucket_t));
   if(map->buckets == NULL){
     free(map);
     return NULL;
@@ -65,7 +65,7 @@ int smap_delete(symbol_map_t *map){
   if(map == NULL){
     return EC_NULL_POINTER;
   }
-  bucket_t *bucket = map->buckets;
+  sbucket_t *bucket = map->buckets;
   for(size_t i = 0; i < map->count; i++){
     symbol_t *symbol = bucket->symbols;
     for(size_t j = 0; j < bucket->count; j++){
@@ -99,7 +99,7 @@ int smap_get_address(const symbol_map_t *map, const label_t label, address_t *ou
     return EC_INVALID_PARAM;
   }
   size_t ind = hash(label) % map->count;
-  bucket_t *bucket = &(map->buckets[ind]);
+  sbucket_t *bucket = &(map->buckets[ind]);
   symbol_t *symbol = get_symbol(bucket, label);
   if(symbol == NULL){
     return EC_NULL_POINTER;
@@ -123,7 +123,7 @@ int smap_exists(const symbol_map_t *map, const label_t label){
     return 0;
   }
   size_t ind = hash(label) % map->count;
-  bucket_t *bucket = &(map->buckets[ind]);
+  sbucket_t *bucket = &(map->buckets[ind]);
   symbol_t *symbol = get_symbol(bucket, label);
   if(symbol == NULL){
     return 0;
@@ -149,7 +149,7 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
   size_t label_len = strlen(label);
   size_t address_len = sizeof(address_t);
   size_t ind = hash(label) % map->count;
-  bucket_t *bucket = &(map->buckets[ind]);
+  sbucket_t *bucket = &(map->buckets[ind]);
 
   symbol_t *symbol;
   if((symbol = get_symbol(bucket, label)) != NULL){
@@ -202,7 +202,7 @@ int smap_enum(symbol_map_t *map, map_func_t func, const void *obj){
   if(func == NULL){
     return EC_INVALID_PARAM;
   }
-  bucket_t *bucket = map->buckets;
+  sbucket_t *bucket = map->buckets;
   for(size_t i = 0; i < map->count; i++){
     symbol_t *symbol = bucket->symbols;
     for(size_t j = 0; j < bucket->count; j++){

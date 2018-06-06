@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "arm.h"
+#include "../utils/arm.h"
 
 #define MAX_S_MAP_CAPACITY 20
 
@@ -18,11 +18,11 @@ typedef struct {
 typedef struct {
   size_t count;
   symbol_t *symbols;
-} bucket_t;
+} sbucket_t;
 
 typedef struct {
   size_t count;
-  bucket_t *buckets;
+  sbucket_t *buckets;
 } symbol_map_t;
 
 unsigned long hash(const label_t label);

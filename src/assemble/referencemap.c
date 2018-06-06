@@ -19,7 +19,7 @@ unsigned long hash(const label_t label){
 * @param bucket : Pointer to bucket structure containing symbols in bucket
 * @returns The corresponding entry for that label in that bucket.
 */
-static entry_t *get_entry(bucket_t *bucket, const label_t label) {
+static entry_t *get_entry(rbucket_t *bucket, const label_t label) {
   size_t n = bucket->count;
   if (n == 0) {
     return NULL;
@@ -49,7 +49,7 @@ reference_map_t *rmap_new(size_t capacity) {
     return NULL;
   }
   map->count = capacity;
-  map->buckets = calloc(map->count, sizeof(bucket_t));
+  map->buckets = calloc(map->count, sizeof(rbucket_t));
   if (map->buckets == NULL) {
     free(map);
     //ERROR
@@ -68,7 +68,7 @@ int rmap_delete(reference_map_t *map) {
   if (map == NULL) {
     return EC_NULL_POINTER;
   }
-  bucket_t *bucket = map->buckets;
+  rbucket_t *bucket = map->buckets;
   for (size_t i = 0; i < map->count; i++) {
     entry_t *entry = bucket->entries;
     for (size_t j = 0; j < bucket->count; j++) {
@@ -106,7 +106,7 @@ int rmap_get_references(const reference_map_t *map, const label_t label,
     return EC_INVALID_PARAM;
   }
   size_t ind = hash(label) % map->count;
-  bucket_t *bucket = &(map->buckets[ind]);
+  rbucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
   if (entry == NULL) {
     return EC_NULL_POINTER;
@@ -153,7 +153,7 @@ int rmap_exists(const reference_map_t *map, const label_t label) {
     return 0;
   }
   size_t ind = hash(label) % map->count;
-  bucket_t *bucket = &(map->buckets[ind]);
+  rbucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
   if (entry == NULL) {
     return 0;
@@ -180,7 +180,7 @@ int rmap_put(const reference_map_t *map, const label_t label,
   size_t label_len = strlen(label);
 
   size_t ind = hash(label) % map->count;
-  bucket_t *bucket = &(map->buckets[ind]);
+  rbucket_t *bucket = &(map->buckets[ind]);
 
   entry_t *entry;
   if ((entry = get_entry(bucket, label)) != NULL) {
@@ -270,7 +270,7 @@ int rmap_enum(reference_map_t *map, map_func_t func, const void *obj) {
   if (func == NULL) {
     return EC_INVALID_PARAM;
   }
-  bucket_t *bucket = map->buckets;
+  rbucket_t *bucket = map->buckets;
   for (size_t i = 0; i < map->count; i++) {
     entry_t *entry = bucket->entries;
     for (size_t j = 0; j < bucket->count; j++) {
@@ -297,7 +297,7 @@ int rmap_get_count(reference_map_t *map) {
   if (map == NULL) {
     return EC_INVALID_PARAM;
   }
-  bucket_t *bucket = map->buckets;
+  rbucket_t *bucket = map->buckets;
   for (size_t i = 0; i < map->count; i++) {
     entry_t *entry = bucket->entries;
     for (size_t j = 0; j < bucket->count; j++) {

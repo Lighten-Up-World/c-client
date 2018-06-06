@@ -22,8 +22,13 @@ typedef struct {
   char *str;
 } token_t;
 
+typedef struct {
+  token_t *tkns;
+  int n;
+} token_list_t;
+
 int str_separate(char *src, char *tokens, char sep, char ***output);
 
-int tokenize(char *line, token_t **out);
+int tokenize(char *line, token_list_t *out);
 
 #endif

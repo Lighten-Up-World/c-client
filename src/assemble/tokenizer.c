@@ -110,18 +110,19 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   return n;
 }
 
-int tokenize(char *line, token_t **out){
+int tokenize(char *line, token_list_t *out){
 
   char **token_strs = NULL;
   int n = str_separate(line, "[],#:", ' ', &token_strs);
-  *out = malloc(n * sizeof(token_t));
-  if(*out == NULL){
+  token_t *tkns = malloc(n * sizeof(token_t));
+  if(tkns == NULL){
     return -1;
   }
-  **out = (token_t) {T_OPCODE, token_strs[0]};
+  *tkns = (token_t) {T_OPCODE, token_strs[0]};
   for (int i = 1; i < n; i++) {
-    *(*out+i) = (token_t) {token_type(token_strs[i]), token_strs[i]};
+    *(tkns+i) = (token_t) {token_type(token_strs[i]), token_strs[i]};
   }
   free(token_strs);
+  *out = {tkns, n};
   return n;
 }

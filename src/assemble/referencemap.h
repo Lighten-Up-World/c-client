@@ -23,11 +23,11 @@ typedef struct {
 typedef struct {
   size_t count;
   entry_t *entries;
-} bucket_t;
+} rbucket_t;
 
 typedef struct {
   size_t count;
-  bucket_t *buckets;
+  rbucket_t *buckets;
 } reference_map_t;
 
 unsigned long hash(const label_t label);
