@@ -26,6 +26,7 @@ const branch_suffix_to_cond brn_suffixes[NUM_BRN_SUFFIXES] = {
     {"al", 0xE},
     {"",   0xE}
 };
+
 const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
     {"add", ADD, &parse_dp},
     {"sub", SUB, &parse_dp},
@@ -65,10 +66,9 @@ char *remove_first_char(char *string) {
 
 /**
  *
- * @param value
- * @return
+ * @param : value
+ * @return :
  */
-
 op_rotate_immediate_t make_rotation(word_t value) {
   op_rotate_immediate_t op;
   byte_t rot = 0;
@@ -130,8 +130,13 @@ operand_t get_imm_op2(char *operand2) {
 ===============================================>>>>>*/
 
 /**
-*
-*/
+ * Parse a DP instruction
+ *
+ * @param :
+ * @param :
+ * @param :
+ * @return :
+ */
 int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   // Get opcode enum
   char *opcode = GET_STR(0);
