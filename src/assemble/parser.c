@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/error.h"
+#include "../utils/bitops.h"
 #include "../utils/instructions.h"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tlst->tkns[Rn].str))
@@ -154,12 +155,13 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 ===============================================>>>>>*/
 
 int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
-  flag_t A = strcmp(GET_STR(0), "mul");
+
+  flag_t A = (flag_t) strcmp(GET_STR(0), "mul");
 
   reg_address_t rd = PARSE_REG(1);
-  reg_address_t rn = PARSE_REG(2);
+  reg_address_t rm = PARSE_REG(2);
   reg_address_t rs = PARSE_REG(3);
-  reg_address_t rm = A ? PARSE_REG(0) : 0;
+  reg_address_t rn = A ? PARSE_REG(4) : 0;
 
   inst->type = MUL;
   inst->i.mul.pad0 = (byte_t) 0x0;
