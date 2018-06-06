@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <instructions.h>
 #include "../assemble.h"
 #include "parser.h"
 #include "tokenizer.h"
@@ -67,17 +68,21 @@ char *remove_first_char(char *string) {
  * @param value
  * @return
  */
-op_rotate_immediate_t make_rotation(uint32_t value) {
+
+op_rotate_immediate_t make_rotation(word_t value) {
   op_rotate_immediate_t op;
-  int rot = 0;
+  byte_t rot = 0;
+
   while(get_bits(value, 8 , 31) != 0 && rot < 32){
-    constant = rotate_left(constant, 2);
+    value = rotate_left(value, 2);
     rot += 2;
   }
   if(rot == 32){
     perror("Cannot convert value");
   }
   word_t imm = ((rot / 2) << 8) | value;
+  op.value = imm;
+  op.rotate = rot;
   return op;
 }
 
@@ -91,7 +96,7 @@ op_rotate_immediate_t make_rotation(uint32_t value) {
 operand_t get_op2(char *operand2) {
   operand_t result;
 
-  // Strip leading equals sign
+  // Strip leading hash sign
   char *strVal = remove_first_char(operand2);
 
   // Determine the base (hex or decimal) and convert to int
@@ -112,7 +117,9 @@ operand_t get_op2(char *operand2) {
   if ((raw_val & small_mask) != 0) {
     result.imm.rotated = make_rotation((uint32_t) raw_val);
   } else {
-    result.imm.fixed = (uint8_t) raw_val;
+    //imm.fixed is only used for sdt
+    result.imm.rotated.value = (uint8_t) raw_val;
+    result.imm.rotated.rotate = 0;
   }
 
   return result;
