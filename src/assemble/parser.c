@@ -73,7 +73,7 @@ op_rotate_immediate_t make_rotation(word_t value) {
   op_rotate_immediate_t op;
   byte_t rot = 0;
 
-  while(get_bits(value, 8 , 31) != 0 && rot < 16){
+  while(get_bits(value, 31 , 8) != 0 && rot < 16){
     value = rotate_left(value, 2);
     rot += 1;
   }
