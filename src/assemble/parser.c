@@ -346,8 +346,8 @@ word_t calculate_offset(int address, word_t PC) {
 
   // TODO: should we add 8 or subtract 8?
   // Take into account the effect of the pipeline
-  offset += 8;
-  //offset -= 8;
+  //offset += 8;
+  offset -= 8;
 
   // Check we can store in 26 bits
   if (get_bits(offset, 31, 25) != 0) {
@@ -391,10 +391,10 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
     // TODO
     // Check if label is already in map, if so get address
     char *label = tlst->tkns[0].str;
-    if (is_in_map(label)) {
-      offset = calculate_offset(get_from_map(label), prog->mPC);
+    if (is_in_symbol_map(label)) {
+      offset = calculate_offset(get_from_symbol_map(label), prog->mPC);
     } else {
-      // Add label to map for processing later?
+      // Add label to reference map for processing later?
       offset = 0; // dummy value
     }
   } else {
@@ -461,7 +461,6 @@ int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 = LABEL INSTRUCTIONS
 ===============================================>>>>>*/
 
-
 /**
 * Update memory according to reference entry
 *
@@ -475,7 +474,6 @@ void ref_entry(const label_t label, const address_t val, const void *obj){
     prog_coll.prog->out[val] = prog_coll.addr;
   }
 }
-
 
 /**
  * Add a symbol to the symbol table in the program and update reference table
@@ -497,7 +495,6 @@ int add_symbol(program_t *program, label_t label, address_t addr) {
 
   return 1;
 }
-
 
 /**
  * add a symbol to the reference map stored in the program
