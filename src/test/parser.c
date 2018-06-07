@@ -1,4 +1,7 @@
 #include "unity/unity.h"
+#include "../assemble/symbolmap.h"
+#include "../assemble/referencemap.h"
+#include "../utils/bitops.h"
 #include "../assemble/parser.h"
 
 program_t *prog = NULL;
@@ -223,4 +226,3 @@ void test_parse_sdt_imm(void) {
   }
   compareInstructions(sdt_i, result);
 }
-

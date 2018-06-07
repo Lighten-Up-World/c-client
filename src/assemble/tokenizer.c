@@ -123,6 +123,6 @@ int tokenize(char *line, token_list_t *out){
     *(tkns+i) = (token_t) {token_type(token_strs[i]), token_strs[i]};
   }
   free(token_strs);
-  *out = {tkns, n};
+  *out = (token_list_t) {tkns, n};
   return n;
 }
