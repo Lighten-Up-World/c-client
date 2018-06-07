@@ -74,12 +74,12 @@ op_rotate_immediate_t make_rotation(word_t value) {
   op_rotate_immediate_t op;
   byte_t rot = 0;
 
-  while(get_bits(value, 31 , 8) != 0 && rot < 16){
-    value = rotate_left(value, 2);
+  while(get_bits(value, 31 , 8) != 0 && rot < MAX_ROT_VAL){
+    value = rotate_left(value, ROT_AMOUNT);
     rot += 1;
   }
 
-  if(rot == 16){
+  if(rot == MAX_ROT_VAL){
     perror("Cannot convert value");
   }
   //TODO: Understand this line
@@ -103,8 +103,9 @@ operand_t get_imm_op2(char *operand2) {
   char *strVal = remove_first_char(operand2);
 
   // Determine the base (hex or decimal) and convert to int
-  uint8_t base = (uint8_t) ((strncmp("0x", operand2, 2) == 0) ? 16 : 10);
-  if (base == 16) {
+  uint8_t base = (uint8_t) ((strncmp("0x", operand2, 2) == 0) ?
+      HEX_BASE : DEC_BASE);
+  if (base == HEX_BASE) {
     strVal = remove_first_char(remove_first_char(strVal));
   }
   uint64_t raw_val = (uint64_t) strtoul(strVal, NULL, base);
@@ -157,7 +158,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.dp.opcode = op_enum;
   inst->i.dp.S = S;
   inst->i.dp.rn = PARSE_REG(rn_pos);
-  inst->i.dp.rd = PARSE_REG(1);
+  inst->i.dp.rd = PARSE_REG(RD_POS);
   inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
 
   return EC_OK;
@@ -174,10 +175,10 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 
   flag_t A = (flag_t) strcmp(GET_STR(0), "mul");
 
-  reg_address_t rd = PARSE_REG(1);
-  reg_address_t rm = PARSE_REG(3);
-  reg_address_t rs = PARSE_REG(5);
-  reg_address_t rn = A ? PARSE_REG(7) : 0;
+  reg_address_t rd = PARSE_REG(RD_POS);
+  reg_address_t rm = PARSE_REG(RM_POS);
+  reg_address_t rs = PARSE_REG(RS_POS);
+  reg_address_t rn = A ? PARSE_REG(RN_POS) : 0;
 
   inst->type = MUL;
   inst->i.mul.pad0 = (byte_t) 0x0;
@@ -186,7 +187,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.mul.rd   = rd;
   inst->i.mul.rn   = rn;
   inst->i.mul.rs   = rs;
-  inst->i.mul.pad9 = (byte_t) 0x1001;
+  inst->i.mul.pad9 = (byte_t) HEX_NINE;
   inst->i.mul.rm   = rm;
 
   return EC_OK;
@@ -221,16 +222,16 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   inst->i.sdt.L = L;
   inst->i.sdt.pad1 = 1;
   inst->i.sdt.pad0 = 0;
-  inst->i.sdt.rd = PARSE_REG(1);
+  inst->i.sdt.rd = PARSE_REG(RD_POS);
 
   int address = 0;
 
   switch (tlst->numOfTkns){
     // Case 1: =expr
-    case 4:
+    case NUM_TOKS_EQ_EXPR:
       address = PARSE_EXPR(GET_STR(3));
 
-      if(address <= 0xFF){
+      if(address <= MAX_HEX){
         char * immVal = GET_STR(3);
         immVal[0] = '#';
         token_t mod_tkns[] = {
@@ -239,7 +240,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
                 GET_TKN(2), //comma
                 {GET_TYPE(3), immVal},
         };
-        token_list_t mod_tlst = {mod_tkns, 4};
+        token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
 
         return parse_dp(prog, &mod_tlst, inst);
       }
@@ -252,7 +253,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
       return parse_sdt(prog, tlst, inst);
 
       // Case 2: [Rn]
-    case 6:
+    case NUM_TOKS_REG_ADDR:
       inst->i.sdt.I = 0;
       inst->i.sdt.offset.imm.fixed = 0;
       inst->i.sdt.rn = PARSE_REG(4);
@@ -261,7 +262,8 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
       inst->i.sdt.P = 0;
       /*Also could be either, change accordingly to test case*/
       return EC_OK;
-    case 8:
+
+    case NUM_TOKS_HASH_EXPR:
       inst->i.sdt.rn = PARSE_REG(4);
       inst->i.sdt.U = 1;
       inst->i.sdt.I = 0;
@@ -271,6 +273,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
         inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
         return EC_OK;
       }
+
       // Case 4: [Rn],<#expression>
       if(GET_TYPE(6) == T_R_BRACKET){
         inst->i.sdt.P = 0;
@@ -362,7 +365,7 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
     // what's our current address?
   }
   inst->type = BRN;
-  inst->i.brn.padA = 0x1010;
+  inst->i.brn.padA = HEX_TEN;
   inst->i.brn.offset = offset;
 
   return EC_OK;
@@ -509,7 +512,7 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   }
 
   // Not a branch instruction so set condition to always execute
-  inst->cond = 0xE; //0b1110
+  inst->cond = AL_COND_CODE; //0b1110
 
   // Calculate function pointer to parse an instruction from the opcode
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
