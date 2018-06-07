@@ -10,8 +10,6 @@
 #include "assemble/encode.h"
 #include "assemble.h"
 
-
-
 /**
  * Allocate memory for the input stored in the program
  *
