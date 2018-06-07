@@ -199,9 +199,6 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 /*= End of MULTIPLICATION INSTRUCTION =*/
 /*=============================================<<<<<*/
 
-//TODO: calculate offset and corresponding flags
-
-
 
 /*=============================================>>>>>
 = SINGLE DATA TRANSFER
