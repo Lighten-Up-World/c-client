@@ -10,8 +10,6 @@
 #include "assemble/encode.h"
 #include "assemble.h"
 
-
-
 /**
  * Allocate memory for the input stored in the program
  *
@@ -127,8 +125,7 @@ int main(int argc, char **argv) {
   }
 
   // set up variables for assembler
-  token_list_t *lineTokens;
-  int numTokens;
+  token_list_t *lineTokens = NULL;
   instruction_t instr;
   word_t word;
 
