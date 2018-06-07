@@ -23,7 +23,7 @@ typedef struct {
   address_t addr;
 } prog_collection_t;
 
-program_t *program_new();
+program_t *program_new(int numLines);
 int program_delete(program_t *);
 
 int program_add_symbol(program_t *, label_t, address_t);
