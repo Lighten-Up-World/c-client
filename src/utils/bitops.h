@@ -12,6 +12,7 @@ word_t l_shift_left(word_t value, byte_t shift);
 word_t l_shift_right(word_t value, byte_t shift);
 word_t a_shift_right(word_t value, byte_t shift);
 word_t rotate_right(word_t value, byte_t shift);
+word_t rotate_left(word_t value, byte_t shift);
 shift_result_t l_shift_left_c(word_t value, byte_t shift);
 shift_result_t l_shift_right_c(word_t value, byte_t shift);
 shift_result_t a_shift_right_c(word_t value, byte_t shift);

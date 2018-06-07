@@ -1,4 +1,4 @@
-#include "unity.h"
+#include "unity/unity.h"
 #include "../utils/bitops.h"
 
 word_t minus42 = -42;
@@ -12,7 +12,6 @@ word_t max2MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 2);
 word_t max3MSb = ((uint8_t) 0x1) << (sizeof(word_t) * 8 - 3);
 
 void test_getBits(void) {
-
   TEST_ASSERT_EQUAL(zero, get_bits(zero, 0, 0));
   TEST_ASSERT_EQUAL(zero, get_bits(zero, 1, 0));
   TEST_ASSERT_EQUAL(zero, get_bits(zero, 17, 6));
@@ -32,7 +31,6 @@ void test_getBits(void) {
 }
 
 void test_getFlag(void) {
-  // Get flag
   TEST_ASSERT_FALSE(get_flag(zero, 0));
   TEST_ASSERT_FALSE(get_flag(zero, 30));
 
@@ -49,7 +47,6 @@ void test_getFlag(void) {
 }
 
 void test_getByte(void){
-  // Get byte
   TEST_ASSERT_EQUAL(zero, get_byte(zero, 7));
   TEST_ASSERT_EQUAL(zero, get_byte(zero, 14));
   TEST_ASSERT_EQUAL(zero, get_byte(zero, 31));
@@ -108,10 +105,7 @@ void test_lShift(void){
   TEST_ASSERT_EQUAL(max - maxMSb - max2MSb - max3MSb, l_shift_right(max, 3));
 }
 
-void test_aShift(void){
-
-
-  // Arithmetic shift right
+void test_aShift(void) {
   TEST_ASSERT_EQUAL(zero, a_shift_right(zero, 0));
   TEST_ASSERT_EQUAL(zero, a_shift_right(zero, 4));
   TEST_ASSERT_EQUAL(zero, a_shift_right(zero, 72));
@@ -132,9 +126,7 @@ void test_aShift(void){
   TEST_ASSERT_EQUAL(max, a_shift_right(max - 2, 2));
 }
 
-void test_rotate(void){
-
-
+void test_rotate(void) {
   // Rotate right
   TEST_ASSERT_EQUAL(zero, rotate_right(zero, 0));
   TEST_ASSERT_EQUAL(zero, rotate_right(zero, 4));
@@ -152,10 +144,27 @@ void test_rotate(void){
   TEST_ASSERT_EQUAL(max, rotate_right(max, 0));
   TEST_ASSERT_EQUAL(max, rotate_right(max, 1));
   TEST_ASSERT_EQUAL(max, rotate_right(max, 3));
+
+  // Rotate left
+  TEST_ASSERT_EQUAL(zero, rotate_left(zero, 0));
+  TEST_ASSERT_EQUAL(zero, rotate_left(zero, 4));
+  TEST_ASSERT_EQUAL(zero, rotate_left(zero, 72));
+
+  TEST_ASSERT_EQUAL(five, rotate_left(five, 0));
+  TEST_ASSERT_EQUAL(five, rotate_left(2147483650, 1));
+  TEST_ASSERT_EQUAL(five, rotate_left(2684354560, 3));
+
+  TEST_ASSERT_EQUAL(sixtyThree, rotate_left(sixtyThree, 0));
+  TEST_ASSERT_EQUAL(sixtyThree, rotate_left(2147483679, 1));
+  TEST_ASSERT_EQUAL(sixtyThree, rotate_left(3221225487, 2));
+  TEST_ASSERT_EQUAL(sixtyThree, rotate_left(3758096391, 3));
+
+  TEST_ASSERT_EQUAL(max, rotate_left(max, 0));
+  TEST_ASSERT_EQUAL(max, rotate_left(max, 1));
+  TEST_ASSERT_EQUAL(max, rotate_left(max, 3));
 }
 
 void test_leftPadZeros(void){
-  // Left pad zeros
   TEST_ASSERT_EQUAL(0, left_pad_zeros(0));
   TEST_ASSERT_EQUAL(242, left_pad_zeros(242));
   TEST_ASSERT_EQUAL(1, left_pad_zeros(1));
@@ -179,5 +188,3 @@ void test_isNegative(void){
   TEST_ASSERT_FALSE(is_negative(sixtyThree));
   TEST_ASSERT_TRUE(is_negative(UINT32_MAX));
 }
-
-
