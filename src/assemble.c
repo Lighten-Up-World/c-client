@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
   free(out);
 
   // set up variables for assembler
-  token_t *lineTokens;
+  token_list_t *lineTokens;
   int numTokens;
   instruction_t instr;
   word_t word;
@@ -144,9 +144,9 @@ int main(int argc, char **argv) {
   //convert each line to binary
   for (int i = 0; i < numLines; ++i) {
 
-    numTokens = tokenize(program->in[i], &lineTokens);
+    tokenize(program->in[i], &lineTokens);
 
-    if (parse(lineTokens, &instr, numTokens, program)) {
+    if (parse(program, lineTokens, &instr)) {
       free(lineTokens);
       return EC_SYS; //parse failed
     }
