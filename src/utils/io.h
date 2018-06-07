@@ -16,5 +16,6 @@ void print_state(state_t *state);
 
 int write_file(const char *path, byte_t *buffer, size_t buffer_size);
 int read_file(const char *path, byte_t *buffer, size_t buffer_size);
+int read_char_file(const char *path, char ** buffer, int* num_of_lines);
 
 #endif
