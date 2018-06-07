@@ -116,7 +116,9 @@ void print_token_lst(token_list_t tklst){
 int tokenize(char *line, token_list_t *out){
   DEBUG_PRINT("Tokenize started on line: %s", line);
   char **token_strs = NULL;
-  line[strlen(line) - 2] = '\0'; //Strips \ns
+  
+  line[strlen(line) - 1] = '\0'; //Strips \n
+
   int n = str_separate(line, "[],:", ' ', &token_strs);
   token_t *tkns = malloc(n * sizeof(token_t));
   if(tkns == NULL){
