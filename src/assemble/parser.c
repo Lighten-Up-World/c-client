@@ -5,7 +5,7 @@
 #include "tokenizer.h"
 #include "../utils/error.h"
 #include "../utils/bitops.h"
-#include "../assemble.c"
+#include "../assemble.h"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tlst->tkns[Rn].str))
 #define PARSE_EXPR(tok) ((int) strtol(remove_first_char(tok), NULL, 0))
