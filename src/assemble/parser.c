@@ -166,7 +166,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.dp.I = 1;
   inst->i.dp.opcode = op_enum;
   inst->i.dp.S = S;
-  inst->i.dp.rn = PARSE_REG(rn_pos);
+  inst->i.dp.rn = I ? 0 : PARSE_REG(rn_pos);
   inst->i.dp.rd = PARSE_REG(RD_POS);
   DEBUG_PRINT("RN_POS: %u\n", rn_pos);
   inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
