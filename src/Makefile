@@ -1,5 +1,7 @@
 .PHONY: clean
 .PHONY: build/
+.PHONY: emulate
+.PHONY: assemble
 
 CFLAGS = -Wall -Werror -pedantic
 
@@ -8,8 +10,33 @@ RUN = factorial
 BUILD = ./build/
 UTIL = ./utils/
 EMULATE = ./emulate/
+ASSEMBLE = ./assemble/
 
 COMPILE = gcc -c $(CFLAGS) $< -o $@
+
+assemble: build ./build/assemble.out
+	$(BUILD)assemble.out ../test/test_cases/$(RUN)
+
+$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)symbolmap.o $(BUILD)referencemap.o
+	gcc $^ -o $@
+
+$(BUILD)assemble.o: assemble.c assemble.h
+	$(COMPILE)
+
+$(BUILD)encode.o: $(ASSEMBLE)encode.c $(ASSEMBLE)encode.h
+	$(COMPILE)
+
+$(BUILD)parser.o: $(ASSEMBLE)parser.c $(ASSEMBLE)parser.h
+	$(COMPILE)
+
+$(BUILD)tokenizer.o: $(ASSEMBLE)tokenizer.c $(ASSEMBLE)tokenizer.h
+	$(COMPILE)
+
+$(BUILD)symbolmap.o: $(ASSEMBLE)symbolmap.c $(ASSEMBLE)symbolmap.h
+	$(COMPILE)
+
+$(BUILD)referencemap.o: $(ASSEMBLE)referencemap.c $(ASSEMBLE)referencemap.h
+	$(COMPILE)
 
 emulate: build ./build/emulate.out
 	$(BUILD)emulate.out ../test/test_cases/$(RUN)
@@ -17,13 +44,7 @@ emulate: build ./build/emulate.out
 $(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
 	gcc $^ -o $@
 
-dependencies:
-	grep '#include' *.[ch] | grep '"'
-
 $(BUILD)emulate.o: emulate.c $(UTIL)arm.h $(UTIL)io.h $(EMULATE)execute.h $(EMULATE)decode.h $(EMULATE)register.h
-	$(COMPILE)
-
-$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h
 	$(COMPILE)
 
 $(BUILD)execute.o: $(EMULATE)execute.c $(EMULATE)execute.h $(UTIL)bitops.h $(EMULATE)register.h
@@ -35,24 +56,22 @@ $(BUILD)decode.o: $(EMULATE)decode.c $(EMULATE)decode.h $(UTIL)arm.h $(UTIL)inst
 $(BUILD)register.o: $(EMULATE)register.c $(EMULATE)register.h $(UTIL)arm.h
 	$(COMPILE)
 
+# UTILITY OBJECTS
+
+$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h
+	$(COMPILE)
+
 $(BUILD)bitops.o: $(UTIL)bitops.c $(UTIL)bitops.h
 	$(COMPILE)
 
 $(BUILD)error.o: $(UTIL)error.c $(UTIL)error.h
 	$(COMPILE)
 
+dependencies:
+	grep '#include' *.[ch] | grep '"'
+
 build:
 	mkdir -p build
 
 clean:
 	rm -rf $(BUILD)
-
-
-
-
-
-
-
-
-
-
