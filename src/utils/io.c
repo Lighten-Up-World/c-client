@@ -197,3 +197,35 @@ int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
   }
   return 0;
 }
+
+/**
+*  Loads a file from disk as list of strings
+*
+*  @param path: the path of the ASCII file to read from
+*  @param buffer: a pointer to an allocated array which the file will be read to
+*  @param buffer_size: the size of the buffer allocated
+*  @param num_of_lines: pointer to an int denoting the number of lines found in file
+*  @return a status code denoting the result
+*/
+int read_char_file(const char *path, char ** buffer, int* num_of_lines) {
+  FILE *fp = fopen(path, "rb");
+  if (fp == NULL) {
+    perror("fopen failed at path");
+    return 1;
+  }
+  int line = 0;
+  while (fgets(buffer[line], sizeof(buffer[line]), fp) != NULL){
+    line++;
+  }
+  if (ferror(fp)){
+    perror("fget failed");
+    return 2;
+  }
+
+  if (fclose(fp) != 0) {
+    perror("Couldn't close file");
+    return 4;
+  }
+  *num_of_lines = line;
+  return 0;
+}

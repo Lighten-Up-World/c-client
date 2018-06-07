@@ -58,6 +58,7 @@ int str_to_enum(char *opcode){
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (COMPARE_OP(oplist[i].op)) {
       op_enum = oplist[i].op_enum;
+      isSet = 1;
     }
   }
   if (op_enum == -1) return -1;
@@ -79,15 +80,15 @@ op_rotate_immediate_t make_rotation(word_t value) {
   byte_t rot = 0;
 
   while(get_bits(value, 31 , 8) != 0 && rot < MAX_ROT_VAL){
-    value = rotate_left(value, ROT_AMOUNT);
+    value = rotate_left(value, 2);
     rot += 1;
   }
 
   if(rot == MAX_ROT_VAL){
     perror("Cannot convert value");
+    exit(EC_INVALID_PARAM);
   }
-  //TODO: Understand this line
-  //word_t imm = (rot << 8) | value;
+
   op.value = (byte_t) value;
   op.rotate = rot;
   return op;
@@ -388,12 +389,7 @@ int add_reference(program_t *program, label_t label, address_t addr) {
  * @return: the offset to be store - a shifted 24 bit value
  */
 word_t calculate_offset(int address, word_t PC) {
-  word_t offset = address - PC;
-
-  // TODO: should we add 8 or subtract 8?
-  // Take into account the effect of the pipeline
-  //offset += 8;
-  offset -= 8;
+  word_t offset = address - PC - 8;
 
   // Check we can store in 26 bits
   if (get_bits(offset, 31, 25) != 0) {

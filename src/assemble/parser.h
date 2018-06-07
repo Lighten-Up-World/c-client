@@ -21,7 +21,6 @@ typedef struct {
 
 // Definitions used in aux functions
 #define MAX_ROT_VAL 16
-#define ROT_AMOUNT 2
 #define HEX_BASE 16
 #define DEC_BASE 10
 #define MSB_24_START 31

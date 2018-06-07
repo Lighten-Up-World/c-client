@@ -42,7 +42,7 @@ char **allocate_input(int lines, int lineLength) {
  *
  * @return : pointer to an uninitialised program.
  */
-program_t *program_new(int numLines) {
+program_t *program_new() {
   program_t *program;
   program = malloc(sizeof(program_t));
   if (!program) {
@@ -59,7 +59,7 @@ program_t *program_new(int numLines) {
   }
 
   // Ideally use function to count the number of lines
-  program->in = allocate_input(numLines, LINE_SIZE);
+  program->in = allocate_input(MAX_NUM_LINES, LINE_SIZE);
   if (program->in == NULL) {
     return NULL;
   }
@@ -116,24 +116,15 @@ void print_bin_instr(byte_t *out, int lines) {
 int main(int argc, char **argv) {
   assert(argc > 2);
 
-  char fileContents[MAX_NUM_LINES * LINE_SIZE];
-  if (read_file(argv[1], fileContents, sizeof(fileContents))) {
-    return EC_SYS; // failed to read input. Need this in emulate too?
-  }
+  program_t *program = program_new();
 
-  int numLines;
-  char **out;
-  numLines = str_separate(fileContents,"", '\n', &out);
-
-  program_t *program = program_new(numLines);
   if (program == NULL) {
     return EC_SYS; // unable to allocate space for program.
   }
-  program->lines = numLines;
-  memcpy(program->in, out, sizeof(out));
-  program->mPC = 0;
 
-  free(out);
+  if (read_char_file(argv[1], program->in,  &program->lines)) {
+    return EC_SYS; // failed to read input. Need this in emulate too?
+  }
 
   // set up variables for assembler
   token_list_t *lineTokens;
@@ -142,7 +133,7 @@ int main(int argc, char **argv) {
   word_t word;
 
   //convert each line to binary
-  for (int i = 0; i < numLines; ++i) {
+  for (int i = 0; i < program->lines; ++i) {
 
     tokenize(program->in[i], &lineTokens);
 
@@ -150,7 +141,7 @@ int main(int argc, char **argv) {
       free(lineTokens);
       return EC_SYS; //parse failed
     }
-    free(lineTokens);
+    free(&lineTokens);
 
     if (encode(&instr, &word)) {
       return EC_SYS; // encode failed
