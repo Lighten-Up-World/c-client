@@ -49,7 +49,7 @@ void test_referencemap(void) {
   for (size_t i = 0; i < size; i++) {
     printf("\t Value: %d\n", buf[i]);
   }
-
+  free(buf);
   /* When done, destroy the map object */
   rmap_delete(rm);
 }
