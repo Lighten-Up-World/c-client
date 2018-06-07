@@ -33,7 +33,7 @@ char **allocate_input(int lines, int lineLength) {
   }
 
   for (i = 1; i < lines; i++) {
-    in[i] = in[i-1] + lineLength;
+    in[i] = in[0] + i * lineLength * sizeof(char) + 1;
   }
 
   return in;
@@ -122,18 +122,21 @@ void print_bin_instr(byte_t *out, int lines) {
 
 // main assembly loop.
 int main(int argc, char **argv) {
+  int _status = EC_OK;
   assert(argc > 2);
 
   program_t *program = program_new();
 
   if (program == NULL) {
-    return EC_SYS; // unable to allocate space for program.
+    return EC_NULL_POINTER; // unable to allocate space for program.
   }
-
-  if (read_char_file(argv[1], program->in,  &program->lines)) {
+  DEBUG_PRINT("Starting read of file @%s\n", argv[1]);
+  if ((_status = read_char_file(argv[1], program->in,  &program->lines))) {
+    DEBUG_PRINT("%u\n", _status);
     program_delete(program);
-    return EC_SYS; // failed to read input. Need this in emulate too?
+    return _status; // failed to read input. Need this in emulate too?
   }
+  DEBUG_PRINT("%u\n", _status);
 
   // set up variables for assembler
   token_list_t *lineTokens = NULL;
@@ -141,9 +144,10 @@ int main(int argc, char **argv) {
   word_t word;
 
   //convert each line to binary
-  for (int i = 0; i < program->lines; ++i) {
-
-    tokenize(program->in[i], lineTokens);
+  for (int i = 0; i < program->lines; i++) {
+    DEBUG_PRINT("======== LINE %u ======\n", i);
+    int t_ec = tokenize(program->in[i], lineTokens);
+    DEBUG_PRINT("Tokenize ec:%u \n", t_ec);
 
     if (parse(program, lineTokens, &instr)) {
       free(lineTokens);

@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
   while (state->pipeline.decoded->type != HAL) {
     DEBUG_PRINT("\n---------(PC=%04x PC@%04x)---------\n", get_pc(state), get_pc(state) - 0x8);
-    DEBUG_CMD(printState(state));
+    DEBUG_CMD(print_state(state));
     DEBUG_PRINT("Executing: %01x Instruction:\n\t", state->pipeline.decoded->type);
 
     if (!execute(state)) {

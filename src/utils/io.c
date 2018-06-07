@@ -215,13 +215,15 @@ int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
 *  @return a status code denoting the result
 */
 int read_char_file(const char *path, char ** buffer, int* num_of_lines) {
-  FILE *fp = fopen(path, "rb");
-  if (fp == NULL) {
+  FILE *fp = fopen(path, "r");
+  if (fp == NULL || fp == 0) {
     perror("fopen failed at path");
     return 1;
   }
   int line = 0;
-  while (fgets(buffer[line], sizeof(buffer[line]), fp) != NULL){
+  size_t lineLength = 512 * sizeof(char);
+  while (fgets(buffer[line], lineLength, fp) != NULL){
+    DEBUG_PRINT("%s\n", buffer[line]);
     line++;
   }
   if (ferror(fp)){

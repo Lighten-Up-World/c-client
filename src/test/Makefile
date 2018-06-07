@@ -43,6 +43,12 @@ test: $(BUILD_PATHS) $(RESULTS)
 $(PATHR)%.txt: $(PATHB)%.out
 	-./$< > $@ 2>&1
 
+$(PATHB)test_io.out: $(PATHO)test_io_run.o  $(PATHO)test_io.o $(PATHO)io.o $(PATHO)unity.o $(PATHO)bitops.o $(PATHO)register.o
+	$(LINK) -o $@ $^
+
+$(PATHB)test_parser.out: $(PATHO)test_parser_run.o  $(PATHO)test_parser.o $(PATHO)parser.o $(PATHO)unity.o $(PATHO)bitops.o $(PATHO)io.o $(PATHO)register.o $(PATHO)symbolmap.o $(PATHO)referencemap.o
+	$(LINK) -o $@ $^
+
 $(PATHB)test_%.out: $(PATHO)test_%_run.o  $(PATHO)test_%.o $(PATHO)%.o $(PATHO)unity.o
 	$(LINK) -o $@ $^
 

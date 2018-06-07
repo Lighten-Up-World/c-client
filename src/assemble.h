@@ -5,7 +5,7 @@
 #include "assemble/symbolmap.h"
 #include "assemble/referencemap.h"
 
-#define LINE_SIZE 511
+#define LINE_SIZE 512
 #define MAX_NUM_LINES 50
 
 typedef struct {

@@ -2,8 +2,8 @@
 .PHONY: build/
 .PHONY: emulate
 .PHONY: assemble
-
-CFLAGS = -Wall -Werror -pedantic -g
+DEBUG = -DDEBUG
+CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
 
 RUN = add01
 OUT = out
@@ -16,8 +16,11 @@ ASSEMBLE = ./assemble/
 COMPILE = gcc -c $(CFLAGS) $< -o $@
 all: assemble emulate
 
+debug_ass:
+	make clean; make assemble RUN=$(RUN)
+
 assemble: build ./build/assemble.out
-	$(BUILD)assemble.out ../test/test_cases/$(RUN) $(OUT)
+	$(BUILD)assemble.out ../test/test_cases/$(RUN).s $(OUT)
 
 $(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)symbolmap.o $(BUILD)referencemap.o $(BUILD)register.o
 	gcc $^ -o $@

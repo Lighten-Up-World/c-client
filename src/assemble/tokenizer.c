@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "../utils/arm.h"//EC
 #include "tokenizer.h"
 #include "../utils/error.h"
 
@@ -108,7 +109,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
 }
 
 int tokenize(char *line, token_list_t *out){
-
+  DEBUG_PRINT("Tokenize started on line: %s\n", line);
   char **token_strs = NULL;
   int n = str_separate(line, "[],:", ' ', &token_strs);
   token_t *tkns = malloc(n * sizeof(token_t));
