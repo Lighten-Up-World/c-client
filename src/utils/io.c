@@ -146,13 +146,6 @@ void print_state(state_t *state) {
   printf("Non-zero memory:\n");
   print_mem(state);
 }
-
-
-void print_token_lst(token_list_t tklst){
-  for (size_t i = 0; i < tklst->numOfTkns; i++) {
-    printf("%u: %s\n", tklst->tkns[i].type, tklst->tkns[i].str);
-  }
-}
 /**
  *  Write a file from a buffer to disk
  *
