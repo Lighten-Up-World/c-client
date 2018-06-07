@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
       program_delete(program);
       return EC_SYS; // encode failed
     }
-
+    printf("Word is: %08x\n", word);
     program->out[i * 4] = word;
     if (word == 0) {
       continue;

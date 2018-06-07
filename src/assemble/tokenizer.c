@@ -110,7 +110,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
 void print_token_lst(token_list_t tklst){
   printf("Tokens (%u)\n", tklst.numOfTkns);
   for (size_t i = 0; i < tklst.numOfTkns; i++) {
-    printf("%u: %s\n", tklst.tkns[i].type, tklst.tkns[i].str);
+    printf("%lu(T:%u): %s\n", i, tklst.tkns[i].type, tklst.tkns[i].str);
   }
 }
 

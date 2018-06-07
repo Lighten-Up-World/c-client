@@ -146,6 +146,7 @@ void print_state(state_t *state) {
   printf("Non-zero memory:\n");
   print_mem(state);
 }
+
 /**
  *  Write a file from a buffer to disk
  *
@@ -172,37 +173,37 @@ int write_file(const char *path, byte_t *buffer, size_t buffer_size) {
   return 0;
 }
 
-/**
-*  Loads a file from disk into a buffer
-*
-*  @param path: the path of the binary file to read from
-*  @param buffer: a pointer to an allocated array which the file will be read to
-*  @param buffer_size: the size of the buffer allocated
-*  @return a status code denoting the result
-*/
-int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
-  long file_size = 0;
-  FILE *fp = fopen(path, "rb");
-  if (fp == NULL) {
-    perror("fopen failed at path");
-    return 1;
-  }
-  file_size = ftell(fp);
-  if (file_size == -1) {
-    perror("Couldn't determine file size");
-    return 2;
-  }
-  const int read = fread(buffer, buffer_size, 1, fp);
-  if (read != file_size && ferror(fp)) {
-    perror("Couldn't read file to completion");
-    return 3;
-  }
-  if (fclose(fp) != 0) {
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
-}
+// /**
+// *  Loads a file from disk into a buffer
+// *
+// *  @param path: the path of the binary file to read from
+// *  @param buffer: a pointer to an allocated array which the file will be read to
+// *  @param buffer_size: the size of the buffer allocated
+// *  @return a status code denoting the result
+// */
+// int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
+//   long file_size = 0;
+//   FILE *fp = fopen(path, "rb");
+//   if (fp == NULL) {
+//     perror("fopen failed at path");
+//     return 1;
+//   }
+//   file_size = ftell(fp);
+//   if (file_size == -1) {
+//     perror("Couldn't determine file size");
+//     return 2;
+//   }
+//   const int read = fread(buffer, buffer_size, 1, fp);
+//   if (read != file_size && ferror(fp)) {
+//     perror("Couldn't read file to completion");
+//     return 3;
+//   }
+//   if (fclose(fp) != 0) {
+//     perror("Couldn't close file");
+//     return 4;
+//   }
+//   return 0;
+// }
 
 /**
 *  Loads a file from disk as list of strings

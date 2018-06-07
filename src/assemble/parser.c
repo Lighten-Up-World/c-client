@@ -102,25 +102,28 @@ op_rotate_immediate_t make_rotation(word_t value) {
  * @return the operand
  */
 operand_t get_imm_op2(char *operand2) {
+  DEBUG_CMD(printf("Immediate OP\n"));
   operand_t result;
 
   // Strip leading hash sign
   char *strVal = remove_first_char(operand2);
 
+  DEBUG_PRINT("Operand2: %s\n", operand2);
   // Determine the base (hex or decimal) and convert to int
   uint8_t base = (uint8_t) ((strncmp("0x", operand2, 2) == 0) ?
       HEX_BASE : DEC_BASE);
   if (base == HEX_BASE) {
     strVal = remove_first_char(remove_first_char(strVal));
   }
+  DEBUG_CMD(printf("Raw Val\n"));
   uint64_t raw_val = (uint64_t) strtoul(strVal, NULL, base);
-
   // Num cannot be represented if it is larger than 32 bits
   uint64_t big_mask = UINT64_MAX - UINT32_MAX;
   if ((raw_val & big_mask) != 0) {
     perror("number cannot be represented");
+    exit(EXIT_FAILURE);
   }
-
+  DEBUG_CMD(printf("Rotate\n"));
   // If num is bigger than 8 bits we must use a rotate
   uint32_t small_mask = UINT32_MAX - UINT8_MAX;
   if ((raw_val & small_mask) != 0) {
@@ -148,13 +151,14 @@ operand_t get_imm_op2(char *operand2) {
  */
 
 int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
+  DEBUG_CMD(printf("----\nDP:\n"));
   // Get opcode enum
   char *opcode = GET_STR(0);
   opcode_t op_enum = str_to_enum(opcode);
   // Set whether the CPSR flags should be set
   bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
   // Set position of rn and position of operand2
-  int rn_pos = S ? 1 : 3;
+  int rn_pos = S || COMPARE_OP("mov") ? 1 : 3;
 
   // Set all instruction fields
   inst->type = DP;
@@ -164,6 +168,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.dp.S = S;
   inst->i.dp.rn = PARSE_REG(rn_pos);
   inst->i.dp.rd = PARSE_REG(RD_POS);
+  DEBUG_PRINT("RN_POS: %u\n", rn_pos);
   inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
 
   return EC_OK;
@@ -177,7 +182,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 ===============================================>>>>>*/
 
 int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
-
+  DEBUG_CMD(printf("MUL:\n"));
   flag_t A = (flag_t) strcmp(GET_STR(0), "mul");
 
   reg_address_t rd = PARSE_REG(RD_POS);
@@ -215,7 +220,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 * Case 4b: <code> Rd, [Rn],{+/-}Rm{,<shift>} {8-12}
 */
 int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
-
+  DEBUG_CMD(printf("SDT:\n"));
   char *opcode = GET_STR(0);
   flag_t L = COMPARE_OP("ldr");
   if(!L && !COMPARE_OP("str")){
@@ -509,6 +514,7 @@ int parse_lsl_conversion(program_t *prog, token_list_t *tlst, instruction_t *ins
 }
 
 int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
+  DEBUG_CMD(printf("HAL:\n"));
   inst->type = HAL;
   inst->i.hal.pad0 = 0u;
   return EC_OK;
@@ -537,6 +543,7 @@ void parse_label(program_t *prog, token_list_t *tlst) {
 int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   // If the assembly line is a label
   if (is_label(tlst)) {
+    DEBUG_CMD(printf("LABEL:\n"));
     parse_label(prog, tlst);
     return EC_OK;
   }
@@ -546,6 +553,7 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 
   // Parse a branch instruction and its condition
   if (strncmp(opcode, "b", 1) == 0) {
+    DEBUG_CMD(printf("BRANCH:\n"));
     return parse_brn(prog, tlst, inst);
   }
 
@@ -553,6 +561,7 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   inst->cond = AL_COND_CODE; //0b1110
 
   if (strcmp("lsl", opcode) == 0) {
+    DEBUG_CMD(printf("LSL:\n"));
     perror("lsl not supported yet");
     return EC_UNSUPPORTED_OP;
   }
