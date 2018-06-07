@@ -10,11 +10,7 @@
 #include "assemble/encode.h"
 #include "assemble.h"
 
-typedef struct {
-  program_t *prog;
-  label_t label;
-  address_t addr;
-} prog_collection_t;
+
 
 /**
  * Allocate memory for the input stored in the program

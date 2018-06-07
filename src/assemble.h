@@ -17,6 +17,12 @@ typedef struct {
   word_t mPC;
 } program_t;
 
+typedef struct {
+  program_t *prog;
+  label_t label;
+  address_t addr;
+} prog_collection_t;
+
 program_t *program_new();
 int program_delete(program_t *);
 
