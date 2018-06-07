@@ -1,14 +1,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assemble.h>
-#include <utils/arm.h>
 #include "../assemble.h"
 #include "parser.h"
 #include "tokenizer.h"
 #include "../utils/error.h"
 #include "../utils/bitops.h"
 #include "../utils/instructions.h"
+#include "../assemble.c"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tlst->tkns[Rn].str))
 #define PARSE_EXPR(tok) ((int) strtol(remove_first_char(tok), NULL, 0))
@@ -51,17 +50,17 @@ const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
 };
 
 bool is_label(token_list_t *tlst) {
-  return GET_TYPE(tlst->n - 1) == T_LABEL;
+  return GET_TYPE(tlst->numOfTkns - 1) == T_LABEL;
 }
 
 int str_to_enum(char *opcode){
-  opcode_t op_enum = -1;
+  opcode_t op_enum = NULL;
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (COMPARE_OP(oplist[i].op)) {
       op_enum = oplist[i].op_enum;
     }
   }
-  if (op_enum == -1) return -1;
+  if (op_enum == NULL) return -1;
   return op_enum;
 }
 
@@ -94,7 +93,6 @@ op_rotate_immediate_t make_rotation(word_t value) {
   return op;
 }
 
-//TODO: rotated values
 /**
  * Get the immediate value from operand2
  *
@@ -394,17 +392,17 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
     // Check if label is already in map, if so get address
     char *label = tlst->tkns[0].str;
     if (is_in_map(label)) {
-      offset = calculate_offset(get_from_map(label));
+      offset = calculate_offset(get_from_map(label), prog->mPC);
     } else {
       // Add label to map for processing later?
-      offset = NULL; // dummy value
+      offset = 0; // dummy value
     }
   } else {
     offset = calculate_offset(atoi(tlst->tkns[0].str), prog->mPC);
   }
 
   inst->type = BRN;
-  inst->i.brn.padA = (byte_t) HEX_TEN;
+  inst->i.brn.padA = 15u & (unsigned) HEX_TEN; //this is necessary to remove gcc warning
   inst->i.brn.offset = offset;
 
   return EC_OK;
