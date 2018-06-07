@@ -4,6 +4,7 @@
 #include "../assemble.h"
 #include "parser.h"
 #include "tokenizer.h"
+#include "../utils/io.h"
 #include "../utils/error.h"
 #include "../utils/bitops.h"
 #include "../utils/instructions.h"
@@ -245,9 +246,11 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
 
         return parse_dp(prog, &mod_tlst, inst);
       }
-
-      int offset = address; // - prog->mPC - 8; Isn't this just for branch?
-      char *newline = malloc();
+      char *address_str = itoa(address);
+      int hash_expr_len = strlen(address_str) + 1;
+      char *hash_expr = calloc(1,hash_expr_len);
+      hash_expr[0] = '#';
+      strcat(hash_expr, address_str);
       // asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
       // tokenize(newline, tlst);
       token_t mod_tkns[] = {
@@ -257,7 +260,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
               {T_L_BRACKET, "["},
               {T_REGISTER, "r15"},
               {T_COMMA, ","},
-              {T_HASH_EXPR, strcat("#", itoa(address))},
+              {T_HASH_EXPR, hash_expr},
               {T_R_BRACKET, "]"}
       };
       token_list_t mod_tlst = {mod_tkns, 8};

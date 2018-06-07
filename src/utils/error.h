@@ -21,13 +21,6 @@ typedef struct {
   const char *message;
 } error_str;
 
-const error_str error_strs[] = {
-    {EC_OK, "No error encountered."},
-    {EC_NULL_POINTER, "Passed a null pointer."},
-    {EC_UNSUPPORTED_OP, "This operation is not supported."},
-    {EC_INVALID_PARAM, "Invalid parameter."}
-};
-
 // Convert error codes to and from system ones
 #define EC_FROM_SYS_ERROR(e) (EC_SYS + e)
 #define EC_TO_SYS_ERROR(e) (e - EC_SYS)

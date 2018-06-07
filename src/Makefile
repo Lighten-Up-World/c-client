@@ -6,6 +6,7 @@
 CFLAGS = -Wall -Werror -pedantic
 
 RUN = factorial
+OUT =
 
 BUILD = ./build/
 UTIL = ./utils/
@@ -13,11 +14,12 @@ EMULATE = ./emulate/
 ASSEMBLE = ./assemble/
 
 COMPILE = gcc -c $(CFLAGS) $< -o $@
+all: assemble emulate
 
 assemble: build ./build/assemble.out
-	$(BUILD)assemble.out ../test/test_cases/$(RUN)
+	$(BUILD)assemble.out ../test/test_cases/$(RUN) $(OUT)
 
-$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)symbolmap.o $(BUILD)referencemap.o
+$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)symbolmap.o $(BUILD)referencemap.o $(BUILD)register.o
 	gcc $^ -o $@
 
 $(BUILD)assemble.o: assemble.c assemble.h
@@ -44,27 +46,27 @@ emulate: build ./build/emulate.out
 $(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
 	gcc $^ -o $@
 
-$(BUILD)emulate.o: emulate.c $(UTIL)arm.h $(UTIL)io.h $(EMULATE)execute.h $(EMULATE)decode.h $(EMULATE)register.h
+$(BUILD)emulate.o: emulate.c $(UTIL)arm.h $(UTIL)io.h $(EMULATE)execute.h $(EMULATE)decode.h $(UTIL)register.h
 	$(COMPILE)
 
-$(BUILD)execute.o: $(EMULATE)execute.c $(EMULATE)execute.h $(UTIL)bitops.h $(EMULATE)register.h
+$(BUILD)execute.o: $(EMULATE)execute.c $(EMULATE)execute.h $(UTIL)bitops.h $(UTIL)register.h
 	$(COMPILE)
 
 $(BUILD)decode.o: $(EMULATE)decode.c $(EMULATE)decode.h $(UTIL)arm.h $(UTIL)instructions.h $(UTIL)bitops.h
 	$(COMPILE)
 
-$(BUILD)register.o: $(EMULATE)register.c $(EMULATE)register.h $(UTIL)arm.h
-	$(COMPILE)
-
 # UTILITY OBJECTS
 
-$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h
+$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h $(UTIL)register.h
 	$(COMPILE)
 
 $(BUILD)bitops.o: $(UTIL)bitops.c $(UTIL)bitops.h
 	$(COMPILE)
 
 $(BUILD)error.o: $(UTIL)error.c $(UTIL)error.h
+	$(COMPILE)
+
+$(BUILD)register.o: $(UTIL)register.c $(UTIL)register.h $(UTIL)arm.h
 	$(COMPILE)
 
 dependencies:

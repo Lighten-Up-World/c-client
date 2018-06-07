@@ -2,12 +2,12 @@
 #include "../utils/error.h"
 
 // Based on djb2 by Dan Bernstein
-unsigned long hash(const label_t label){
-  unsigned long hash = 5381;
+unsigned long smap_hash(const label_t label){
+  unsigned long smap_hash = 5381;
   for (size_t i = 0; i < strlen(label); i++) {
-    hash = ((hash << 5) + hash) + label[i];
+    smap_hash = ((smap_hash << 5) + smap_hash) + label[i];
   }
-	return hash;
+	return smap_hash;
 }
 
 /**
@@ -98,7 +98,7 @@ int smap_get_address(const symbol_map_t *map, const label_t label, address_t *ou
   if(out == NULL){
     return EC_INVALID_PARAM;
   }
-  size_t ind = hash(label) % map->count;
+  size_t ind = smap_hash(label) % map->count;
   sbucket_t *bucket = &(map->buckets[ind]);
   symbol_t *symbol = get_symbol(bucket, label);
   if(symbol == NULL){
@@ -122,7 +122,7 @@ int smap_exists(const symbol_map_t *map, const label_t label){
   if(label == NULL){
     return 0;
   }
-  size_t ind = hash(label) % map->count;
+  size_t ind = smap_hash(label) % map->count;
   sbucket_t *bucket = &(map->buckets[ind]);
   symbol_t *symbol = get_symbol(bucket, label);
   if(symbol == NULL){
@@ -147,8 +147,7 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
     return EC_INVALID_PARAM;
   }
   size_t label_len = strlen(label);
-  size_t address_len = sizeof(address_t);
-  size_t ind = hash(label) % map->count;
+  size_t ind = smap_hash(label) % map->count;
   sbucket_t *bucket = &(map->buckets[ind]);
 
   symbol_t *symbol;

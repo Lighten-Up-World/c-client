@@ -1,12 +1,12 @@
 /*
 *  Contains IO related operations, operating on either the ARM machine state or local disk.
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "io.h"
 #include "bitops.h"
+#include "register.h"
 
 int check_address_valid(word_t addr) {
   if (addr > MEM_SIZE) {
@@ -14,6 +14,13 @@ int check_address_valid(word_t addr) {
     return 1;
   }
   return 0;
+}
+
+char *itoa(int n)
+{
+  char *res = calloc(8, sizeof(int));
+  sprintf(res, "%d", n);
+  return res;
 }
 
 /**

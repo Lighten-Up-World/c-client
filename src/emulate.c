@@ -10,7 +10,7 @@
 #include "utils/io.h"
 #include "emulate/execute.h"
 #include "emulate/decode.h"
-#include "emulate/register.h"
+#include "utils/register.h"
 
 int main(int argc, char **argv) {
   assert(argc > 1);

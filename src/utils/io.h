@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include "arm.h"
-#include "../emulate/register.h"
 
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
@@ -17,5 +16,7 @@ void print_state(state_t *state);
 int write_file(const char *path, byte_t *buffer, size_t buffer_size);
 int read_file(const char *path, byte_t *buffer, size_t buffer_size);
 int read_char_file(const char *path, char ** buffer, int* num_of_lines);
+
+char *itoa(int n);
 
 #endif

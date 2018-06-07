@@ -4,12 +4,12 @@
 #include "../utils/error.h"
 
 // Based on djb2 by Dan Bernstein
-unsigned long hash(const label_t label){
-  unsigned long hash = 5381;
+unsigned long rmap_hash(const label_t label){
+  unsigned long rmap_hash = 5381;
   for (size_t i = 0; i < strlen(label); i++) {
-    hash = ((hash << 5) + hash) + label[i];
+    rmap_hash = ((rmap_hash << 5) + rmap_hash) + label[i];
   }
-	return hash;
+	return rmap_hash;
 }
 
 /**
@@ -105,7 +105,7 @@ int rmap_get_references(const reference_map_t *map, const label_t label,
   if (out == NULL) {
     return EC_INVALID_PARAM;
   }
-  size_t ind = hash(label) % map->count;
+  size_t ind = rmap_hash(label) % map->count;
   rbucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
   if (entry == NULL) {
@@ -152,7 +152,7 @@ int rmap_exists(const reference_map_t *map, const label_t label) {
   if (label == NULL) {
     return 0;
   }
-  size_t ind = hash(label) % map->count;
+  size_t ind = rmap_hash(label) % map->count;
   rbucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
   if (entry == NULL) {
@@ -179,7 +179,7 @@ int rmap_put(const reference_map_t *map, const label_t label,
   }
   size_t label_len = strlen(label);
 
-  size_t ind = hash(label) % map->count;
+  size_t ind = rmap_hash(label) % map->count;
   rbucket_t *bucket = &(map->buckets[ind]);
 
   entry_t *entry;
@@ -205,7 +205,7 @@ int rmap_put(const reference_map_t *map, const label_t label,
   if (new_label == NULL) {
     return EC_NULL_POINTER;
   }
-  if (bucket->count = 0) {
+  if (bucket->count == 0) {
     bucket->entries = malloc(sizeof(entry_t));
     if (bucket->entries == NULL) {
       free(new_label);

@@ -45,9 +45,6 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   assert(src != NULL && output != NULL);
 
   int len = strlen(src);
-  for (int i = 0; i < len; i++) {
-    char chr = src[i];
-  }
 
   // Loops through src to count number of tokens needed
   int splits = 0;
