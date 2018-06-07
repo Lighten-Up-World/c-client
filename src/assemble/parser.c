@@ -58,7 +58,6 @@ int str_to_enum(char *opcode){
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (COMPARE_OP(oplist[i].op)) {
       op_enum = oplist[i].op_enum;
-      isSet = 1;
     }
   }
   if (op_enum == -1) return -1;
