@@ -1,7 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <instructions.h>
+#include <assemble.h>
+#include <utils/arm.h>
 #include "../assemble.h"
 #include "parser.h"
 #include "tokenizer.h"
@@ -48,6 +49,10 @@ const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
     {"lsl", MOV,   &parse_lsl},   // ...
     {"andeq", MOV, &parse_halt} // ...
 };
+
+bool is_label(token_list_t *tlst) {
+  return GET_TYPE(tlst->n - 1) == T_LABEL;
+}
 
 int str_to_enum(char *opcode){
   opcode_t op_enum = -1;
@@ -331,7 +336,36 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 = BRANCH INSTRUCTION
 ===============================================>>>>>*/
 
-// TODO: calculate offset
+/**
+ * Calculate the offset of an address from the current Program Counter, to be stored in a BRN instruction
+ *
+ * @param address: the address to calculate the offset of
+ * @param PC: the address of the branch instruction being executed
+ * @return: the offset to be store - a shifted 24 bit value
+ */
+word_t calculate_offset(int address, word_t PC) {
+  word_t offset = address - PC;
+
+  // TODO: should we add 8 or subtract 8?
+  // Take into account the effect of the pipeline
+  offset += 8;
+  //offset -= 8;
+
+  // Check we can store in 26 bits
+  if (get_bits(offset, 31, 25) != 0) {
+    perror("offset was too large to store");
+    return 1;
+  }
+
+  // Shift right by 2 then store (in 24 bits)
+  shift_result_t shifted_offset = a_shift_right_c(offset, 2);
+  if (shifted_offset.carry == true) {
+    perror("carry occurred when trying to store offset");
+    return 1;
+  }
+  return shifted_offset.value;
+}
+
 /**
 * Parses a branch instruction
 * Syntax is: b<code> <expression>
@@ -354,18 +388,23 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
     }
   }
 
-  // Parse for offset
   word_t offset;
-
-  // Check if offset is a label
-  if (offset_is_label(offset)) {
-    // do something
+  if (is_label(tlst)) {
+    // TODO
+    // Check if label is already in map, if so get address
+    char *label = tlst->tkns[0].str;
+    if (is_in_map(label)) {
+      offset = calculate_offset(get_from_map(label));
+    } else {
+      // Add label to map for processing later?
+      offset = NULL; // dummy value
+    }
   } else {
-    // need to calculate offset for address given?
-    // what's our current address?
+    offset = calculate_offset(atoi(tlst->tkns[0].str), prog->mPC);
   }
+
   inst->type = BRN;
-  inst->i.brn.padA = HEX_TEN;
+  inst->i.brn.padA = (byte_t) HEX_TEN;
   inst->i.brn.offset = offset;
 
   return EC_OK;
@@ -473,11 +512,6 @@ int add_symbol(program_t *program, label_t label, address_t addr) {
 int add_reference(program_t *program, label_t label, address_t addr) {
   // adds reference to ref_map.
   return !rmap_put(program->ref_m, label, addr);
-}
-
-
-bool is_label(token_list_t *tlst) {
-  return GET_TYPE(tlst->n - 1) == T_LABEL;
 }
 
 void parse_label(program_t *prog, token_list_t *tlst) {
