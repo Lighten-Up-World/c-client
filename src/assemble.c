@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
       free(lineTokens);
       return EC_SYS; //parse failed
     }
-    free(&lineTokens);
+    free(lineTokens);
 
     if (encode(&instr, &word)) {
       return EC_SYS; // encode failed
