@@ -53,13 +53,15 @@ bool is_label(token_list_t *tlst) {
 }
 
 int str_to_enum(char *opcode){
-  opcode_t op_enum = -1;
+  opcode_t op_enum;
+  int isSet = 0;
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (COMPARE_OP(oplist[i].op)) {
       op_enum = oplist[i].op_enum;
+      isSet = 1;
     }
   }
-  if (op_enum == -1) return -1;
+  if (!isSet) return -1;
   return op_enum;
 }
 
