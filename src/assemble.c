@@ -23,12 +23,16 @@ char **allocate_input(int lines, int lineLength) {
   unsigned int i;
 
   in = malloc(lines * sizeof(char *));
+  if(in == NULL){
+    return NULL;
+  }
   in[0] = malloc(lines * lineLength * sizeof(char));
-  if (!in[0]) {
+  if (in[0] == NULL) {
+    free(in);
     return NULL; // failed;
   }
 
-  for (i = 0; i < lines; i++) {
+  for (i = 1; i < lines; i++) {
     in[i] = in[i-1] + lineLength;
   }
 
@@ -43,22 +47,28 @@ char **allocate_input(int lines, int lineLength) {
 program_t *program_new() {
   program_t *program;
   program = malloc(sizeof(program_t));
-  if (!program) {
+  if (program == NULL) {
     return NULL;
   }
 
   program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
-  program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
   if (program->sym_m == NULL) {
+    free(program);
     return NULL;
   }
+  program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
   if (program->ref_m == NULL) {
+    smap_delete(program->sym_m);
+    free(program);
     return NULL;
   }
 
   // Ideally use function to count the number of lines
   program->in = allocate_input(MAX_NUM_LINES, LINE_SIZE);
   if (program->in == NULL) {
+    rmap_delete(program->ref_m);
+    smap_delete(program->sym_m);
+    free(program);
     return NULL;
   }
 
@@ -121,6 +131,7 @@ int main(int argc, char **argv) {
   }
 
   if (read_char_file(argv[1], program->in,  &program->lines)) {
+    program_delete(program);
     return EC_SYS; // failed to read input. Need this in emulate too?
   }
 
@@ -136,11 +147,13 @@ int main(int argc, char **argv) {
 
     if (parse(program, lineTokens, &instr)) {
       free(lineTokens);
+      program_delete(program);
       return EC_SYS; //parse failed
     }
     free(lineTokens);
 
     if (encode(&instr, &word)) {
+      program_delete(program);
       return EC_SYS; // encode failed
     }
 

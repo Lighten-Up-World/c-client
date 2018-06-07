@@ -3,7 +3,7 @@
 .PHONY: emulate
 .PHONY: assemble
 
-CFLAGS = -Wall -Werror -pedantic
+CFLAGS = -Wall -Werror -pedantic -g
 
 RUN = add01
 OUT = out
