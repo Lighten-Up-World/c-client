@@ -543,6 +543,11 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   // Not a branch instruction so set condition to always execute
   inst->cond = AL_COND_CODE; //0b1110
 
+  if (strcmp("lsl", opcode) == 0) {
+    perror("lsl not supported yet");
+    return EC_UNSUPPORTED_OP;
+  }
+
   // Calculate function pointer to parse an instruction from the opcode
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (strcmp(oplist[i].op, opcode) == 0) {
