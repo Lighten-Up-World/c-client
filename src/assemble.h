@@ -23,13 +23,4 @@ typedef struct {
   address_t addr;
 } prog_collection_t;
 
-program_t *program_new();
-int program_delete(program_t *);
-
-int program_add_symbol(program_t *, label_t, address_t);
-int program_add_reference(program_t *, label_t, address_t);
-
-void program_toString(program_t*);
-void print_bin_instr(byte_t*, int);
-
 #endif

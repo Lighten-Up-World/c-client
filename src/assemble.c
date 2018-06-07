@@ -125,8 +125,7 @@ int main(int argc, char **argv) {
   }
 
   // set up variables for assembler
-  token_list_t *lineTokens;
-  int numTokens;
+  token_list_t *lineTokens = NULL;
   instruction_t instr;
   word_t word;
 
