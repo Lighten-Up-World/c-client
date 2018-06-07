@@ -65,7 +65,6 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
     }
   }
   int n = splits + 1;
-  printf("%u\n", n);
   *output = malloc(n * sizeof(char *)); // Allocated memory for 2D array outer
   if(output == NULL){
     return -EC_NULL_POINTER;
@@ -116,11 +115,14 @@ int tokenize(char *line, token_list_t *out){
   if(tkns == NULL){
     return -1;
   }
+
   *tkns = (token_t) {T_OPCODE, token_strs[0]};
   for (int i = 1; i < n; i++) {
     *(tkns+i) = (token_t) {token_type(token_strs[i]), token_strs[i]};
   }
+
   free(token_strs);
+
   *out = (token_list_t) {tkns, n};
   return n;
 }

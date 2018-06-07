@@ -139,23 +139,21 @@ int main(int argc, char **argv) {
   DEBUG_PRINT("%u\n", _status);
 
   // set up variables for assembler
-  token_list_t *lineTokens = NULL;
+  token_list_t lineTokens;
   instruction_t instr;
   word_t word;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
     DEBUG_PRINT("======== LINE %u ======\n", i);
-    int t_ec = tokenize(program->in[i], lineTokens);
-    DEBUG_PRINT("Tokenize ec:%u \n", t_ec);
-
-    if (parse(program, lineTokens, &instr)) {
-      free(lineTokens);
+    int t_ec = tokenize(program->in[i], &lineTokens);
+    if(t_ec == -1){
+      return EC_NULL_POINTER;
+    }
+    if (parse(program, &lineTokens, &instr)) {
       program_delete(program);
       return EC_SYS; //parse failed
     }
-    free(lineTokens);
-
     if (encode(&instr, &word)) {
       program_delete(program);
       return EC_SYS; // encode failed
