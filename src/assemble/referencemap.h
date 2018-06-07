@@ -30,7 +30,7 @@ typedef struct {
   rbucket_t *buckets;
 } reference_map_t;
 
-unsigned long hash(const label_t label);
+unsigned long rmap_hash(const label_t label);
 
 reference_map_t *rmap_new(size_t capacity);
 

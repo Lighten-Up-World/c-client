@@ -25,7 +25,7 @@ typedef struct {
   sbucket_t *buckets;
 } symbol_map_t;
 
-unsigned long hash(const label_t label);
+unsigned long smap_hash(const label_t label);
 
 symbol_map_t *smap_new(size_t capacity);
 int smap_delete(symbol_map_t *map);

@@ -22,7 +22,7 @@ void test_referencemap(void) {
   printf("Put ver 2 %u\n", rmap_put(rm, ver, 2));
   printf("Put ver 3 %u\n", rmap_put(rm, ver, 3));
   printf("Put ver 4 %u\n", rmap_put(rm, ver, 4));
-  int bucket = hash(ver) % 10;
+  int bucket = rmap_hash(ver) % 10;
   printf("Label: %s %u\n", ver, bucket);
 
   printf("Size of Bucket %u: %lu\n", bucket, rm->buckets[bucket].count);

@@ -5,8 +5,8 @@
 
 CFLAGS = -Wall -Werror -pedantic
 
-RUN = factorial
-OUT =
+RUN = add01
+OUT = out
 
 BUILD = ./build/
 UTIL = ./utils/
