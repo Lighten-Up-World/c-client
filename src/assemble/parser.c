@@ -268,6 +268,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
               {T_HASH_EXPR, hash_expr},
               {T_R_BRACKET, "]"}
       };
+      free(hash_expr);
       token_list_t mod_tlst = {mod_tkns, 8};
       return parse_sdt(prog, &mod_tlst, inst);
 
