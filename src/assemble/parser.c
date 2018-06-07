@@ -331,6 +331,55 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 = BRANCH INSTRUCTION
 ===============================================>>>>>*/
 
+
+/**
+* Update memory according to reference entry
+*
+* @param label : current string representation of the label in entry
+* @param val : current value of entry
+* @param obj : A prog_collection_t object which collects, program, label and addr.
+*/
+void ref_entry(const label_t label, const address_t val, const void *obj){
+  prog_collection_t *prog_coll = (prog_collection_t *) obj;
+  if(label == prog_coll->label){
+    prog_coll->prog->out[val] = prog_coll->addr;
+  }
+}
+
+/**
+ * Add a symbol to the symbol table in the program and update reference table
+ *
+ * @param program : pointer to the program information DataType
+ * @param label : represents a point to branch off to
+ * @param addr : address accompanied by label
+ * @return : 0 or 1 depending whether the addition was successful or not
+ */
+int add_symbol(program_t *program, label_t label, address_t addr) {
+  if (!smap_put(program->sym_m, label, addr)) {
+    return 0; // already in symbol map
+  }
+  prog_collection_t prog_coll = {program, label, addr};
+  // check if symbol exists in ref_map and update/remove accordingly
+  if (rmap_exists(program->ref_m, label)) {
+    rmap_enum(program->ref_m, ref_entry, &prog_coll);
+  }
+
+  return 1;
+}
+
+/**
+ * add a symbol to the reference map stored in the program
+ *
+ * @param program : pointer to the program information DataType
+ * @param label : represents a point to branch off to
+ * @param addr : address accompanied by label
+ * @return : 0 or 1 depending whether the addition was successful or not
+ */
+int add_reference(program_t *program, label_t label, address_t addr) {
+  // adds reference to ref_map.
+  return !rmap_put(program->ref_m, label, addr);
+}
+
 /**
  * Calculate the offset of an address from the current Program Counter, to be stored in a BRN instruction
  *
@@ -388,8 +437,10 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
     // TODO
     // Check if label is already in map, if so get address
     char *label = tlst->tkns[0].str;
-    if (is_in_symbol_map(label)) {
-      offset = calculate_offset(get_from_symbol_map(label), prog->mPC);
+    if (smap_exists(prog->sym_m, label)) {
+      address_t addr = 0;
+      smap_get_address(prog->sym_m, label, &addr);
+      offset = calculate_offset(addr, prog->mPC);
     } else {
       // Add label to reference map for processing later?
       offset = 0; // dummy value
@@ -457,54 +508,6 @@ int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 /*=============================================>>>>>
 = LABEL INSTRUCTIONS
 ===============================================>>>>>*/
-
-/**
-* Update memory according to reference entry
-*
-* @param label : current string representation of the label in entry
-* @param val : current value of entry
-* @param obj : A prog_collection_t object which collects, program, label and addr.
-*/
-void ref_entry(const label_t label, const address_t val, const void *obj){
-  prog_collection_t prog_coll = (prog_collection_t) obj;
-  if(label == prog_coll.label){
-    prog_coll.prog->out[val] = prog_coll.addr;
-  }
-}
-
-/**
- * Add a symbol to the symbol table in the program and update reference table
- *
- * @param program : pointer to the program information DataType
- * @param label : represents a point to branch off to
- * @param addr : address accompanied by label
- * @return : 0 or 1 depending whether the addition was successful or not
- */
-int add_symbol(program_t *program, label_t label, address_t addr) {
-  if (!smap_put(program->sym_m, label, addr)) {
-    return 0; // already in symbol map
-  }
-  prog_collection_t prog_coll = {program, label, addr};
-  // check if symbol exists in ref_map and update/remove accordingly
-  if (rmap_exists(program->ref_m, label)) {
-    rmap_enum(program->ref_m, ref_entry, prog_coll);
-  }
-
-  return 1;
-}
-
-/**
- * add a symbol to the reference map stored in the program
- *
- * @param program : pointer to the program information DataType
- * @param label : represents a point to branch off to
- * @param addr : address accompanied by label
- * @return : 0 or 1 depending whether the addition was successful or not
- */
-int add_reference(program_t *program, label_t label, address_t addr) {
-  // adds reference to ref_map.
-  return !rmap_put(program->ref_m, label, addr);
-}
 
 void parse_label(program_t *prog, token_list_t *tlst) {
   char *label = GET_STR(0);
