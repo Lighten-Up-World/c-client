@@ -108,6 +108,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
 }
 
 void print_token_lst(token_list_t tklst){
+  printf("Tokens (%u)\n", tklst.numOfTkns);
   for (size_t i = 0; i < tklst.numOfTkns; i++) {
     printf("%u: %s\n", tklst.tkns[i].type, tklst.tkns[i].str);
   }
@@ -116,7 +117,7 @@ void print_token_lst(token_list_t tklst){
 int tokenize(char *line, token_list_t *out){
   DEBUG_PRINT("Tokenize started on line: %s", line);
   char **token_strs = NULL;
-  
+
   line[strlen(line) - 1] = '\0'; //Strips \n
 
   int n = str_separate(line, "[],:", ' ', &token_strs);
@@ -129,9 +130,9 @@ int tokenize(char *line, token_list_t *out){
   for (int i = 1; i < n; i++) {
     *(tkns+i) = (token_t) {token_type(token_strs[i]), token_strs[i]};
   }
-
   free(token_strs);
 
   *out = (token_list_t) {tkns, n};
+  DEBUG_CMD(print_token_lst(*out));
   return n;
 }
