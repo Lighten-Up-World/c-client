@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
   //convert each line to binary
   for (int i = 0; i < program->lines; ++i) {
 
-    tokenize(program->in[i], &lineTokens);
+    tokenize(program->in[i], lineTokens);
 
     if (parse(program, lineTokens, &instr)) {
       free(lineTokens);
