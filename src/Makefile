@@ -2,7 +2,7 @@
 .PHONY: build/
 .PHONY: emulate
 .PHONY: assemble
-	
+
 DEBUG = -DDEBUG
 CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
 
