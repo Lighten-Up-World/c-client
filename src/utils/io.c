@@ -7,6 +7,7 @@
 #include "io.h"
 #include "bitops.h"
 #include "register.h"
+#include "error.h"
 
 int check_address_valid(word_t addr) {
   if (addr > MEM_SIZE) {
@@ -65,6 +66,17 @@ int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
   return 0;
 }
 
+int set_word(byte_t *buff, word_t byteAddr, word_t word){
+  assert(buff != NULL);
+  for (size_t i = 1; i < 5; i++) {
+    DEBUG_PRINT("M[%04x] = %04x\n\t\t",
+                byteAddr + (word_t) i - 1,
+                get_byte(word, (i * 8) - 1));
+    buff[byteAddr + i - 1] = get_byte(word, (i * 8) - 1);
+  }
+  return EC_OK;
+}
+
 /**
  * Write a word at a specified byte address in memory
  *
@@ -75,14 +87,8 @@ int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
  */
 int set_mem_word(state_t *state, word_t byteAddr, word_t word) {
   assert(state != NULL);
-  if (check_address_valid(byteAddr)) { return 1; }
-  for (size_t i = 1; i < 5; i++) {
-    DEBUG_PRINT("M[%04x] = %04x\n\t\t",
-                byteAddr + (word_t) i - 1,
-                get_byte(word, (i * 8) - 1));
-    state->memory[byteAddr + i - 1] = get_byte(word, (i * 8) - 1);
-  }
-  return 0;
+  if (check_address_valid(byteAddr)) { return EC_INVALID_PARAM; }
+  return set_word(state->memory, byteAddr, word);;
 }
 
 /**
@@ -173,37 +179,37 @@ int write_file(const char *path, byte_t *buffer, size_t buffer_size) {
   return 0;
 }
 
-// /**
-// *  Loads a file from disk into a buffer
-// *
-// *  @param path: the path of the binary file to read from
-// *  @param buffer: a pointer to an allocated array which the file will be read to
-// *  @param buffer_size: the size of the buffer allocated
-// *  @return a status code denoting the result
-// */
-// int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
-//   long file_size = 0;
-//   FILE *fp = fopen(path, "rb");
-//   if (fp == NULL) {
-//     perror("fopen failed at path");
-//     return 1;
-//   }
-//   file_size = ftell(fp);
-//   if (file_size == -1) {
-//     perror("Couldn't determine file size");
-//     return 2;
-//   }
-//   const int read = fread(buffer, buffer_size, 1, fp);
-//   if (read != file_size && ferror(fp)) {
-//     perror("Couldn't read file to completion");
-//     return 3;
-//   }
-//   if (fclose(fp) != 0) {
-//     perror("Couldn't close file");
-//     return 4;
-//   }
-//   return 0;
-// }
+/**
+*  Loads a file from disk into a buffer
+*
+*  @param path: the path of the binary file to read from
+*  @param buffer: a pointer to an allocated array which the file will be read to
+*  @param buffer_size: the size of the buffer allocated
+*  @return a status code denoting the result
+*/
+int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
+  long file_size = 0;
+  FILE *fp = fopen(path, "rb");
+  if (fp == NULL) {
+    perror("fopen failed at path");
+    return 1;
+  }
+  file_size = ftell(fp);
+  if (file_size == -1) {
+    perror("Couldn't determine file size");
+    return 2;
+  }
+  const int read = fread(buffer, buffer_size, 1, fp);
+  if (read != file_size && ferror(fp)) {
+    perror("Couldn't read file to completion");
+    return 3;
+  }
+  if (fclose(fp) != 0) {
+    perror("Couldn't close file");
+    return 4;
+  }
+  return 0;
+}
 
 /**
 *  Loads a file from disk as list of strings

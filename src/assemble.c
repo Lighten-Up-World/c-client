@@ -154,19 +154,22 @@ int main(int argc, char **argv) {
       program_delete(program);
       return EC_SYS; //parse failed
     }
+    free(lineTokens.tkns);
     if (encode(&instr, &word)) {
       program_delete(program);
       return EC_SYS; // encode failed
     }
-    printf("Word is: %08x\n", word);
-    program->out[i * 4] = word;
-    if (word == 0) {
-      continue;
+    DEBUG_PRINT("Word is: %08x\n", word);
+    set_word(program->out, program->mPC, word);
+    if (word != 0) {
+      program->mPC += 4;
     }
-    program->mPC += 4;
   }
-
-  write_file(argv[2], program->out, sizeof(program->out));
+  byte_t buff[program->mPC];
+  for (size_t i = 0; i < program->mPC; i++) {
+    buff[i] = program->out[i];
+  }
+  write_file(argv[2], buff, sizeof(buff));
 
   program_delete(program);
 

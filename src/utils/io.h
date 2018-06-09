@@ -7,6 +7,7 @@
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
 
+int set_word(byte_t *buff, word_t byteAddr, word_t word);
 int set_mem_word(state_t *state, word_t byteAddr, word_t word);
 
 void print_reg(state_t *state, reg_address_t reg);
