@@ -53,7 +53,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   for(int i = 0; i < len; i++){
     if(strchr(tokens, src[i])){
       splits++;
-      if((i+1 < len) && !(src[i+1]==sep) && !strchr(tokens, src[i+1])){ //
+      if((i+1 < len) && src[i+1]!=sep && !strchr(tokens, src[i+1])){ //
         splits++;
       }
     }
@@ -66,7 +66,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   }
   int n = splits + 1;
   *output = malloc(n * sizeof(char *)); // Allocated memory for 2D array outer
-  if(output == NULL){
+  if(*output == NULL){
     return -EC_NULL_POINTER;
   }
   char **currentpart = *output;
@@ -93,11 +93,12 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
     else if(strchr(tokens,src[i+1])){
       j++;
     }
-
   }
+
   // Allocated outer pointers to correct position in memory
   *currentpart = mem;
-  for (int j = 0; j < mem_size; j++) {
+
+  for (int j = 0; j < mem_size-1; j++) {
     if(mem[j]=='\0'){
       currentpart++;
       *currentpart = &mem[j+1];
