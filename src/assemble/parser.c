@@ -110,11 +110,8 @@ operand_t get_imm_op2(char *operand2) {
 
   DEBUG_PRINT("Operand2: %s\n", operand2);
   // Determine the base (hex or decimal) and convert to int
-  uint8_t base = (uint8_t) ((strncmp("0x", operand2, 2) == 0) ?
-      HEX_BASE : DEC_BASE);
-  if (base == HEX_BASE) {
-    strVal = remove_first_char(remove_first_char(strVal));
-  }
+  uint8_t base = (uint8_t) ((strncmp("0x", strVal, 2) == 0) ? HEX_BASE : DEC_BASE);
+
   DEBUG_CMD(printf("Raw Val\n"));
   uint64_t raw_val = (uint64_t) strtoul(strVal, NULL, base);
   // Num cannot be represented if it is larger than 32 bits
@@ -133,7 +130,6 @@ operand_t get_imm_op2(char *operand2) {
     result.imm.rotated.value = (uint8_t) raw_val;
     result.imm.rotated.rotate = 0;
   }
-
   return result;
 }
 
@@ -152,11 +148,14 @@ operand_t get_imm_op2(char *operand2) {
 
 int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   DEBUG_CMD(printf("----\nDP:\n"));
+
   // Get opcode enum
   char *opcode = GET_STR(0);
   opcode_t op_enum = str_to_enum(opcode);
+
   // Set whether the CPSR flags should be set
   bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
+
   // Set position of rn and position of operand2
   int rn_pos = S || COMPARE_OP("mov") ? 1 : 3;
 
@@ -169,11 +168,13 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.dp.rn = COMPARE_OP("mov")? 0 : PARSE_REG(rn_pos);
   inst->i.dp.rd = S ? 0 : PARSE_REG(RD_POS);
   DEBUG_PRINT("RN_POS: %u\n", rn_pos);
-  if(inst->i.dp.I){
+
+  if(inst->i.dp.I) {
     inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
-  }else{
-    inst->i.dp.operand2 = (operand_t){.reg.type = 00, .reg.rm = PARSE_REG(rn_pos + 2), .reg.shiftBy = 0, .reg.shift.constant.integer = 0};
-  }
+  } else {
+    inst->i.dp.operand2 = (operand_t) {
+      .reg.type = LSL, .reg.rm = PARSE_REG(rn_pos + 2), .reg.shiftBy = 0, .reg.shift.constant.integer = 0};
+  }//should this be LSL instead of 0?
 
   return EC_OK;
 }
@@ -201,7 +202,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   inst->i.mul.rd   = rd;
   inst->i.mul.rn   = rn;
   inst->i.mul.rs   = rs;
-  inst->i.mul.pad9 = (byte_t) HEX_NINE;
+  inst->i.mul.pad9 = HEX_NINE;
   inst->i.mul.rm   = rm;
 
   return EC_OK;
@@ -223,6 +224,8 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 * Case 4: <code> Rd, [Rn],<#expression>     {8}
 * Case 4b: <code> Rd, [Rn],{+/-}Rm{,<shift>} {8-12}
 */
+
+//str r1,[r2],r4 - fails
 int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   DEBUG_CMD(printf("SDT:\n"));
   char *opcode = GET_STR(0);
@@ -231,8 +234,8 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
     perror("Opcode not recognised\n");
   }
   inst->i.sdt.L = L;
-  inst->i.sdt.pad1 = 1;
-  inst->i.sdt.pad0 = 0;
+  inst->i.sdt.pad1 = 0x1;
+  inst->i.sdt.pad0 = 0x0;
   inst->i.sdt.rd = PARSE_REG(RD_POS);
 
   int address = 0;
