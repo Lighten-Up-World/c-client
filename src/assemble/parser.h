@@ -33,7 +33,7 @@ typedef struct {
 #define RM_POS 3
 #define RS_POS 5
 #define RN_POS 7
-#define HEX_NINE 0x1001
+#define HEX_NINE 0x9
 
 // Definitions used in parse_sdt
 #define NUM_TOKS_EQ_EXPR 4
@@ -42,7 +42,7 @@ typedef struct {
 #define NUM_TOKS_HASH_EXPR 8
 
 // Definitions used for parse_brn
-#define HEX_TEN 0x1010
+#define HEX_TEN 0xA
 
 // Definitions used in parse
 #define AL_COND_CODE 0xE
