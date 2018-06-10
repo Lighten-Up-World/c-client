@@ -163,13 +163,17 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   // Set all instruction fields
   inst->type = DP;
   inst->i.dp.padding = 0x00;
-  inst->i.dp.I = 1;
+  inst->i.dp.I = GET_TYPE(rn_pos + 2) == T_HASH_EXPR;
   inst->i.dp.opcode = op_enum;
   inst->i.dp.S = S;
-  inst->i.dp.rn = inst->i.dp.I ? 0 : PARSE_REG(rn_pos);
-  inst->i.dp.rd = PARSE_REG(RD_POS);
+  inst->i.dp.rn = COMPARE_OP("mov")? 0 : PARSE_REG(rn_pos);
+  inst->i.dp.rd = S ? 0 : PARSE_REG(RD_POS);
   DEBUG_PRINT("RN_POS: %u\n", rn_pos);
-  inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
+  if(inst->i.dp.I){
+    inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
+  }else{
+    inst->i.dp.operand2 = (operand_t){.reg.type = 00, .reg.rm = PARSE_REG(rn_pos + 2), .reg.shiftBy = 0, .reg.shift.constant.integer = 0};
+  }
 
   return EC_OK;
 }
