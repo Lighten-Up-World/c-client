@@ -110,11 +110,8 @@ operand_t get_imm_op2(char *operand2) {
 
   DEBUG_PRINT("Operand2: %s\n", operand2);
   // Determine the base (hex or decimal) and convert to int
-  uint8_t base = (uint8_t) ((strncmp("0x", operand2, 2) == 0) ?
-      HEX_BASE : DEC_BASE);
-  if (base == HEX_BASE) {
-    strVal = remove_first_char(remove_first_char(strVal));
-  }
+  uint8_t base = (uint8_t) ((strncmp("0x", strVal, 2) == 0) ? HEX_BASE : DEC_BASE);
+  
   DEBUG_CMD(printf("Raw Val\n"));
   uint64_t raw_val = (uint64_t) strtoul(strVal, NULL, base);
   // Num cannot be represented if it is larger than 32 bits
