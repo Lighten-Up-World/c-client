@@ -33,7 +33,7 @@ char **allocate_input(int lines, int lineLength) {
   }
 
   for (i = 1; i < lines; i++) {
-    in[i] = in[0] + i * lineLength * sizeof(char) + 1;
+    in[i] = in[0] + i * lineLength + 1;
   }
 
   return in;
