@@ -382,13 +382,13 @@ void ref_entry(const label_t label, const address_t val, const void *obj){
  * @return : 0 or 1 depending whether the addition was successful or not
  */
 int add_symbol(program_t *program, label_t label, address_t addr) {
-  if (!smap_put(program->sym_m, label, addr)) {
+  if (!smap_put(program->smap, label, addr)) {
     return 0; // already in symbol map
   }
   prog_collection_t prog_coll = {program, label, addr};
-  // check if symbol exists in ref_map and update/remove accordingly
-  if (rmap_exists(program->ref_m, label)) {
-    rmap_enum(program->ref_m, ref_entry, &prog_coll);
+  // check if symbol exists in rmapap and update/remove accordingly
+  if (rmap_exists(program->rmap, label)) {
+    rmap_enum(program->rmap, ref_entry, &prog_coll);
   }
 
   return 1;
@@ -403,8 +403,8 @@ int add_symbol(program_t *program, label_t label, address_t addr) {
  * @return : 0 or 1 depending whether the addition was successful or not
  */
 int add_reference(program_t *program, label_t label, address_t addr) {
-  // adds reference to ref_map.
-  return !rmap_put(program->ref_m, label, addr);
+  // adds reference to rmapap.
+  return !rmap_put(program->rmap, label, addr);
 }
 
 /**
@@ -459,9 +459,9 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
     // TODO
     // Check if label is already in map, if so get address
     char *label = tlst->tkns[0].str;
-    if (smap_exists(prog->sym_m, label)) {
+    if (smap_exists(prog->smap, label)) {
       address_t addr = 0;
-      smap_get_address(prog->sym_m, label, &addr);
+      smap_get_address(prog->smap, label, &addr);
       offset = calculate_offset(addr, prog->mPC);
     } else {
       // Add label to reference map for processing later?
@@ -534,10 +534,13 @@ int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 
 void parse_label(program_t *prog, token_list_t *tlst) {
   char *label = GET_STR(0);
-  if(smap_exists(prog->sym_m, label)){
-    //ERROR!
+  if(smap_exists(prog->smap, label)){
+    //ERROR
   }
-  smap_put(prog->sym_m, label, prog->mPC);
+  smap_put(prog->smap, label, prog->mPC);
+  if(rmap_exists(prog->rmap)){
+    references_t ref = rmap_get_references(prog->rmap, label);
+  }
 }
 
 /**
