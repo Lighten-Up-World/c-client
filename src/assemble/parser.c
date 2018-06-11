@@ -464,8 +464,9 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
       smap_get_address(prog->smap, label, &addr);
       offset = calculate_offset(addr, prog->mPC);
     } else {
-      // Add label to reference map for processing later?
-      offset = 0; // dummy value
+      DEBUG_PRINT("Placing (%s, %08x)\n", label, prog->mPC);
+      rmap_put(prog->rmap, label, prog->mPC);
+      offset = 0xFFFFFF; // dummy value
     }
   } else {
     offset = calculate_offset(atoi(tlst->tkns[0].str), prog->mPC);
