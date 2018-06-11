@@ -151,7 +151,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 
   // Get opcode enum
   char *opcode = GET_STR(0);
-  opcode_t op_enum = str_to_enum(opcode);
+  opcode_t op_enum = (opcode_t) str_to_enum(opcode);
 
   // Set whether the CPSR flags should be set
   bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
