@@ -472,7 +472,7 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   }
 
   inst->type = BRN;
-  inst->i.brn.padA = 15u & (unsigned) HEX_TEN; //this is necessary to remove gcc warning
+  inst->i.brn.padA = 0xA;//15u & (unsigned) HEX_TEN; //this is necessary to remove gcc warning
   inst->i.brn.offset = offset;
 
   return EC_OK;
