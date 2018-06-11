@@ -51,14 +51,14 @@ program_t *program_new() {
     return NULL;
   }
 
-  program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
-  if (program->sym_m == NULL) {
+  program->smap = smap_new(MAX_S_MAP_CAPACITY);
+  if (program->smap == NULL) {
     free(program);
     return NULL;
   }
-  program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
-  if (program->ref_m == NULL) {
-    smap_delete(program->sym_m);
+  program->rmap = rmap_new(MAX_R_MAP_CAPACITY);
+  if (program->rmap == NULL) {
+    smap_delete(program->smap);
     free(program);
     return NULL;
   }
@@ -66,8 +66,8 @@ program_t *program_new() {
   // Ideally use function to count the number of lines
   program->in = allocate_input(MAX_NUM_LINES, LINE_SIZE);
   if (program->in == NULL) {
-    rmap_delete(program->ref_m);
-    smap_delete(program->sym_m);
+    rmap_delete(program->rmap);
+    smap_delete(program->smap);
     free(program);
     return NULL;
   }
@@ -86,8 +86,8 @@ int program_delete(program_t *program) {
   free(program->in[0]);
   free(program->in);
   // free data structures
-  rmap_delete(program->ref_m);
-  smap_delete(program->sym_m);
+  rmap_delete(program->rmap);
+  smap_delete(program->smap);
   // free rest of program
   free(program);
 
