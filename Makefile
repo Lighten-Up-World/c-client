@@ -24,7 +24,7 @@ emulate:
 	cd src; make clean; make emulate DEBUG= RUN=$(RUN)
 
 debug:
-	cd src; make clean; make emulate RUN=$(RUN)
+	cd src; make clean; make assemble RUN=$(RUN)
 
 unit_test:
 	cd src/test; make
