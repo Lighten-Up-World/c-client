@@ -45,4 +45,6 @@ int rmap_get_count(reference_map_t *map);
 
 int rmap_enum(reference_map_t *map, map_func_t func, const void *obj);
 
+void rmap_print(reference_map_t *map);
+
 #endif

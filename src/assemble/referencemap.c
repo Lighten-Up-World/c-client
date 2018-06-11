@@ -308,3 +308,12 @@ int rmap_get_count(reference_map_t *map) {
   }
   return count;
 }
+
+
+void rmap_print_entry(const label_t label, const address_t val, const void *obj) {
+  printf("(%s, 0x%08x) \n", label, val);
+}
+
+void rmap_print(reference_map_t *map){
+  rmap_enum(map, &rmap_print_entry, NULL);
+}
