@@ -102,9 +102,6 @@ int rmap_get_references(const reference_map_t *map, const label_t label,
   if (label == NULL) {
     return EC_INVALID_PARAM;
   }
-  if (out == NULL) {
-    return EC_INVALID_PARAM;
-  }
   size_t ind = rmap_hash(label) % map->count;
   rbucket_t *bucket = &(map->buckets[ind]);
   entry_t *entry = get_entry(bucket, label);
@@ -113,6 +110,9 @@ int rmap_get_references(const reference_map_t *map, const label_t label,
   }
   if (out_size < entry->references.count) {
     return entry->references.count;
+  }
+  if (out == NULL) {
+    return EC_INVALID_PARAM;
   }
   memcpy(out, entry->references.address, out_size * sizeof(address_t));
   return EC_OK;
