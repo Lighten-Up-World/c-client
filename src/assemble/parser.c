@@ -556,7 +556,7 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   if (is_label(tlst)) {
     DEBUG_CMD(printf("LABEL:\n"));
     parse_label(prog, tlst);
-    return EC_OK;
+    return EC_IS_LABEL;
   }
 
   // Get the pointer to the first token - this will be the opcode
