@@ -416,16 +416,17 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   }
 
   word_t offset;
-  if (is_label(tlst)) {
+  if (GET_TYPE(1) == T_STR) {
     // TODO
     // Check if label is already in map, if so get address
-    char *label = tlst->tkns[0].str;
+    char *label = GET_STR(1);
     if (smap_exists(prog->smap, label)) {
+      DEBUG_PRINT("Getting label: (%s, %08x)\n", label, prog->mPC);
       address_t addr = 0;
       smap_get_address(prog->smap, label, &addr);
       offset = calculate_offset(addr, prog->mPC);
     } else {
-      DEBUG_PRINT("Placing (%s, %08x)\n", label, prog->mPC);
+      DEBUG_PRINT("Placing (%s, %08x) in reference\n", label, prog->mPC);
       rmap_put(prog->rmap, label, prog->mPC);
       offset = 0xFFFFFF; // dummy value
     }
@@ -494,15 +495,37 @@ int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 = LABEL INSTRUCTIONS
 ===============================================>>>>>*/
 
-void parse_label(program_t *prog, token_list_t *tlst) {
+int parse_label(program_t *prog, token_list_t *tlst) {
+  int _status = EC_OK;
   char *label = GET_STR(0);
   if(smap_exists(prog->smap, label)){
-    //ERROR
+    return EC_IS_LABEL;
   }
   smap_put(prog->smap, label, prog->mPC);
-  if(rmap_exists(prog->rmap)){
-    references_t ref = rmap_get_references(prog->rmap, label);
+  DEBUG_CMD(rmap_print(prog->rmap));
+  if(rmap_exists(prog->rmap, label)){
+    int num_references = rmap_get_references(prog->rmap, label, NULL, 0);
+    size_t size_ref = num_references * sizeof(address_t);
+    address_t *addrs = malloc(size_ref);
+    if(addrs == NULL){
+      perror("parse_label(): malloc failed");
+      return EC_NULL_POINTER;
+    }
+    if((_status = rmap_get_references(prog->rmap, label, addrs, size_ref))){
+      return _status;
+    }
+    for (int i = 0; i < num_references; i++) {
+      word_t offset = calculate_offset(prog->mPC, addrs[i]);
+      word_t curr;
+      get_word(prog->out, addrs[i], &curr);
+      printf("offset: 0x%08x, current_word: 0x%08x\n", offset, curr);
+      for (int i = 1; i < 4; i++) {
+        prog->out[addrs[i] + i] = get_byte(offset, (i * 8) - 1);
+      }
+      DEBUG_PRINT("REFERENCE: %u\n", addrs[i]);
+    }
   }
+  return _status;
 }
 
 /**
