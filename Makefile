@@ -25,6 +25,8 @@ emulate:
 
 debug:
 	cd src; make clean; make assemble RUN=$(RUN)
+	xxd -c 4 src/out
+	xxd -c 4 test/test_cases/$(RUN)
 
 unit_test:
 	cd src/test; make
