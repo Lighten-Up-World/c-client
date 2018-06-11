@@ -239,118 +239,79 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   inst->i.sdt.rd = PARSE_REG(RD_POS);
 
   int address = 0;
+  // Case 1: =expr
+  if(tlst->numOfTkns == NUM_TOKS_EQ_EXPR){
+    address = PARSE_EXPR(GET_STR(3));
 
-  switch (tlst->numOfTkns){
-    // Case 1: =expr
-    case NUM_TOKS_EQ_EXPR:
-      address = PARSE_EXPR(GET_STR(3));
-
-      if(address <= MAX_HEX){
-        char * immVal = GET_STR(3);
-        immVal[0] = '#';
-        token_t mod_tkns[] = {
-                {T_OPCODE, "mov"},
-                GET_TKN(1),
-                GET_TKN(2), //comma
-                {GET_TYPE(3), immVal},
-        };
-        token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
-
-        return parse_dp(prog, &mod_tlst, inst);
-      }
-      char *address_str = itoa(address);
-      int hash_expr_len = strlen(address_str) + 1;
-      char *hash_expr = calloc(1,hash_expr_len);
-      hash_expr[0] = '#';
-      strcat(hash_expr, address_str);
-      // asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
-      // tokenize(newline, tlst);
+    if(address <= MAX_HEX){
+      char * immVal = GET_STR(3);
+      immVal[0] = '#';
       token_t mod_tkns[] = {
-              {T_OPCODE, "ldr"},
+              {T_OPCODE, "mov"},
               GET_TKN(1),
               GET_TKN(2), //comma
-              {T_L_BRACKET, "["},
-              {T_REGISTER, "r15"},
-              {T_COMMA, ","},
-              {T_HASH_EXPR, hash_expr},
-              {T_R_BRACKET, "]"}
+              {GET_TYPE(3), immVal},
       };
-      free(hash_expr);
-      token_list_t mod_tlst = {mod_tkns, 8};
-      return parse_sdt(prog, &mod_tlst, inst);
+      token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
 
-      // Case 2: [Rn]
-    case NUM_TOKS_REG_ADDR:
-      inst->i.sdt.I = 0;
-      inst->i.sdt.offset.imm.fixed = 0;
-      inst->i.sdt.rn = PARSE_REG(4);
-      inst->i.sdt.U = 0;
-      /*Could be either, change accordingly to test case */
-      inst->i.sdt.P = 0;
-      /*Also could be either, change accordingly to test case*/
+      return parse_dp(prog, &mod_tlst, inst);
+    }
+    char *address_str = itoa(address);
+    int hash_expr_len = strlen(address_str) + 1;
+    char *hash_expr = calloc(1, hash_expr_len);
+    if(hash_expr == NULL){
+      return EC_NULL_POINTER;
+    }
+    hash_expr[0] = '#';
+    strcat(hash_expr, address_str);
+    // asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
+    // tokenize(newline, tlst);
+    token_t mod_tkns[] = {
+            {T_OPCODE, "ldr"},
+            GET_TKN(1),
+            GET_TKN(2), //comma
+            {T_L_BRACKET, "["},
+            {T_REGISTER, "r15"},
+            {T_COMMA, ","},
+            {T_HASH_EXPR, hash_expr},
+            {T_R_BRACKET, "]"}
+    };
+    free(hash_expr);
+    token_list_t mod_tlst = {mod_tkns, 8};
+    return parse_sdt(prog, &mod_tlst, inst);
+  }
+    // Case 2: [Rn]
+  if(tlst->numOfTkns == NUM_TOKS_REG_ADDR){
+    inst->i.sdt.I = 0;
+    inst->i.sdt.offset.imm.fixed = 0;
+    inst->i.sdt.rn = PARSE_REG(4);
+    inst->i.sdt.U = 0;
+    /*Could be either, change accordingly to test case */
+    inst->i.sdt.P = 0;
+    /*Also could be either, change accordingly to test case*/
+    return EC_OK;
+  }
+  if(tlst->numOfTkns == NUM_TOKS_HASH_EXPR){
+    inst->i.sdt.rn = PARSE_REG(4);
+    inst->i.sdt.U = 1;
+    inst->i.sdt.I = 0;
+    // Case 3: [Rn, #expression]
+    if(GET_TYPE(6) == T_COMMA){
+      inst->i.sdt.P = 1;
+      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
       return EC_OK;
+    }
 
-    case NUM_TOKS_HASH_EXPR:
-      inst->i.sdt.rn = PARSE_REG(4);
-      inst->i.sdt.U = 1;
-      inst->i.sdt.I = 0;
-      // Case 3: [Rn, #expression]
-      if(GET_TYPE(6) == T_COMMA){
-        inst->i.sdt.P = 1;
-        inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
-        return EC_OK;
-      }
-
-      // Case 4: [Rn],<#expression>
-      if(GET_TYPE(6) == T_R_BRACKET){
-        inst->i.sdt.P = 0;
-        inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
-        return EC_OK;
-      }
-    default:
-      return EC_UNSUPPORTED_OP;
+    // Case 4: [Rn],<#expression>
+    if(GET_TYPE(6) == T_R_BRACKET){
+      inst->i.sdt.P = 0;
+      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
+      return EC_OK;
+    }
   }
-
+  return EC_UNSUPPORTED_OP;
 }
 
-/**
- * Parses a Single Data Transfer instruction
- * Syntax is: <code> Rd, <address>
- * <code>    - ldr|str
- * <address> - <=expression>|[Rn]|[Rn, <#expression>]|[Rn,{+/-}Rm{,<shift>}]
-               |[Rn],<#expression>| [Rn],{+/-}Rm{,<shift>}
- * @param: Same as other parse methods
- *
- */
- /*
-int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
-  char *opcode = GET_STR(0);
-  flag_t L = COMPARE_OP("ldr");
-  if(!L && !COMPARE_OP("str")){
-    perror("Opcode not recognised\n");
-  }
-
-  // Offset is one of: constant, pre-index address, post-indexed address
-  flag_t I; //immediate
-  flag_t P; //post/pre-indexing
-  flag_t U; //up bit (not supported, optional for +/-)
-  reg_address_t rn; //base register address
-  word_t offset;
-
-
-  inst->type = SDT;
-  inst->i.sdt.pad0 = 0x01;
-  inst->i.sdt.I = I;
-  inst->i.sdt.P = P;
-  inst->i.sdt.U = U;
-  inst->i.sdt.pad0 = 0x0;
-  inst->i.sdt.L = L;
-  inst->i.sdt.rn = rn;
-  inst->i.sdt.rd = PARSE_REG(1);
-  //TODO:
-  return 0;
-}
-*/
 /*= End of SINGLE DATA TRANSFER =*/
 /*=============================================<<<<<*/
 
