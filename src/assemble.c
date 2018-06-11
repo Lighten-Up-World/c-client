@@ -142,20 +142,24 @@ int main(int argc, char **argv) {
   token_list_t lineTokens;
   instruction_t instr;
   word_t word;
+  int error_status = 0;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
     DEBUG_PRINT("======== LINE %u ======\n", i);
-    int t_ec = tokenize(program->in[i], &lineTokens);
-    if(t_ec == -1){
+    error_status = tokenize(program->in[i], &lineTokens);
+    if(error_status == -1) {
       return EC_NULL_POINTER;
     }
-    if (parse(program, &lineTokens, &instr)) {
+    error_status = parse(program, &lineTokens, &instr);
+    if (error_status == EC_IS_LABEL) {
+      continue;
+    } else if (error_status) {
       program_delete(program);
       return EC_SYS; //parse failed
     }
     free(lineTokens.tkns);
-    if (encode(&instr, &word)) {
+    if ((error_status = encode(&instr, &word))) {
       program_delete(program);
       return EC_SYS; // encode failed
     }
