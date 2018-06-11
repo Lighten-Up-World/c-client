@@ -136,7 +136,6 @@ int main(int argc, char **argv) {
     program_delete(program);
     return _status; // failed to read input. Need this in emulate too?
   }
-  DEBUG_PRINT("%u\n", _status);
 
   // set up variables for assembler
   token_list_t lineTokens;

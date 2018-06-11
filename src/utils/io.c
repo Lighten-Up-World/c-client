@@ -81,9 +81,6 @@ int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
 int set_word(byte_t *buff, word_t byteAddr, word_t word){
   assert(buff != NULL);
   for (size_t i = 1; i < 5; i++) {
-    DEBUG_PRINT("M[%04x] = %04x\n\t\t",
-                byteAddr + (word_t) i - 1,
-                get_byte(word, (i * 8) - 1));
     buff[byteAddr + i - 1] = get_byte(word, (i * 8) - 1);
   }
   return EC_OK;
@@ -241,7 +238,6 @@ int read_char_file(const char *path, char ** buffer, int* num_of_lines) {
   int line = 0;
   size_t lineLength = 512 * sizeof(char);
   while (fgets(buffer[line], lineLength, fp) != NULL){
-    DEBUG_PRINT("%s\n", buffer[line]);
     line++;
   }
   if (ferror(fp)){
