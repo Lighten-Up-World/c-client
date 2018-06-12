@@ -239,12 +239,12 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   inst->i.sdt.pad0 = 0x0;
   inst->i.sdt.rd = PARSE_REG(RD_POS);
 
-  int address = 0;
+  int value = 0;
   // Case 1: =expr
   if(tlst->numOfTkns == NUM_TOKS_EQ_EXPR){
-    address = PARSE_EXPR(GET_STR(3));
+    value = PARSE_EXPR(GET_STR(3));
 
-    if(address <= MAX_HEX){
+    if(value <= MAX_HEX){
       char * immVal = GET_STR(3);
       immVal[0] = '#';
       token_t mod_tkns[] = {
@@ -256,29 +256,33 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
       token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
 
       return parse_dp(prog, &mod_tlst, inst);
+    } else {
+      char *address_str = itoa(value); //TODO: Isn't meant to be storing the value,
+                                      // mean't to be storing offset from current location to end of program data
+      DEBUG_PRINT("address_st is: %s\n", address_str);
+      int hash_expr_len = strlen(address_str) + 1;
+      char *hash_expr = calloc(1, hash_expr_len);
+      if(hash_expr == NULL){
+        return EC_NULL_POINTER;
+      }
+      hash_expr[0] = '#';
+      strcat(hash_expr, address_str);
+      token_t mod_tkns[] = {
+              {T_OPCODE, "ldr"},
+              GET_TKN(1),
+              GET_TKN(2), //comma
+              {T_L_BRACKET, "["},
+              {T_REGISTER, "r15"},
+              {T_COMMA, ","},
+              {T_HASH_EXPR, hash_expr},
+              {T_R_BRACKET, "]"}
+      };
+      token_list_t mod_tlst = {mod_tkns, 8};
+      DEBUG_PRINT("Modified hash_expr is: %s\n", hash_expr);
+      int status = parse_sdt(prog, &mod_tlst, inst);
+      free(hash_expr);
+      return status;
     }
-    char *address_str = itoa(address);
-    int hash_expr_len = strlen(address_str) + 1;
-    char *hash_expr = calloc(1, hash_expr_len);
-    if(hash_expr == NULL){
-      return EC_NULL_POINTER;
-    }
-    hash_expr[0] = '#';
-    strcat(hash_expr, address_str);
-    token_t mod_tkns[] = {
-            {T_OPCODE, "ldr"},
-            GET_TKN(1),
-            GET_TKN(2), //comma
-            {T_L_BRACKET, "["},
-            {T_REGISTER, "r15"},
-            {T_COMMA, ","},
-            {T_HASH_EXPR, hash_expr},
-            {T_R_BRACKET, "]"}
-    };
-    token_list_t mod_tlst = {mod_tkns, 8};
-    int status = parse_sdt(prog, &mod_tlst, inst);
-    free(hash_expr);
-    return status;
   }
   // Case 2: [Rn]
   if(tlst->numOfTkns == NUM_TOKS_PRE_IND_ADDR){
