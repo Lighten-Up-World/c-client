@@ -1,10 +1,6 @@
 #include "unity/unity.h"
 #include "../assemble/referencemap.h"
 
-void print_entry(const label_t label, const address_t val, const void *obj) {
-  printf("(%s, %d) \n", label, val);
-}
-
 void test_referencemap(void) {
   reference_map_t *rm;
   address_t *buf;
@@ -33,7 +29,7 @@ void test_referencemap(void) {
   rm->buckets[bucket].entries[0].references.address[0]);
 
 
-  rmap_enum(rm, &print_entry, NULL);
+  rmap_print(rm);
 
   /* Retrieve a address */
 
