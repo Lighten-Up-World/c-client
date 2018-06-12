@@ -4,6 +4,7 @@
 #include "../utils/error.h"
 #include "../utils/arm.h"
 #include "../utils/bitops.h"
+#include "../utils/register.h"
 #include "encode.h"
 /**
  * encode shifted register for DP or SDT instruction
@@ -15,11 +16,12 @@
 
 int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
   assert(w != NULL);
-  if (opShiftReg.rm >= NUM_GENERAL_REGISTERS){
+  DEBUG_PRINT("ENCODE_SHIFTED_REG: %08x\n", *w);
+  if (!is_valid_register(opShiftReg.rm)){
     return EC_INVALID_PARAM;
   }
   if (opShiftReg.shiftBy){ //Shift by reg
-    if (opShiftReg.shift.shiftreg.rs >= NUM_GENERAL_REGISTERS){
+    if (!is_valid_register(opShiftReg.shift.shiftreg.rs)){
       return EC_INVALID_PARAM;
     }
     *w <<= REG_SIZE;
@@ -207,13 +209,13 @@ int encode_sdt(instruction_t *instr, word_t *w){
   *w <<= (SDT_PAD0_SIZE + FLAG_SIZE);
   *w |= instr->i.sdt.L;
 
-  if (instr->i.sdt.rn >= NUM_GENERAL_REGISTERS){
+  if (!is_valid_register(instr->i.sdt.rn)){
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.sdt.rn;
 
-  if (instr->i.sdt.rd >= NUM_GENERAL_REGISTERS){
+  if (!is_valid_register(instr->i.sdt.rd)){
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;

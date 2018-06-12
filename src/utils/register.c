@@ -6,6 +6,19 @@
 #include "../utils/arm.h"
 #include "register.h"
 
+int is_valid_register(reg_address_t reg){
+  if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
+    return 1;
+  }
+  if (reg == REG_N_PC) {
+    return 1;
+  }
+  if (reg == REG_N_CPSR) {
+    return 1;
+  }
+  return 0;
+}
+
 /**
  *  Get the value of a register
  *

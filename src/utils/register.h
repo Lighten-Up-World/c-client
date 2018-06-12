@@ -10,6 +10,8 @@
 
 #include "../utils/arm.h"
 
+int is_valid_register(reg_address_t reg);
+
 word_t get_register(state_t *state, reg_address_t reg);
 void set_register(state_t *state, reg_address_t reg, word_t value);
 
