@@ -135,8 +135,8 @@ void token_free(void *obj){
 list_t *token_list_new(void){
   return list_new(&token_free);
 }
-void token_list_destroy(list_t *self){
-  list_destroy(self);
+void token_list_delete(list_t *self){
+  list_delete(self);
 }
 int token_list_add(list_t *self, token_t *token){
   return list_add(self, token);

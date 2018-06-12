@@ -23,7 +23,7 @@ list_t *list_new(free_func_t v_free){
   return self;
 }
 
-void list_destroy(list_t *self){
+void list_delete(list_t *self){
   uint32_t len = self->len;
   list_elem_t *next;
   list_elem_t *curr = self->head;

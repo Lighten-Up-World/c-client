@@ -117,7 +117,7 @@ void test_parse_hal(void){
   if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
-  token_list_destroy(tklst);
+  token_list_delete(tklst);
   compareInstructions(hal_i, result);
 }
 
@@ -146,7 +146,7 @@ void test_parse_mul(void){
   if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
-  token_list_destroy(tklst);
+  token_list_delete(tklst);
   compareInstructions(mul_i, result);
 }
 
@@ -177,7 +177,7 @@ void test_parse_mla(void){
   if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
-  token_list_destroy(tklst);
+  token_list_delete(tklst);
   compareInstructions(mla_i, result);
 }
 
@@ -206,7 +206,7 @@ void test_parse_dp(void){
   if (parse(prog, tklst, &result)){
   TEST_ASSERT_MESSAGE(false, "False Error");
   }
-  token_list_destroy(tklst);
+  token_list_delete(tklst);
   compareInstructions(mov_i, result);
 }
 
@@ -236,6 +236,6 @@ void test_parse_sdt_imm(void) {
   if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
-  token_list_destroy(tklst);
+  token_list_delete(tklst);
   compareInstructions(sdt_i, result);
 }

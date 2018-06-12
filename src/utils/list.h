@@ -31,7 +31,7 @@ list_elem_t *list_elem_new(any_t value);
 
 // List Construction
 list_t *list_new(free_func_t);
-void list_destroy(list_t *self);
+void list_delete(list_t *self);
 
 // List manipulation
 int list_add(list_t *self, any_t value);

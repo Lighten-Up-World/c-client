@@ -27,7 +27,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output);
 
 // List Construction
 list_t *token_list_new(void);
-void token_list_destroy(list_t *self);
+void token_list_delete(list_t *self);
 
 int token_list_add(list_t *self, token_t *token);
 int token_list_add_pair(list_t *self, token_type_t type, char *str);
