@@ -282,7 +282,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
     return parse_sdt(prog, &mod_tlst, inst);
   }
     // Case 2: [Rn]
-  if(tlst->numOfTkns == NUM_TOKS_REG_ADDR){
+  if(tlst->numOfTkns == NUM_TOKS_POST_IND_ADDR){
     inst->i.sdt.I = 0;
     inst->i.sdt.offset.imm.fixed = 0;
     inst->i.sdt.rn = PARSE_REG(4);

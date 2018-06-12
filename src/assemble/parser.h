@@ -38,7 +38,7 @@ typedef struct {
 // Definitions used in parse_sdt
 #define NUM_TOKS_EQ_EXPR 4
 #define MAX_HEX 0xFF
-#define NUM_TOKS_REG_ADDR 6
+#define NUM_TOKS_POST_IND_ADDR 6
 #define NUM_TOKS_HASH_EXPR 8
 
 // Definitions used in parse

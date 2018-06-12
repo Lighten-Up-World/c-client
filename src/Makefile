@@ -6,7 +6,7 @@
 DEBUG = -DDEBUG
 CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
 
-RUN = mov03
+RUN = str01
 OUT = out
 
 BUILD = ./build/
