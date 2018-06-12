@@ -141,27 +141,28 @@ int main(int argc, char **argv) {
   token_list_t lineTokens;
   instruction_t instr;
   word_t word;
-  int error_status = 0;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
     DEBUG_PRINT("======== LINE %u ======\n", i);
-    error_status = tokenize(program->in[i], &lineTokens);
-    if(error_status == -1) {
-      return EC_NULL_POINTER;
-    }
-    error_status = parse(program, &lineTokens, &instr);
-    if (error_status == EC_IS_LABEL) {
+    _status = tokenize(program->in[i], &lineTokens);
+    if(_status == EC_SKIP){
+      _status = EC_OK;
       continue;
-    } else if (error_status) {
-      program_delete(program);
-      return EC_SYS; //parse failed
     }
+    CHECK_STATUS(_status);
+
+    _status = parse(program, &lineTokens, &instr);
+    if (_status == EC_SKIP) {
+      _status = EC_OK;
+      continue;
+    }
+    CHECK_STATUS_CLEANUP(_status, program_delete(program));
+
     free(lineTokens.tkns);
-    if ((error_status = encode(&instr, &word))) {
-      program_delete(program);
-      return EC_SYS; // encode failed
-    }
+    _status = encode(&instr, &word);
+    CHECK_STATUS_CLEANUP(_status, program_delete(program));
+
     DEBUG_PRINT("Word is: %08x\n", word);
     set_word(program->out, program->mPC, word);
     if (word != 0) {
@@ -176,5 +177,5 @@ int main(int argc, char **argv) {
 
   program_delete(program);
 
-  return EC_OK;
+  return _status;
 }

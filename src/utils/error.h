@@ -7,14 +7,17 @@
 #define ERROR_H
 
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef enum {
   EC_OK,
   EC_INVALID_PARAM,
   EC_NULL_POINTER,
   EC_UNSUPPORTED_OP,
-  EC_SYS,
-  EC_IS_LABEL
+  EC_SKIP,
+  EC_IS_LABEL,
+  EC_SYS, // Mus be last
 } error_code;
 
 typedef struct {
@@ -41,7 +44,18 @@ typedef struct {
   do {if (pred) {_status = EC_FROM_SYS_ERROR(errno); goto fail;}} while(0)
 #define FAIL_FORWARD(expr) \
   do {_status = expr; if (_status != EC_OK) goto fail;} while(0)
-
-void ec_strerror(const int status, char *buffer, const size_t buffer_length);
+#define CHECK_STATUS(status) \
+  do {if(status != EC_OK){ \
+    ec_strerror(stderr, status, __FILE__, __LINE__, __func__); \
+    return status; \
+  }} while(0)
+#define CHECK_STATUS_CLEANUP(status, cleanup) \
+  do {if(status != EC_OK){ \
+    ec_strerror(stderr, status, __FILE__, __LINE__, __func__); \
+    cleanup; \
+    return status; \
+  }} while(0)
+void ec_strerror(FILE *out, const int status, char *file, int line,
+  const char* func);
 
 #endif

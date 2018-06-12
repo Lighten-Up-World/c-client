@@ -499,7 +499,7 @@ int parse_label(program_t *prog, token_list_t *tlst) {
   int _status = EC_OK;
   char *label = GET_STR(0);
   if(smap_exists(prog->smap, label)){
-    return EC_IS_LABEL;
+    return EC_SKIP;
   }
   smap_put(prog->smap, label, prog->mPC);
   DEBUG_CMD(rmap_print(prog->rmap));
@@ -539,7 +539,7 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   if (is_label(tlst)) {
     DEBUG_CMD(printf("LABEL:\n"));
     parse_label(prog, tlst);
-    return EC_IS_LABEL;
+    return EC_SKIP;
   }
 
   // Get the pointer to the first token - this will be the opcode

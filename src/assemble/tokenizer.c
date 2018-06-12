@@ -50,7 +50,9 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   assert(src != NULL && output != NULL);
 
   int len = strlen(src);
-
+  if(len == 0){
+    return 0;
+  }
   // Loops through src to count number of tokens needed
   int splits = 0;
   int noSpaces = 0;
@@ -114,8 +116,8 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
 
 void print_token_lst(token_list_t tklst){
   printf("Tokens (%u)\n", tklst.numOfTkns);
-  for (size_t i = 0; i < tklst.numOfTkns; i++) {
-    printf("%lu(T:%u): %s\n", i, tklst.tkns[i].type, tklst.tkns[i].str);
+  for (int i = 0; i < tklst.numOfTkns; i++) {
+    printf("%u(T:%u): %s\n", i, tklst.tkns[i].type, tklst.tkns[i].str);
   }
 }
 
@@ -123,12 +125,16 @@ int tokenize(char *line, token_list_t *out){
   DEBUG_PRINT("Tokenize started on line: %s", line);
   char **token_strs = NULL;
 
-  line[strlen(line) - 1] = '\0'; //Strips \n
+  line[strcspn(line, "\r\n")] = 0; //Ends new line
 
   int n = str_separate(line, "[],:", ' ', &token_strs);
+  DEBUG_PRINT("Number of tokens:%d\n", n);
+  if(n==0){
+    return EC_SKIP;
+  }
   token_t *tkns = malloc(n * sizeof(token_t));
   if(tkns == NULL){
-    return -1;
+    return EC_NULL_POINTER;
   }
 
   *tkns = (token_t) {T_OPCODE, token_strs[0]};
@@ -139,5 +145,5 @@ int tokenize(char *line, token_list_t *out){
 
   *out = (token_list_t) {tkns, n};
   DEBUG_CMD(print_token_lst(*out));
-  return n;
+  return EC_OK;
 }
