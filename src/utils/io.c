@@ -9,7 +9,48 @@
 #include "register.h"
 #include "error.h"
 
+/**
+ * Determine whether an address is a gpio key memory location
+ *
+ * @param addr: the address to check
+ * @return true iff the address is a valid gpio address
+ */
+bool is_gpio_addr(word_t addr) {
+  if (addr >= GPIO_SETUP_0_9 & addr <= GPIO_SETUP_20_29) {
+    return true;
+  } else if (addr == GPIO_CLEAR) {
+    return true;
+  } else if (addr == GPIO_WRITE) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Print out the correct string for a GPIO memory access
+ *
+ * @param byteAddr: the address accessed
+ */
+void print_gpio_access(word_t byteAddr) {
+  if (byteAddr == GPIO_SETUP_0_9) {
+    printf("One GPIO pin from 0 to 9 has been accessed\n");
+  } else if (byteAddr == GPIO_SETUP_10_19) {
+    printf("One GPIO pin from 10 to 19 has been accessed\n");
+  } else if (byteAddr == GPIO_SETUP_20_29) {
+    printf("One GPIO pin from 20 to 29 has been accessed\n");
+  } else if (byteAddr == GPIO_CLEAR) {
+    printf("PIN OFF\n");
+  } else if (byteAddr == GPIO_WRITE) {
+    printf("PIN ON\n");
+  }
+}
+
 int check_address_valid(word_t addr) {
+  //GPIO extension
+  if (is_gpio_addr(addr)) {
+    return 0;
+  }
+
   if (addr > MEM_SIZE) {
     printf("Error: Out of bounds memory access at address 0x%08x\n", addr);
     return 1;
@@ -23,23 +64,6 @@ char *itoa(int n)
   sprintf(res, "%d", n);
   return res;
 }
-/**
- *  Read a 32 bit word from memory
- *
- *  @param state: a non-null pointer to the machine state
- *  @param byteAddr: the byte address to read from
- *  @param dest: a non-null pointer to destination of loaded word
- *  @return an int indicating success or failure
- */
-int get_word(byte_t *buff, word_t byteAddr, word_t *dest) {
-  assert(buff != NULL);
-  word_t word = 0;
-  for (size_t i = 0; i < 4; i++) {
-    word |= ((word_t) buff[byteAddr + i]) << (i * 8);
-  }
-  *dest = word;
-  return 0;
-}
 
 /**
  *  Read a 32 bit word from memory
@@ -51,10 +75,23 @@ int get_word(byte_t *buff, word_t byteAddr, word_t *dest) {
  */
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
+  word_t word = 0;
   if (check_address_valid(byteAddr)) {
     return 1;
   }
-  return get_word(state->memory, byteAddr, dest);
+
+  // GPIO extension
+  if (is_gpio_addr(byteAddr)) {
+    print_gpio_access(byteAddr);
+    *dest = byteAddr;
+    return 0;
+  }
+
+  for (size_t i = 0; i < 4; i++) {
+    word |= ((word_t) state->memory[byteAddr + i]) << (i * 8);
+  }
+  *dest = word;
+  return 0;
 }
 
 /**
@@ -71,6 +108,14 @@ int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
   if (check_address_valid(byteAddr)) {
     return 1;
   }
+
+  // GPIO extension
+  if (is_gpio_addr(byteAddr)) {
+    print_gpio_access(byteAddr);
+    *dest = byteAddr;
+    return 0;
+  }
+
   for (size_t i = 0; i < 4; i++) {
     word |= ((word_t) state->memory[byteAddr + 3 - i]) << (i * 8);
   }
@@ -80,7 +125,17 @@ int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
 
 int set_word(byte_t *buff, word_t byteAddr, word_t word){
   assert(buff != NULL);
+
+  // GPIO extension
+  if (is_gpio_addr(byteAddr)) {
+    print_gpio_access(byteAddr);
+    return EC_OK;
+  }
+
   for (size_t i = 1; i < 5; i++) {
+    DEBUG_PRINT("M[%04x] = %04x\n\t\t",
+                byteAddr + (word_t) i - 1,
+                get_byte(word, (i * 8) - 1));
     buff[byteAddr + i - 1] = get_byte(word, (i * 8) - 1);
   }
   return EC_OK;
@@ -97,7 +152,7 @@ int set_word(byte_t *buff, word_t byteAddr, word_t word){
 int set_mem_word(state_t *state, word_t byteAddr, word_t word) {
   assert(state != NULL);
   if (check_address_valid(byteAddr)) { return EC_INVALID_PARAM; }
-  return set_word(state->memory, byteAddr, word);;
+  return set_word(state->memory, byteAddr, word);
 }
 
 /**
@@ -121,7 +176,7 @@ void print_reg(state_t *state, reg_address_t reg) {
     printf("CPSR:");
   }
   printf("%11d (0x%08x)\n", get_register(state, reg), get_register(state,
-                                                                 reg));
+                                                                   reg));
 }
 
 /**
@@ -238,6 +293,7 @@ int read_char_file(const char *path, char ** buffer, int* num_of_lines) {
   int line = 0;
   size_t lineLength = 512 * sizeof(char);
   while (fgets(buffer[line], lineLength, fp) != NULL){
+    DEBUG_PRINT("%s\n", buffer[line]);
     line++;
   }
   if (ferror(fp)){
