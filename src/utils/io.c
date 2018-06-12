@@ -7,8 +7,8 @@
 #include "io.h"
 #include "bitops.h"
 #include "register.h"
+#include "arm.h"
 #include "error.h"
-
 /**
  * Determine whether an address is a gpio key memory location
  *
@@ -146,9 +146,6 @@ int set_word(byte_t *buff, word_t byteAddr, word_t word){
   }
 
   for (size_t i = 1; i < 5; i++) {
-    DEBUG_PRINT("M[%04x] = %04x\n\t\t",
-                byteAddr + (word_t) i - 1,
-                get_byte(word, (i * 8) - 1));
     buff[byteAddr + i - 1] = get_byte(word, (i * 8) - 1);
   }
   return EC_OK;

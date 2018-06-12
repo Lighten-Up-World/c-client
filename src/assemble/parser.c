@@ -9,12 +9,9 @@
 #include "../utils/bitops.h"
 #include "../utils/instructions.h"
 
-#define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(tlst->tkns[Rn].str))
+#define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(token_list_get_str(tklst, Rn)))
 #define PARSE_EXPR(tok) ((int) strtol(remove_first_char(tok), NULL, 0))
 #define COMPARE_OP(str) (strcmp(str, opcode) == 0)
-#define GET_TKN(i) tlst->tkns[i]
-#define GET_STR(i) tlst->tkns[i].str
-#define GET_TYPE(i) tlst->tkns[i].type
 
 const branch_suffix_to_cond brn_suffixes[NUM_BRN_SUFFIXES] = {
     {"eq", 0x0},
@@ -49,8 +46,8 @@ const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
     {"andeq", MOV, &parse_halt} // ...
 };
 
-bool is_label(token_list_t *tlst) {
-  return GET_TYPE(tlst->numOfTkns - 1) == T_LABEL;
+bool is_label(list_t *tklst) {
+  return token_list_get_type(tklst, tklst->len - 1) == T_LABEL;
 }
 
 int str_to_enum(char *opcode){
@@ -146,11 +143,11 @@ operand_t get_imm_op2(char *operand2) {
  * @return :
  */
 
-int parse_dp(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_dp(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   DEBUG_CMD(printf("----\nDP:\n"));
 
   // Get opcode enum
-  char *opcode = GET_STR(0);
+  char *opcode = token_list_get_str(tklst, 0);
   opcode_t op_enum = (opcode_t) str_to_enum(opcode);
 
   // Set whether the CPSR flags should be set
@@ -162,7 +159,7 @@ int parse_dp(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   // Set all instruction fields
   inst->type = DP;
   inst->i.dp.padding = 0x00;
-  inst->i.dp.I = GET_TYPE(rn_pos + 2) == T_HASH_EXPR;
+  inst->i.dp.I = token_list_get_type(tklst, rn_pos + 2) == T_HASH_EXPR;
   inst->i.dp.opcode = op_enum;
   inst->i.dp.S = S;
   inst->i.dp.rn = COMPARE_OP("mov")? 0 : PARSE_REG(rn_pos);
@@ -170,7 +167,7 @@ int parse_dp(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   DEBUG_PRINT("RN_POS: %u\n", rn_pos);
 
   if(inst->i.dp.I) {
-    inst->i.dp.operand2 = get_imm_op2(GET_STR(rn_pos + 2));
+    inst->i.dp.operand2 = get_imm_op2(token_list_get_str(tklst, rn_pos + 2));
   } else {
     inst->i.dp.operand2 = (operand_t) {
       .reg.type = LSL, .reg.rm = PARSE_REG(rn_pos + 2), .reg.shiftBy = 0, .reg.shift.constant.integer = 0};
@@ -186,9 +183,9 @@ int parse_dp(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
 = MULTIPLICATION INSTRUCTION
 ===============================================>>>>>*/
 
-int parse_mul(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_mul(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   DEBUG_CMD(printf("MUL:\n"));
-  flag_t A = (flag_t) strcmp(GET_STR(0), "mul");
+  flag_t A = (flag_t) strcmp(token_list_get_str(tklst, 0), "mul");
 
   reg_address_t rd = PARSE_REG(RD_POS);
   reg_address_t rm = PARSE_REG(RM_POS);
@@ -226,9 +223,9 @@ int parse_mul(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
 */
 
 // TODO: check this works with loading GPIO addresses
-int parse_sdt(program_state_t* prog, token_list_t *tlst, instruction_t *inst){
+int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst){
   DEBUG_CMD(printf("SDT:\n"));
-  char *opcode = GET_STR(0);
+  char *opcode = token_list_get_str(tklst, 0);
   flag_t L = COMPARE_OP("ldr");
   if(!L && !COMPARE_OP("str")){
     perror("Opcode not recognised\n");
@@ -241,21 +238,19 @@ int parse_sdt(program_state_t* prog, token_list_t *tlst, instruction_t *inst){
 
   int value = 0;
   // Case 1: =expr
-  if(tlst->numOfTkns == NUM_TOKS_EQ_EXPR){
-    value = PARSE_EXPR(GET_STR(3));
+  if(tklst->len == NUM_TOKS_EQ_EXPR){
+    value = PARSE_EXPR(token_list_get_str(tklst, 3));
 
     if(value <= MAX_HEX){
-      char * immVal = GET_STR(3);
+      char * immVal = token_list_get_str(tklst, 3);
       immVal[0] = '#';
-      token_t mod_tkns[] = {
-              {T_OPCODE, "mov"},
-              GET_TKN(1),
-              GET_TKN(2), //comma
-              {T_HASH_EXPR, immVal},
-      };
-      token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
+      list_t *mod_tklst = token_list_new();
+      token_list_add_pair(mod_tklst, T_OPCODE, "mov");
+      token_list_add(mod_tklst, token_list_get(tklst, 1));
+      token_list_add(mod_tklst, token_list_get(tklst, 2));
+      token_list_add_pair(mod_tklst, T_HASH_EXPR, immVal);
 
-      return parse_dp(prog, &mod_tlst, inst);
+      return parse_dp(prog, mod_tklst, inst);
     } else {
       char *address_str = itoa(value); //TODO: Isn't meant to be storing the value,
                                       // mean't to be storing offset from current location to end of program_state data
@@ -267,25 +262,25 @@ int parse_sdt(program_state_t* prog, token_list_t *tlst, instruction_t *inst){
       }
       hash_expr[0] = '#';
       strcat(hash_expr, address_str);
-      token_t mod_tkns[] = {
-              {T_OPCODE, "ldr"},
-              GET_TKN(1),
-              GET_TKN(2), //comma
-              {T_L_BRACKET, "["},
-              {T_REGISTER, "r15"},
-              {T_COMMA, ","},
-              {T_HASH_EXPR, hash_expr},
-              {T_R_BRACKET, "]"}
-      };
-      token_list_t mod_tlst = {mod_tkns, 8};
+
+      list_t *mod_tklst = token_list_new();
+      token_list_add_pair(mod_tklst, T_OPCODE, "ldr");
+      token_list_add(mod_tklst, token_list_get(tklst, 1));
+      token_list_add(mod_tklst, token_list_get(tklst, 2));
+      token_list_add_pair(mod_tklst, T_L_BRACKET, "[");
+      token_list_add_pair(mod_tklst, T_REGISTER, "r15");
+      token_list_add_pair(mod_tklst, T_COMMA, ",");
+      token_list_add_pair(mod_tklst, T_HASH_EXPR, hash_expr);
+      token_list_add_pair(mod_tklst, T_R_BRACKET, "]");
+
       DEBUG_PRINT("Modified hash_expr is: %s\n", hash_expr);
-      int status = parse_sdt(prog, &mod_tlst, inst);
+      int status = parse_sdt(prog, mod_tklst, inst);
       free(hash_expr);
       return status;
     }
   }
   // Case 2: [Rn]
-  if(tlst->numOfTkns == NUM_TOKS_PRE_IND_ADDR){
+  if(tklst->len == NUM_TOKS_PRE_IND_ADDR){
     inst->i.sdt.I = 0;
     inst->i.sdt.P = 1;
     inst->i.sdt.U = 1;
@@ -293,22 +288,22 @@ int parse_sdt(program_state_t* prog, token_list_t *tlst, instruction_t *inst){
     inst->i.sdt.offset.imm.fixed = 0;
     return EC_OK;
   }
-  if(tlst->numOfTkns == NUM_TOKS_HASH_EXPR){
+  if(tklst->len == NUM_TOKS_HASH_EXPR){
     DEBUG_PRINT("Hash Expression TOKENS: %d\n", NUM_TOKS_HASH_EXPR);
     inst->i.sdt.rn = PARSE_REG(4);
     inst->i.sdt.U = 1;
     inst->i.sdt.I = 0;
     // Case 3: [Rn, #expression]
-    if(GET_TYPE(5) == T_COMMA){
+    if(token_list_get_type(tklst, 5) == T_COMMA){
       inst->i.sdt.P = 1;
-      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
+      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(token_list_get_str(tklst, 6));
       return EC_OK;
     }
 
     // Case 4: [Rn],<#expression>
-    if(GET_TYPE(5) == T_R_BRACKET){
+    if(token_list_get_type(tklst, 5) == T_R_BRACKET){
       inst->i.sdt.P = 0;
-      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
+      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(token_list_get_str(tklst, 7));
       return EC_OK;
     }
   }
@@ -345,7 +340,7 @@ void ref_entry(const label_t label, const address_t val, const void *obj){
  * @param addr : address accompanied by label
  * @return : 0 or 1 depending whether the addition was successful or not
  */
-int add_symbol(program_state_t *program, label_t label, address_t addr) {
+int add_symbol(assemble_state_t *program, label_t label, address_t addr) {
   if (!smap_put(program->smap, label, addr)) {
     return 0; // already in symbol map
   }
@@ -366,7 +361,7 @@ int add_symbol(program_state_t *program, label_t label, address_t addr) {
  * @param addr : address accompanied by label
  * @return : 0 or 1 depending whether the addition was successful or not
  */
-int add_reference(program_state_t *program, label_t label, address_t addr) {
+int add_reference(assemble_state_t *program, label_t label, address_t addr) {
   // adds reference to rmapap.
   return !rmap_put(program->rmap, label, addr);
 }
@@ -383,7 +378,7 @@ word_t calculate_offset(int address, word_t PC) {
 
   // Check we can store in 26 bits
   if (get_bits(offset, 31, 25) != 0) {
-    perror("offset was too large to store");
+    perror("Offset was too large to store");
     return 1;
   }
 
@@ -409,9 +404,9 @@ word_t calculate_offset(int address, word_t PC) {
 * before being shifted right two bits and having the lower 24 bits stored
 * in the Offset field
 */
-int parse_brn(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_brn(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   // Parse for condition
-  char *suffix = remove_first_char(GET_STR(0));
+  char *suffix = remove_first_char(token_list_get_str(tklst, 0));
   for (int i = 0; i < NUM_BRN_SUFFIXES; i++) {
     if (strcmp(brn_suffixes[i].suffix, suffix) == 0) {
       inst->cond = brn_suffixes[i].cond;
@@ -419,14 +414,15 @@ int parse_brn(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   }
 
   word_t offset;
-  if (GET_TYPE(1) == T_STR) {
+  if (token_list_get_type(tklst, 1) == T_STR) {
     // TODO
     // Check if label is already in map, if so get address
-    char *label = GET_STR(1);
+    char *label = token_list_get_str(tklst, 1);
     if (smap_exists(prog->smap, label)) {
-      DEBUG_PRINT("Getting label: (%s, %08x)\n", label, prog->mPC);
+      DEBUG_PRINT("Getting label: (%s @%08x)\n", label, prog->mPC);
       address_t addr = 0;
       smap_get_address(prog->smap, label, &addr);
+      DEBUG_PRINT("Got Address: %08x\n", addr);
       offset = calculate_offset(addr, prog->mPC);
     } else {
       DEBUG_PRINT("Placing (%s, %08x) in reference\n", label, prog->mPC);
@@ -434,7 +430,7 @@ int parse_brn(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
       offset = 0xFFFFFF; // dummy value
     }
   } else {
-    offset = calculate_offset(atoi(tlst->tkns[0].str), prog->mPC);
+    offset = calculate_offset(atoi(token_list_get_str(tklst, 0)), prog->mPC);
   }
 
   inst->type = BRN;
@@ -449,7 +445,7 @@ int parse_brn(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
 ===============================================>>>>>*/
 
 
-int parse_lsl(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_lsl(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
   reg_address_t r = PARSE_REG(1);
 
@@ -469,25 +465,23 @@ int parse_lsl(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
 }
 
 // TODO: use this if we support mov with a shifted register in DP
-int parse_lsl_conversion(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
+int parse_lsl_conversion(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
   // Create new instruction in memory, to be parsed by sdt
-  token_t mod_tkns[] = {
-    {T_OPCODE, "mov"},
-    GET_TKN(1),
-    GET_TKN(2),
-    GET_TKN(1),
-    GET_TKN(2),
-    {T_SHIFT, "lsl"},
-    GET_TKN(3)
-  };
-  token_list_t mod_tlst = {mod_tkns, 7};
+  list_t *mod_tklst = token_list_new();
+  token_list_add_pair(mod_tklst, T_OPCODE, "mov");
+  token_list_add(mod_tklst, token_list_get(tklst, 1));
+  token_list_add(mod_tklst, token_list_get(tklst, 2));
+  token_list_add(mod_tklst, token_list_get(tklst, 1));
+  token_list_add(mod_tklst, token_list_get(tklst, 2));
+  token_list_add_pair(mod_tklst, T_SHIFT, "lsl");
+  token_list_add(mod_tklst, token_list_get(tklst, 3));
 
-  return parse_sdt(prog, &mod_tlst, inst);
+  return parse_sdt(prog, mod_tklst, inst);
 }
 
-int parse_halt(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
+int parse_halt(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
   DEBUG_CMD(printf("HAL:\n"));
   inst->type = HAL;
   inst->i.hal.pad0 = 0u;
@@ -498,9 +492,9 @@ int parse_halt(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
 = LABEL INSTRUCTIONS
 ===============================================>>>>>*/
 
-int parse_label(program_state_t *prog, token_list_t *tlst) {
+int parse_label(assemble_state_t *prog, list_t *tklst) {
   int _status = EC_OK;
-  char *label = GET_STR(0);
+  char *label = token_list_get_str(tklst, 0);
   if(smap_exists(prog->smap, label)){
     return EC_SKIP;
   }
@@ -537,21 +531,21 @@ int parse_label(program_state_t *prog, token_list_t *tlst) {
  *  @param tokens: a pointer to the array of tokens
  *  @param inst: a pointer to the instruction to be stored
  */
-int parse(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
+int parse(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
   // If the assembly line is a label
-  if (is_label(tlst)) {
+  if (is_label(tklst)) {
     DEBUG_CMD(printf("LABEL:\n"));
-    parse_label(prog, tlst);
+    parse_label(prog, tklst);
     return EC_SKIP;
   }
 
   // Get the pointer to the first token - this will be the opcode
-  char *opcode = GET_STR(0);
+  char *opcode = token_list_get_str(tklst, 0);
 
   // Parse a branch instruction and its condition
   if (!strncmp(opcode, "b", 1)) {
     DEBUG_CMD(printf("BRANCH:\n"));
-    return parse_brn(prog, tlst, inst);
+    return parse_brn(prog, tklst, inst);
   }
 
   // Not a branch instruction so set condition to always execute
@@ -566,7 +560,7 @@ int parse(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
   // Calculate function pointer to parse an instruction from the opcode
   for (int i = 0; i < NUM_NON_BRANCH_OPS; i++) {
     if (strcmp(oplist[i].op, opcode) == 0) {
-      return oplist[i].parse_func(prog, tlst, inst);
+      return oplist[i].parse_func(prog, tklst, inst);
     }
   }
 

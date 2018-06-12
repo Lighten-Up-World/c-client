@@ -4,7 +4,7 @@
 #include "../utils/bitops.h"
 #include "../assemble/parser.h"
 
-program_state_t *prog = NULL;
+assemble_state_t *prog = NULL;
 
 void compareInstructions(instruction_t e, instruction_t d){
   TEST_ASSERT_EQUAL_MESSAGE(e.type, d.type, "Instr Type");
@@ -107,15 +107,17 @@ void test_parse_hal(void){
           .cond = 0x0,
           .i.hal.pad0 = 0x0
   };
-  token_t tokens[4] = {{.type=T_OPCODE, .str="andeq"},
-                       {.type=T_REGISTER, .str="r0"},
-                       {.type=T_REGISTER, .str="r0"},
-                       {.type=T_REGISTER, .str="r0"} };
-  token_list_t tkns = {tokens, 4};
+  list_t *tklst = token_list_new();
+  token_list_add_pair(tklst, T_OPCODE, "andeq");
+  token_list_add_pair(tklst, T_REGISTER, "r0");
+  token_list_add_pair(tklst, T_REGISTER, "r0");
+  token_list_add_pair(tklst, T_REGISTER, "r0");
+
   instruction_t result;
-  if (parse(prog, &tkns, &result)){
+  if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
+  token_list_destroy(tklst);
   compareInstructions(hal_i, result);
 }
 
@@ -134,15 +136,17 @@ void test_parse_mul(void){
                   .rm = 0x2
           }
   };
-  token_t tokens[4] = {{.type=T_OPCODE, .str="mul"},
-                       {.type=T_REGISTER, .str="r12"},
-                       {.type=T_REGISTER, .str="r2"},
-                       {.type=T_REGISTER, .str="r1"} };
-  token_list_t tkns = {tokens, 4};
+  list_t *tklst = token_list_new();
+  token_list_add_pair(tklst, T_OPCODE, "mul");
+  token_list_add_pair(tklst, T_REGISTER, "r12");
+  token_list_add_pair(tklst, T_REGISTER, "r2");
+  token_list_add_pair(tklst, T_REGISTER, "r1");
+
   instruction_t result;
-  if (parse(prog, &tkns, &result)){
+  if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
+  token_list_destroy(tklst);
   compareInstructions(mul_i, result);
 }
 
@@ -161,16 +165,19 @@ void test_parse_mla(void){
                   .rm = 0x2
           }
   };
-  token_t tokens[5] = {{.type=T_OPCODE, .str="mla"},
-                       {.type=T_REGISTER, .str="r12"},
-                       {.type=T_REGISTER, .str="r2"},
-                       {.type=T_REGISTER, .str="r1"},
-                       {.type=T_REGISTER, .str="r10"}};
- token_list_t tkns = {tokens, 5};
+  list_t *tklst = token_list_new();
+  token_list_add_pair(tklst, T_OPCODE, "mla");
+  token_list_add_pair(tklst, T_REGISTER, "r12");
+  token_list_add_pair(tklst, T_REGISTER, "r2");
+  token_list_add_pair(tklst, T_REGISTER, "r1");
+
+  token_list_add_pair(tklst, T_REGISTER, "r10");
+
   instruction_t result;
-  if (parse(prog, &tkns, &result)){
+  if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
+  token_list_destroy(tklst);
   compareInstructions(mla_i, result);
 }
 
@@ -188,14 +195,18 @@ void test_parse_dp(void){
                   }
           }
   };
-  token_t tokens[3] = {{.type=T_OPCODE, .str="mov"},
-                       {.type=T_REGISTER, .str="r1"},
-                       {.type=T_HASH_EXPR, .str="#56"}};
-  token_list_t tkns = {tokens, 3};
+
+  list_t *tklst = token_list_new();
+  token_list_add_pair(tklst, T_OPCODE, "mov");
+  token_list_add_pair(tklst, T_REGISTER, "r1");
+  token_list_add_pair(tklst, T_REGISTER, "#56");
+
+
   instruction_t result;
-  if (parse(prog, &tkns, &result)){
-    TEST_ASSERT_MESSAGE(false, "False Error");
+  if (parse(prog, tklst, &result)){
+  TEST_ASSERT_MESSAGE(false, "False Error");
   }
+  token_list_destroy(tklst);
   compareInstructions(mov_i, result);
 }
 
@@ -216,13 +227,15 @@ void test_parse_sdt_imm(void) {
           .offset.imm.fixed = 0x555
       }
   };
-  token_t tokens[3] = {{.type=T_OPCODE, .str="ldr"},
-                      {.type=T_REGISTER, .str="r0"},
-                      {.type=T_EQ_EXPR, .str="=0x555"}};
-  token_list_t tkns = {tokens, 3};
+  list_t *tklst = token_list_new();
+  token_list_add_pair(tklst, T_OPCODE, "ldr");
+  token_list_add_pair(tklst, T_REGISTER, "r0");
+  token_list_add_pair(tklst, T_EQ_EXPR, "=0x555");
+
   instruction_t result;
-  if (parse(prog, &tkns, &result)){
+  if (parse(prog, tklst, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
+  token_list_destroy(tklst);
   compareInstructions(sdt_i, result);
 }

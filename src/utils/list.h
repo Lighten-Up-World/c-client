@@ -36,7 +36,7 @@ void list_destroy(list_t *self);
 // List manipulation
 int list_add(list_t *self, any_t value);
 int list_add_elem(list_t *self, list_elem_t *elem);
-any_t list_at(list_t *self, int idx);
+any_t list_get(list_t *self, int idx);
 int list_remove(list_t *self, int idx);
 int list_remove_elem(list_t *self, list_elem_t *node);
 int list_enum(list_t *self, call_func_t call, any_t obj);

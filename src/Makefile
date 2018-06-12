@@ -23,7 +23,7 @@ debug_ass:
 assemble: build ./build/assemble.out
 	$(BUILD)assemble.out ../test/test_cases/$(RUN).s $(OUT)
 
-$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)symbolmap.o $(BUILD)referencemap.o $(BUILD)register.o
+$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)list.o $(BUILD)symbolmap.o $(BUILD)referencemap.o $(BUILD)register.o
 	gcc $^ -o $@
 
 $(BUILD)assemble.o: assemble.c assemble.h
@@ -32,7 +32,7 @@ $(BUILD)assemble.o: assemble.c assemble.h
 $(BUILD)encode.o: $(ASSEMBLE)encode.c $(ASSEMBLE)encode.h
 	$(COMPILE)
 
-$(BUILD)parser.o: $(ASSEMBLE)parser.c $(ASSEMBLE)parser.h
+$(BUILD)parser.o: $(ASSEMBLE)parser.c $(ASSEMBLE)parser.h $(ASSEMBLE)tokenizer.c
 	$(COMPILE)
 
 $(BUILD)tokenizer.o: $(ASSEMBLE)tokenizer.c $(ASSEMBLE)tokenizer.h
@@ -64,13 +64,10 @@ $(BUILD)decode.o: $(EMULATE)decode.c $(EMULATE)decode.h $(UTIL)arm.h $(UTIL)inst
 $(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h $(UTIL)register.h
 	$(COMPILE)
 
-$(BUILD)bitops.o: $(UTIL)bitops.c $(UTIL)bitops.h
-	$(COMPILE)
-
-$(BUILD)error.o: $(UTIL)error.c $(UTIL)error.h
-	$(COMPILE)
-
 $(BUILD)register.o: $(UTIL)register.c $(UTIL)register.h $(UTIL)arm.h
+	$(COMPILE)
+
+$(BUILD)%.o: $(UTIL)%.c $(UTIL)%.h
 	$(COMPILE)
 
 dependencies:

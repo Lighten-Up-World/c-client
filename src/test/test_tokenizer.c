@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include "unity.h"
-#include "tokenizer.h"
+#include "unity/unity.h"
+#include "../assemble/tokenizer.h"
 
 void string_separate_runner(char *str, char sep, char *tokens,
                             int expected_size, char **expected){

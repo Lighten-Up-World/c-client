@@ -1,4 +1,4 @@
-#include "unity.h"
+#include "unity/unity.h"
 #include "../assemble/encode.h"
 
 void compareBinary(word_t expected, word_t result){

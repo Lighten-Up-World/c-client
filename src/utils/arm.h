@@ -64,7 +64,7 @@ typedef enum {
   MOV = 0xD  // op2
 } opcode_t;
 
-#include "instructions.h"  // This needs to be down here
+#include "instructions.h"
 
 typedef struct {
   word_t fetched;
@@ -82,5 +82,6 @@ typedef struct {
   byte_t memory[MEM_SIZE];
   pipeline_t pipeline;
 } state_t;
+
 
 #endif

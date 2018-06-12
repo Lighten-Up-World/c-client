@@ -1,9 +1,10 @@
 #ifndef ASSEMBLE_H
 #define ASSEMBLE_H
 
-#include "./utils/arm.h"
+#include "utils/arm.h"
 #include "assemble/symbolmap.h"
 #include "assemble/referencemap.h"
+#include "utils/list.h"
 
 #define LINE_SIZE 512
 #define MAX_NUM_LINES 50
@@ -14,11 +15,12 @@ typedef struct {
   reference_map_t *rmap;
   char **in;
   int lines;
+  list_t *additional_words;
   word_t mPC;
-} program_state_t;
+} assemble_state_t;
 
 typedef struct {
-  program_state_t *prog;
+  assemble_state_t *prog;
   label_t label;
   address_t addr;
 } prog_collection_t;

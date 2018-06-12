@@ -1,4 +1,4 @@
-#include "unity.h"
+#include "unity/unity.h"
 #include "../emulate/decode.h"
 #include "../utils/bitops.c"
 
@@ -264,5 +264,3 @@ void test_decodeHal(void) {
   assert(inst.i.brn.pad0 == 0b0);
 
 }*/
-
-

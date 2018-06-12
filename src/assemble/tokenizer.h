@@ -1,7 +1,7 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
-#define MAX_NUM_TOKENS
+#include "../utils/list.h"
 
 typedef enum{
   T_OPCODE,
@@ -23,13 +23,19 @@ typedef struct {
   char *str;
 } token_t;
 
-typedef struct {
-  token_t *tkns;
-  int numOfTkns;
-} token_list_t;
-
 int str_separate(char *src, char *tokens, char sep, char ***output);
 
-int tokenize(char *line, token_list_t *out);
+// List Construction
+list_t *token_list_new(void);
+void token_list_destroy(list_t *self);
+
+int token_list_add(list_t *self, token_t *token);
+int token_list_add_pair(list_t *self, token_type_t type, char *str);
+token_t *token_list_get(list_t *self, int idx);
+token_type_t token_list_get_type(list_t *self, int idx);
+char *token_list_get_str(list_t *self, int idx);
+int token_list_remove(list_t *self, int idx);
+
+int tokenize(char *line, list_t **tkns);
 
 #endif

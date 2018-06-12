@@ -44,9 +44,9 @@ char **allocate_input(int lines, int lineLength) {
  *
  * @return : pointer to an uninitialised program.
  */
-program_state_t *program_new() {
-  program_state_t *program;
-  program = malloc(sizeof(program_state_t));
+assemble_state_t *program_new() {
+  assemble_state_t *program;
+  program = malloc(sizeof(assemble_state_t));
   if (program == NULL) {
     return NULL;
   }
@@ -81,7 +81,7 @@ program_state_t *program_new() {
  * @param program_state : desired program_state to remove from memory.
  * @return : free will always succeed so returns EC_OK.
  */
-int program_delete(program_state_t *program) {
+int program_delete(assemble_state_t *program) {
   // free input characters
   free(program->in[0]);
   free(program->in);
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
   int _status = EC_OK;
   assert(argc > 2);
 
-  program_state_t *program = program_new();
+  assemble_state_t *program = program_new();
 
   if (program == NULL) {
     return EC_NULL_POINTER; // unable to allocate space for program.
@@ -138,28 +138,28 @@ int main(int argc, char **argv) {
   }
 
   // set up variables for assembler
-  token_list_t lineTokens;
+  list_t *tklst = NULL;
   instruction_t instr;
   word_t word;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
-    DEBUG_PRINT("======== LINE %u ======\n", i);
-    _status = tokenize(program->in[i], &lineTokens);
+    DEBUG_PRINT("\n======== LINE %u ======\n", i);
+    _status = tokenize(program->in[i], &tklst);
     if(_status == EC_SKIP){
       _status = EC_OK;
       continue;
     }
     CHECK_STATUS(_status);
 
-    _status = parse(program, &lineTokens, &instr);
+    _status = parse(program, tklst, &instr);
     if (_status == EC_SKIP) {
       _status = EC_OK;
       continue;
     }
     CHECK_STATUS_CLEANUP(_status, program_delete(program));
 
-    free(lineTokens.tkns);
+    //token_list_destroy(tklst); TODO: Invalid frees atm
     _status = encode(&instr, &word);
     CHECK_STATUS_CLEANUP(_status, program_delete(program));
 

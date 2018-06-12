@@ -114,14 +114,58 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
   return n;
 }
 
-void print_token_lst(token_list_t tklst){
-  printf("Tokens (%u)\n", tklst.numOfTkns);
-  for (int i = 0; i < tklst.numOfTkns; i++) {
-    printf("%u(T:%u): %s\n", i, tklst.tkns[i].type, tklst.tkns[i].str);
+token_t *token_new(token_type_t type, char *str){
+  token_t *tkn = malloc(sizeof(token_t));
+  if(tkn == NULL){
+    return NULL;
+  }
+  tkn->type = type;
+  tkn->str = str;
+  return tkn;
+}
+
+void token_free(void *obj){
+  token_t *tkn = (token_t *)obj;
+  if(tkn){
+    free(tkn->str);
+  }
+  free(tkn);
+}
+
+list_t *token_list_new(void){
+  return list_new(&token_free);
+}
+void token_list_destroy(list_t *self){
+  list_destroy(self);
+}
+int token_list_add(list_t *self, token_t *token){
+  return list_add(self, token);
+}
+int token_list_add_pair(list_t *self, token_type_t type, char *str){
+  return token_list_add(self, token_new(type, str));
+}
+token_t *token_list_get(list_t *self, int idx){
+  return (token_t *)list_get(self, idx);
+}
+token_type_t token_list_get_type(list_t *self, int idx){
+  return token_list_get(self, idx)->type;
+}
+char *token_list_get_str(list_t *self, int idx){
+  return token_list_get(self, idx)->str;
+}
+int token_list_remove(list_t *self, int idx){
+  return list_remove(self, idx);
+}
+
+void print_token_lst(list_t *tklst){
+  printf("Tokens (%u)\n", tklst->len);
+  for (int i = 0; i < tklst->len; i++) {
+    printf("%u(T:%u): %s\n", i, token_list_get_type(tklst, i), token_list_get_str(tklst, i));
   }
 }
 
-int tokenize(char *line, token_list_t *out){
+int tokenize(char *line, list_t **tkns){
+  assert(tkns != NULL);
   DEBUG_PRINT("Tokenize started on line: %s", line);
   char **token_strs = NULL;
 
@@ -132,18 +176,18 @@ int tokenize(char *line, token_list_t *out){
   if(n==0){
     return EC_SKIP;
   }
-  token_t *tkns = malloc(n * sizeof(token_t));
-  if(tkns == NULL){
+  *tkns = list_new(&token_free);
+  if(*tkns == NULL){
     return EC_NULL_POINTER;
   }
 
-  *tkns = (token_t) {T_OPCODE, token_strs[0]};
+  list_add(*tkns, token_new(T_OPCODE, token_strs[0]));
+
   for (int i = 1; i < n; i++) {
-    *(tkns+i) = (token_t) {token_type(token_strs[i]), token_strs[i]};
+    list_add(*tkns, token_new(token_type(token_strs[i]), token_strs[i]));
   }
   free(token_strs);
 
-  *out = (token_list_t) {tkns, n};
-  DEBUG_CMD(print_token_lst(*out));
+  DEBUG_CMD(print_token_lst(*tkns));
   return EC_OK;
 }

@@ -57,9 +57,9 @@ int list_add(list_t *self, any_t value){
   ++self->len;
   return EC_LIST_OK;
 }
-list_elem_t *list_at_elem(list_t *self, int idx){
+list_elem_t *list_get_elem(list_t *self, int idx){
   assert(self != NULL);
-  assert(idx > 0);
+  assert(idx >= 0);
 
   if(idx < self->len){
     list_elem_t *curr = self->head;
@@ -71,18 +71,18 @@ list_elem_t *list_at_elem(list_t *self, int idx){
   return NULL;
 }
 
-any_t list_at(list_t *self, int idx){
+any_t list_get(list_t *self, int idx){
   assert(self != NULL);
-  assert(idx > 0);
+  assert(idx >= 0);
   list_elem_t *curr;
-  if(!(curr = list_at_elem(self, idx))){
+  if(!(curr = list_get_elem(self, idx))){
     return NULL;
   }
   return curr->value;
 }
 
 int list_remove(list_t *self, int idx){
-  return list_remove_elem(self, list_at_elem(self, idx));
+  return list_remove_elem(self, list_get_elem(self, idx));
 }
 
 int list_remove_elem(list_t *self, list_elem_t *elem){
