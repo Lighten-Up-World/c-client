@@ -15,10 +15,10 @@ typedef struct {
   char **in;
   int lines;
   word_t mPC;
-} program_t;
+} program_state_t;
 
 typedef struct {
-  program_t *prog;
+  program_state_t *prog;
   label_t label;
   address_t addr;
 } prog_collection_t;

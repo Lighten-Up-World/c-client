@@ -13,7 +13,7 @@ typedef struct {
 typedef struct {
   char *op;
   opcode_t op_enum;
-  int (*parse_func) (program_t*, token_list_t*, instruction_t*);
+  int (*parse_func) (program_state_t*, token_list_t*, instruction_t*);
 } opcode_to_parser;
 
 #define NUM_NON_BRANCH_OPS 16
@@ -44,13 +44,13 @@ typedef struct {
 // Definitions used in parse
 #define AL_COND_CODE 0xE
 
-int parse(program_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
 
-int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst);
-int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst);
-int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst);
-int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst);
-int parse_lsl(program_t* prog, token_list_t *tlst, instruction_t *inst);
-int parse_halt(program_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse_dp(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse_mul(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse_sdt(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse_brn(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse_lsl(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
+int parse_halt(program_state_t* prog, token_list_t *tlst, instruction_t *inst);
 
 #endif

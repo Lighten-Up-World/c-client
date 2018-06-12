@@ -87,7 +87,7 @@ void evaluate_shifted_reg(state_t *state, operand_t op, shift_result_t *result) 
 /**
  * Evaluates the operand and returns the result
  *
- * @param - state_t *state is pointer to the program state
+ * @param - state_t *state is pointer to the program_state state
  * @param - flag_t I is the flag that determines the meaning of operand
  * @param - operand_t op is the operand being evaluated
  * @return - the result of evaluating the operand
@@ -112,7 +112,7 @@ shift_result_t evaluate_operand(state_t *state, flag_t I, operand_t op){
 /**
  * Evaluates the offset and returns the result from
  *
- * @param - state_t *state is pointer to the program state
+ * @param - state_t *state is pointer to the program_state state
  * @param - flag_t I is the flag that determines the meaning of offset
  * @param - operand_t op is the offset being evaluated
  * @return - the result of evaluating the offset
@@ -131,7 +131,7 @@ shift_result_t evaluate_offset(state_t *state, flag_t I, operand_t op){
 /**
  *  Execute an instruction
  *
- *  @param state: pointer to the program state
+ *  @param state: pointer to the program_state state
  *  @param instr: the instruction to execute
  */
 int execute(state_t *state) {
@@ -168,7 +168,7 @@ int execute(state_t *state) {
 /**
  *  Execute Data Processing instruction
  *
- *  @param state: pointer to the program state
+ *  @param state: pointer to the program_state state
  *  @param instr: the DP instruction to execute
  */
 int execute_dp(state_t *state, dp_instruction_t instr) {
@@ -243,7 +243,7 @@ int execute_dp(state_t *state, dp_instruction_t instr) {
 /**
  *  Execute Multiply instruction
  *
- *  @param state: pointer to the program state
+ *  @param state: pointer to the program_state state
  *  @param instr: the MUL instruction to execute
  */
 int execute_mul(state_t *state, mul_instruction_t instr) {
@@ -290,7 +290,7 @@ int execute_mul(state_t *state, mul_instruction_t instr) {
 /**
  *  Execute a branch instruction
  *
- *  @param state: pointer to the program state
+ *  @param state: pointer to the program_state state
  *  @param instr: the BRN instruction to execute
  */
 int execute_brn(state_t *state, brn_instruction_t instr) {
@@ -320,7 +320,7 @@ int execute_brn(state_t *state, brn_instruction_t instr) {
 /**
  *  Execute Single Data Transfer instruction
  *
- *  @param state: pointer to the program state
+ *  @param state: pointer to the program_state state
  *  @param instr: the SDT instruction to execute
  */
 int execute_sdt(state_t *state, sdt_instruction_t instr) {
@@ -386,7 +386,7 @@ int execute_sdt(state_t *state, sdt_instruction_t instr) {
 /**
  *  Execute halt instruction
  *
- *  @param state: pointer to the program state
+ *  @param state: pointer to the program_state state
  *  @param instr: the halt instruction to execute
  */
 int execute_halt(state_t *state) {

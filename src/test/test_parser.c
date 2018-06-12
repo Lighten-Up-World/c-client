@@ -4,7 +4,7 @@
 #include "../utils/bitops.h"
 #include "../assemble/parser.h"
 
-program_t *prog = NULL;
+program_state_t *prog = NULL;
 
 void compareInstructions(instruction_t e, instruction_t d){
   TEST_ASSERT_EQUAL_MESSAGE(e.type, d.type, "Instr Type");

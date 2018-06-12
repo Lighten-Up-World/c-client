@@ -44,10 +44,10 @@ char **allocate_input(int lines, int lineLength) {
  *
  * @return : pointer to an uninitialised program.
  */
-program_t *program_new() {
-  program_t *program;
-  program = malloc(sizeof(program_t));
-  if (program == NULL) {
+program_state_t *program_new() {
+  program_state_t *program;
+  program_state = malloc(sizeof(program_state_t));
+  if (program_state == NULL) {
     return NULL;
   }
 
@@ -76,12 +76,12 @@ program_t *program_new() {
 }
 
 /**
- * Free program memory
+ * Free program_state memory
  *
- * @param program : desired program to remove from memory.
+ * @param program_state : desired program_state to remove from memory.
  * @return : free will always succeed so returns EC_OK.
  */
-int program_delete(program_t *program) {
+int program_delete(program_state_t *program) {
   // free input characters
   free(program->in[0]);
   free(program->in);
@@ -125,9 +125,9 @@ int main(int argc, char **argv) {
   int _status = EC_OK;
   assert(argc > 2);
 
-  program_t *program = program_new();
+  program_state_t *program_state = program_new();
 
-  if (program == NULL) {
+  if (program_state == NULL) {
     return EC_NULL_POINTER; // unable to allocate space for program.
   }
   DEBUG_PRINT("Starting read of file @%s\n", argv[1]);

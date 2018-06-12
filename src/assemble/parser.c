@@ -146,7 +146,7 @@ operand_t get_imm_op2(char *operand2) {
  * @return :
  */
 
-int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_dp(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   DEBUG_CMD(printf("----\nDP:\n"));
 
   // Get opcode enum
@@ -186,7 +186,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 = MULTIPLICATION INSTRUCTION
 ===============================================>>>>>*/
 
-int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_mul(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   DEBUG_CMD(printf("MUL:\n"));
   flag_t A = (flag_t) strcmp(GET_STR(0), "mul");
 
@@ -226,7 +226,7 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 */
 
 // TODO: check this works with loading GPIO addresses
-int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
+int parse_sdt(program_state_t* prog, token_list_t *tlst, instruction_t *inst){
   DEBUG_CMD(printf("SDT:\n"));
   char *opcode = GET_STR(0);
   flag_t L = COMPARE_OP("ldr");
@@ -258,7 +258,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
       return parse_dp(prog, &mod_tlst, inst);
     } else {
       char *address_str = itoa(value); //TODO: Isn't meant to be storing the value,
-                                      // mean't to be storing offset from current location to end of program data
+                                      // mean't to be storing offset from current location to end of program_state data
       DEBUG_PRINT("address_st is: %s\n", address_str);
       int hash_expr_len = strlen(address_str) + 1;
       char *hash_expr = calloc(1, hash_expr_len);
@@ -338,14 +338,14 @@ void ref_entry(const label_t label, const address_t val, const void *obj){
 }
 
 /**
- * Add a symbol to the symbol table in the program and update reference table
+ * Add a symbol to the symbol table in the program_state and update reference table
  *
- * @param program : pointer to the program information DataType
+ * @param program_state : pointer to the program_state information DataType
  * @param label : represents a point to branch off to
  * @param addr : address accompanied by label
  * @return : 0 or 1 depending whether the addition was successful or not
  */
-int add_symbol(program_t *program, label_t label, address_t addr) {
+int add_symbol(program_state_t *program, label_t label, address_t addr) {
   if (!smap_put(program->smap, label, addr)) {
     return 0; // already in symbol map
   }
@@ -361,18 +361,18 @@ int add_symbol(program_t *program, label_t label, address_t addr) {
 /**
  * add a symbol to the reference map stored in the program
  *
- * @param program : pointer to the program information DataType
+ * @param program_state : pointer to the program_state information DataType
  * @param label : represents a point to branch off to
  * @param addr : address accompanied by label
  * @return : 0 or 1 depending whether the addition was successful or not
  */
-int add_reference(program_t *program, label_t label, address_t addr) {
+int add_reference(program_state_t *program, label_t label, address_t addr) {
   // adds reference to rmapap.
   return !rmap_put(program->rmap, label, addr);
 }
 
 /**
- * Calculate the offset of an address from the current Program Counter, to be stored in a BRN instruction
+ * Calculate the offset of an address from the current program_state Counter, to be stored in a BRN instruction
  *
  * @param address: the address to calculate the offset of
  * @param PC: the address of the branch instruction being executed
@@ -409,7 +409,7 @@ word_t calculate_offset(int address, word_t PC) {
 * before being shifted right two bits and having the lower 24 bits stored
 * in the Offset field
 */
-int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_brn(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   // Parse for condition
   char *suffix = remove_first_char(GET_STR(0));
   for (int i = 0; i < NUM_BRN_SUFFIXES; i++) {
@@ -449,7 +449,7 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 ===============================================>>>>>*/
 
 
-int parse_lsl(program_t* prog, token_list_t *tlst, instruction_t *inst) {
+int parse_lsl(program_state_t* prog, token_list_t *tlst, instruction_t *inst) {
   //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
   reg_address_t r = PARSE_REG(1);
 
@@ -469,7 +469,7 @@ int parse_lsl(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 }
 
 // TODO: use this if we support mov with a shifted register in DP
-int parse_lsl_conversion(program_t *prog, token_list_t *tlst, instruction_t *inst) {
+int parse_lsl_conversion(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
   // Create new instruction in memory, to be parsed by sdt
@@ -487,7 +487,7 @@ int parse_lsl_conversion(program_t *prog, token_list_t *tlst, instruction_t *ins
   return parse_sdt(prog, &mod_tlst, inst);
 }
 
-int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
+int parse_halt(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
   DEBUG_CMD(printf("HAL:\n"));
   inst->type = HAL;
   inst->i.hal.pad0 = 0u;
@@ -498,7 +498,7 @@ int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 = LABEL INSTRUCTIONS
 ===============================================>>>>>*/
 
-int parse_label(program_t *prog, token_list_t *tlst) {
+int parse_label(program_state_t *prog, token_list_t *tlst) {
   int _status = EC_OK;
   char *label = GET_STR(0);
   if(smap_exists(prog->smap, label)){
@@ -537,7 +537,7 @@ int parse_label(program_t *prog, token_list_t *tlst) {
  *  @param tokens: a pointer to the array of tokens
  *  @param inst: a pointer to the instruction to be stored
  */
-int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
+int parse(program_state_t *prog, token_list_t *tlst, instruction_t *inst) {
   // If the assembly line is a label
   if (is_label(tlst)) {
     DEBUG_CMD(printf("LABEL:\n"));
