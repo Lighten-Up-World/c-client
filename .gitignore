@@ -31,7 +31,6 @@ doc/*.out
 
 #ignore junk files from compiling C code
 src/build/*
-src/out
 
 #ignore junk files from compiling Haskell code
 *.hi

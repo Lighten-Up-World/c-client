@@ -13,8 +13,7 @@ typedef enum {
   EC_INVALID_PARAM,
   EC_NULL_POINTER,
   EC_UNSUPPORTED_OP,
-  EC_SYS,
-  EC_IS_LABEL
+  EC_SYS
 } error_code;
 
 typedef struct {

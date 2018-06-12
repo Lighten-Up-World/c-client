@@ -41,6 +41,9 @@ typedef struct {
 #define NUM_TOKS_REG_ADDR 6
 #define NUM_TOKS_HASH_EXPR 8
 
+// Definitions used for parse_brn
+#define HEX_TEN 0xA
+
 // Definitions used in parse
 #define AL_COND_CODE 0xE
 

@@ -151,7 +151,7 @@ int parse_dp(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 
   // Get opcode enum
   char *opcode = GET_STR(0);
-  opcode_t op_enum = (opcode_t) str_to_enum(opcode);
+  opcode_t op_enum = str_to_enum(opcode);
 
   // Set whether the CPSR flags should be set
   bool S = COMPARE_OP("tst") || COMPARE_OP("teq") || COMPARE_OP("cmp");
@@ -239,79 +239,118 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   inst->i.sdt.rd = PARSE_REG(RD_POS);
 
   int address = 0;
-  // Case 1: =expr
-  if(tlst->numOfTkns == NUM_TOKS_EQ_EXPR){
-    address = PARSE_EXPR(GET_STR(3));
 
-    if(address <= MAX_HEX){
-      char * immVal = GET_STR(3);
-      immVal[0] = '#';
+  switch (tlst->numOfTkns){
+    // Case 1: =expr
+    case NUM_TOKS_EQ_EXPR:
+      address = PARSE_EXPR(GET_STR(3));
+
+      if(address <= MAX_HEX){
+        char * immVal = GET_STR(3);
+        immVal[0] = '#';
+        token_t mod_tkns[] = {
+                {T_OPCODE, "mov"},
+                GET_TKN(1),
+                GET_TKN(2), //comma
+                {GET_TYPE(3), immVal},
+        };
+        token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
+
+        return parse_dp(prog, &mod_tlst, inst);
+      }
+      char *address_str = itoa(address);
+      int hash_expr_len = strlen(address_str) + 1;
+      char *hash_expr = calloc(1,hash_expr_len);
+      hash_expr[0] = '#';
+      strcat(hash_expr, address_str);
+      // asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
+      // tokenize(newline, tlst);
       token_t mod_tkns[] = {
-              {T_OPCODE, "mov"},
+              {T_OPCODE, "ldr"},
               GET_TKN(1),
               GET_TKN(2), //comma
-              {GET_TYPE(3), immVal},
+              {T_L_BRACKET, "["},
+              {T_REGISTER, "r15"},
+              {T_COMMA, ","},
+              {T_HASH_EXPR, hash_expr},
+              {T_R_BRACKET, "]"}
       };
-      token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
+      free(hash_expr);
+      token_list_t mod_tlst = {mod_tkns, 8};
+      return parse_sdt(prog, &mod_tlst, inst);
 
-      return parse_dp(prog, &mod_tlst, inst);
-    }
-    char *address_str = itoa(address);
-    int hash_expr_len = strlen(address_str) + 1;
-    char *hash_expr = calloc(1, hash_expr_len);
-    if(hash_expr == NULL){
-      return EC_NULL_POINTER;
-    }
-    hash_expr[0] = '#';
-    strcat(hash_expr, address_str);
-    // asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
-    // tokenize(newline, tlst);
-    token_t mod_tkns[] = {
-            {T_OPCODE, "ldr"},
-            GET_TKN(1),
-            GET_TKN(2), //comma
-            {T_L_BRACKET, "["},
-            {T_REGISTER, "r15"},
-            {T_COMMA, ","},
-            {T_HASH_EXPR, hash_expr},
-            {T_R_BRACKET, "]"}
-    };
-    free(hash_expr);
-    token_list_t mod_tlst = {mod_tkns, 8};
-    return parse_sdt(prog, &mod_tlst, inst);
-  }
-    // Case 2: [Rn]
-  if(tlst->numOfTkns == NUM_TOKS_REG_ADDR){
-    inst->i.sdt.I = 0;
-    inst->i.sdt.offset.imm.fixed = 0;
-    inst->i.sdt.rn = PARSE_REG(4);
-    inst->i.sdt.U = 0;
-    /*Could be either, change accordingly to test case */
-    inst->i.sdt.P = 0;
-    /*Also could be either, change accordingly to test case*/
-    return EC_OK;
-  }
-  if(tlst->numOfTkns == NUM_TOKS_HASH_EXPR){
-    inst->i.sdt.rn = PARSE_REG(4);
-    inst->i.sdt.U = 1;
-    inst->i.sdt.I = 0;
-    // Case 3: [Rn, #expression]
-    if(GET_TYPE(6) == T_COMMA){
-      inst->i.sdt.P = 1;
-      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
-      return EC_OK;
-    }
-
-    // Case 4: [Rn],<#expression>
-    if(GET_TYPE(6) == T_R_BRACKET){
+      // Case 2: [Rn]
+    case NUM_TOKS_REG_ADDR:
+      inst->i.sdt.I = 0;
+      inst->i.sdt.offset.imm.fixed = 0;
+      inst->i.sdt.rn = PARSE_REG(4);
+      inst->i.sdt.U = 0;
+      /*Could be either, change accordingly to test case */
       inst->i.sdt.P = 0;
-      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
+      /*Also could be either, change accordingly to test case*/
       return EC_OK;
-    }
+
+    case NUM_TOKS_HASH_EXPR:
+      inst->i.sdt.rn = PARSE_REG(4);
+      inst->i.sdt.U = 1;
+      inst->i.sdt.I = 0;
+      // Case 3: [Rn, #expression]
+      if(GET_TYPE(6) == T_COMMA){
+        inst->i.sdt.P = 1;
+        inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
+        return EC_OK;
+      }
+
+      // Case 4: [Rn],<#expression>
+      if(GET_TYPE(6) == T_R_BRACKET){
+        inst->i.sdt.P = 0;
+        inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
+        return EC_OK;
+      }
+    default:
+      return EC_UNSUPPORTED_OP;
   }
-  return EC_UNSUPPORTED_OP;
+
 }
 
+/**
+ * Parses a Single Data Transfer instruction
+ * Syntax is: <code> Rd, <address>
+ * <code>    - ldr|str
+ * <address> - <=expression>|[Rn]|[Rn, <#expression>]|[Rn,{+/-}Rm{,<shift>}]
+               |[Rn],<#expression>| [Rn],{+/-}Rm{,<shift>}
+ * @param: Same as other parse methods
+ *
+ */
+ /*
+int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst) {
+  char *opcode = GET_STR(0);
+  flag_t L = COMPARE_OP("ldr");
+  if(!L && !COMPARE_OP("str")){
+    perror("Opcode not recognised\n");
+  }
+
+  // Offset is one of: constant, pre-index address, post-indexed address
+  flag_t I; //immediate
+  flag_t P; //post/pre-indexing
+  flag_t U; //up bit (not supported, optional for +/-)
+  reg_address_t rn; //base register address
+  word_t offset;
+
+
+  inst->type = SDT;
+  inst->i.sdt.pad0 = 0x01;
+  inst->i.sdt.I = I;
+  inst->i.sdt.P = P;
+  inst->i.sdt.U = U;
+  inst->i.sdt.pad0 = 0x0;
+  inst->i.sdt.L = L;
+  inst->i.sdt.rn = rn;
+  inst->i.sdt.rd = PARSE_REG(1);
+  //TODO:
+  return 0;
+}
+*/
 /*= End of SINGLE DATA TRANSFER =*/
 /*=============================================<<<<<*/
 
@@ -343,13 +382,13 @@ void ref_entry(const label_t label, const address_t val, const void *obj){
  * @return : 0 or 1 depending whether the addition was successful or not
  */
 int add_symbol(program_t *program, label_t label, address_t addr) {
-  if (!smap_put(program->smap, label, addr)) {
+  if (!smap_put(program->sym_m, label, addr)) {
     return 0; // already in symbol map
   }
   prog_collection_t prog_coll = {program, label, addr};
-  // check if symbol exists in rmapap and update/remove accordingly
-  if (rmap_exists(program->rmap, label)) {
-    rmap_enum(program->rmap, ref_entry, &prog_coll);
+  // check if symbol exists in ref_map and update/remove accordingly
+  if (rmap_exists(program->ref_m, label)) {
+    rmap_enum(program->ref_m, ref_entry, &prog_coll);
   }
 
   return 1;
@@ -364,8 +403,8 @@ int add_symbol(program_t *program, label_t label, address_t addr) {
  * @return : 0 or 1 depending whether the addition was successful or not
  */
 int add_reference(program_t *program, label_t label, address_t addr) {
-  // adds reference to rmapap.
-  return !rmap_put(program->rmap, label, addr);
+  // adds reference to ref_map.
+  return !rmap_put(program->ref_m, label, addr);
 }
 
 /**
@@ -416,26 +455,24 @@ int parse_brn(program_t* prog, token_list_t *tlst, instruction_t *inst) {
   }
 
   word_t offset;
-  if (GET_TYPE(1) == T_STR) {
+  if (is_label(tlst)) {
     // TODO
     // Check if label is already in map, if so get address
-    char *label = GET_STR(1);
-    if (smap_exists(prog->smap, label)) {
-      DEBUG_PRINT("Getting label: (%s, %08x)\n", label, prog->mPC);
+    char *label = tlst->tkns[0].str;
+    if (smap_exists(prog->sym_m, label)) {
       address_t addr = 0;
-      smap_get_address(prog->smap, label, &addr);
+      smap_get_address(prog->sym_m, label, &addr);
       offset = calculate_offset(addr, prog->mPC);
     } else {
-      DEBUG_PRINT("Placing (%s, %08x) in reference\n", label, prog->mPC);
-      rmap_put(prog->rmap, label, prog->mPC);
-      offset = 0xFFFFFF; // dummy value
+      // Add label to reference map for processing later?
+      offset = 0; // dummy value
     }
   } else {
     offset = calculate_offset(atoi(tlst->tkns[0].str), prog->mPC);
   }
 
   inst->type = BRN;
-  inst->i.brn.padA = 0xA;//15u & (unsigned) HEX_TEN; //this is necessary to remove gcc warning
+  inst->i.brn.padA = 15u & (unsigned) HEX_TEN; //this is necessary to remove gcc warning
   inst->i.brn.offset = offset;
 
   return EC_OK;
@@ -495,37 +532,12 @@ int parse_halt(program_t *prog, token_list_t *tlst, instruction_t *inst) {
 = LABEL INSTRUCTIONS
 ===============================================>>>>>*/
 
-int parse_label(program_t *prog, token_list_t *tlst) {
-  int _status = EC_OK;
+void parse_label(program_t *prog, token_list_t *tlst) {
   char *label = GET_STR(0);
-  if(smap_exists(prog->smap, label)){
-    return EC_IS_LABEL;
+  if(smap_exists(prog->sym_m, label)){
+    //ERROR!
   }
-  smap_put(prog->smap, label, prog->mPC);
-  DEBUG_CMD(rmap_print(prog->rmap));
-  if(rmap_exists(prog->rmap, label)){
-    int num_references = rmap_get_references(prog->rmap, label, NULL, 0);
-    size_t size_ref = num_references * sizeof(address_t);
-    address_t *addrs = malloc(size_ref);
-    if(addrs == NULL){
-      perror("parse_label(): malloc failed");
-      return EC_NULL_POINTER;
-    }
-    if((_status = rmap_get_references(prog->rmap, label, addrs, size_ref))){
-      return _status;
-    }
-    for (int i = 0; i < num_references; i++) {
-      word_t offset = calculate_offset(prog->mPC, addrs[i]);
-      word_t curr;
-      get_word(prog->out, addrs[i], &curr);
-      printf("offset: 0x%08x, current_word: 0x%08x\n", offset, curr);
-      for (int i = 1; i < 4; i++) {
-        prog->out[addrs[i] + i] = get_byte(offset, (i * 8) - 1);
-      }
-      DEBUG_PRINT("REFERENCE: %u\n", addrs[i]);
-    }
-  }
-  return _status;
+  smap_put(prog->sym_m, label, prog->mPC);
 }
 
 /**
@@ -541,7 +553,7 @@ int parse(program_t *prog, token_list_t *tlst, instruction_t *inst) {
   if (is_label(tlst)) {
     DEBUG_CMD(printf("LABEL:\n"));
     parse_label(prog, tlst);
-    return EC_IS_LABEL;
+    return EC_OK;
   }
 
   // Get the pointer to the first token - this will be the opcode

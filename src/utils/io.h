@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "arm.h"
 
-int get_word(byte_t *buff, word_t byteAddr, word_t *dest);
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
 

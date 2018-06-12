@@ -33,7 +33,7 @@ char **allocate_input(int lines, int lineLength) {
   }
 
   for (i = 1; i < lines; i++) {
-    in[i] = in[0] + i * lineLength + 1;
+    in[i] = in[0] + i * lineLength * sizeof(char) + 1;
   }
 
   return in;
@@ -51,14 +51,14 @@ program_t *program_new() {
     return NULL;
   }
 
-  program->smap = smap_new(MAX_S_MAP_CAPACITY);
-  if (program->smap == NULL) {
+  program->sym_m = smap_new(MAX_S_MAP_CAPACITY);
+  if (program->sym_m == NULL) {
     free(program);
     return NULL;
   }
-  program->rmap = rmap_new(MAX_R_MAP_CAPACITY);
-  if (program->rmap == NULL) {
-    smap_delete(program->smap);
+  program->ref_m = rmap_new(MAX_R_MAP_CAPACITY);
+  if (program->ref_m == NULL) {
+    smap_delete(program->sym_m);
     free(program);
     return NULL;
   }
@@ -66,8 +66,8 @@ program_t *program_new() {
   // Ideally use function to count the number of lines
   program->in = allocate_input(MAX_NUM_LINES, LINE_SIZE);
   if (program->in == NULL) {
-    rmap_delete(program->rmap);
-    smap_delete(program->smap);
+    rmap_delete(program->ref_m);
+    smap_delete(program->sym_m);
     free(program);
     return NULL;
   }
@@ -86,8 +86,8 @@ int program_delete(program_t *program) {
   free(program->in[0]);
   free(program->in);
   // free data structures
-  rmap_delete(program->rmap);
-  smap_delete(program->smap);
+  rmap_delete(program->ref_m);
+  smap_delete(program->sym_m);
   // free rest of program
   free(program);
 
@@ -136,29 +136,26 @@ int main(int argc, char **argv) {
     program_delete(program);
     return _status; // failed to read input. Need this in emulate too?
   }
+  DEBUG_PRINT("%u\n", _status);
 
   // set up variables for assembler
   token_list_t lineTokens;
   instruction_t instr;
   word_t word;
-  int error_status = 0;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
     DEBUG_PRINT("======== LINE %u ======\n", i);
-    error_status = tokenize(program->in[i], &lineTokens);
-    if(error_status == -1) {
+    int t_ec = tokenize(program->in[i], &lineTokens);
+    if(t_ec == -1){
       return EC_NULL_POINTER;
     }
-    error_status = parse(program, &lineTokens, &instr);
-    if (error_status == EC_IS_LABEL) {
-      continue;
-    } else if (error_status) {
+    if (parse(program, &lineTokens, &instr)) {
       program_delete(program);
       return EC_SYS; //parse failed
     }
     free(lineTokens.tkns);
-    if ((error_status = encode(&instr, &word))) {
+    if (encode(&instr, &word)) {
       program_delete(program);
       return EC_SYS; // encode failed
     }
