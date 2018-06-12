@@ -52,6 +52,7 @@ int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
 int encode_operand(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
+  DEBUG_PRINT("encode_operand: %08x\n", *w);
   if (instr->i.dp.I){ //Operand2 is immediate constant
     *w <<= OP_ROTATE_SIZE;
     *w |= instr->i.dp.operand2.imm.rotated.rotate;
@@ -74,6 +75,7 @@ int encode_operand(instruction_t *instr, word_t *w){
 int encode_offset(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
+  DEBUG_PRINT("encode_offset: %08x\n", *w);
   if (instr->i.dp.I){ //Offset is shifted register
     return encode_shifted_reg(instr->i.sdt.offset.reg, w);
   }else{  //Offset is 12-bit immediate value
@@ -193,6 +195,18 @@ int encode_mul(instruction_t *instr, word_t *w){
 int encode_sdt(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
+
+  DEBUG_PRINT("SDT: %x|%x|%x|%x|%x|%x|%x|%x|%x|%x|\n",
+instr->cond,
+instr->i.sdt.pad1,
+instr->i.sdt.I,
+instr->i.sdt.P,
+instr->i.sdt.U,
+instr->i.sdt.pad0,
+instr->i.sdt.L,
+instr->i.sdt.rn,
+instr->i.sdt.rd,
+instr->i.sdt.offset.imm.fixed);
 
   *w <<= SDT_PAD1_SIZE;
   *w |= instr->i.sdt.pad1;
