@@ -515,13 +515,11 @@ int parse_label(program_t *prog, token_list_t *tlst) {
       return _status;
     }
     for (int i = 0; i < num_references; i++) {
-      word_t offset = calculate_offset(prog->mPC, addrs[i]);
+      word_t offset = calculate_offset(prog->mPC, addrs[i]) | 0xFF000000;
       word_t curr;
       get_word(prog->out, addrs[i], &curr);
-      printf("offset: 0x%08x, current_word: 0x%08x\n", offset, curr);
-      for (int i = 1; i < 4; i++) {
-        prog->out[addrs[i] + i] = get_byte(offset, (i * 8) - 1);
-      }
+      curr &= offset;
+      set_word(prog->out, addrs[i], curr);
       DEBUG_PRINT("REFERENCE: %u\n", addrs[i]);
     }
   }
