@@ -1,3 +1,8 @@
+/*
+ * Contains the definitons of error codes and structure of an error.
+ * Uses preprocessor directives to accomplish this.
+ */
+
 #ifndef ERROR_H
 #define ERROR_H
 
@@ -15,13 +20,6 @@ typedef struct {
   int code;
   const char *message;
 } error_str;
-
-const error_str error_strs[] = {
-    {EC_OK, "No error encountered."},
-    {EC_NULL_POINTER, "Passed a null pointer."},
-    {EC_UNSUPPORTED_OP, "This operation is not supported."},
-    {EC_INVALID_PARAM, "Invalid parameter."}
-};
 
 // Convert error codes to and from system ones
 #define EC_FROM_SYS_ERROR(e) (EC_SYS + e)

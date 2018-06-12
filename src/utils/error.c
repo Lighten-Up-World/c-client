@@ -1,8 +1,20 @@
+/*
+ * Contains the function used to throw errors
+ * Interacts with the error.h file to convert system errors to error codes.
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include "error.h"
 
 void ec_strerror(const int status, char *buffer, const size_t buffer_length) {
+  const error_str error_strs[] = {
+      {EC_OK, "No error encountered."},
+      {EC_NULL_POINTER, "Passed a null pointer."},
+      {EC_UNSUPPORTED_OP, "This operation is not supported."},
+      {EC_INVALID_PARAM, "Invalid parameter."}
+  };
+
   if (EC_IS_SYS_ERROR(status)) {
     strncpy(buffer, strerror(EC_TO_SYS_ERROR(status)), buffer_length);
     printf("%s\n", buffer);

@@ -3,34 +3,23 @@
 
 #include "arm.h"
 
-flag_t getFlag(word_t inst, byte_t pos);
+flag_t get_flag(word_t inst, byte_t pos);
+byte_t get_byte(word_t inst, byte_t pos);
+byte_t get_nibble(word_t inst, byte_t pos);
+word_t get_bits(word_t inst, byte_t x, byte_t y);
 
-byte_t getByte(word_t inst, byte_t pos);
+word_t l_shift_left(word_t value, byte_t shift);
+word_t l_shift_right(word_t value, byte_t shift);
+word_t a_shift_right(word_t value, byte_t shift);
+word_t rotate_right(word_t value, byte_t shift);
+word_t rotate_left(word_t value, byte_t shift);
+shift_result_t l_shift_left_c(word_t value, byte_t shift);
+shift_result_t l_shift_right_c(word_t value, byte_t shift);
+shift_result_t a_shift_right_c(word_t value, byte_t shift);
+shift_result_t rotate_right_c(word_t value, byte_t shift);
 
-byte_t getNibble(word_t inst, byte_t pos);
-
-word_t getBits(word_t inst, byte_t x, byte_t y);
-
-word_t lShiftLeft(word_t value, byte_t shift);
-
-word_t lShiftRight(word_t value, byte_t shift);
-
-word_t aShiftRight(word_t value, byte_t shift);
-
-word_t rotateRight(word_t value, byte_t shift);
-
-shift_result_t lShiftLeftC(word_t value, byte_t shift);
-
-shift_result_t lShiftRightC(word_t value, byte_t shift);
-
-shift_result_t aShiftRightC(word_t value, byte_t shift);
-
-shift_result_t rotateRightC(word_t value, byte_t shift);
-
-flag_t isNegative(word_t word);
-
+flag_t is_negative(word_t word);
 word_t negate(word_t word);
-
-word_t leftPadZeros(byte_t value);
+word_t left_pad_zeros(byte_t value);
 
 #endif

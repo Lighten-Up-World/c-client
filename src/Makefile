@@ -1,85 +1,83 @@
 .PHONY: clean
-.PHONY: emulate_production
-.PHONY: emulate_debug
-.PHONY: production
-.PHONY: debug
 .PHONY: build/
-.ONESHELL:
+.PHONY: emulate
+.PHONY: assemble
+
+DEBUG = -DDEBUG
+CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
+
+RUN = mov03
+OUT = out
 
 BUILD = ./build/
+UTIL = ./utils/
+EMULATE = ./emulate/
+ASSEMBLE = ./assemble/
 
-CFLAGS = -Wall -Werror -pedantic
-DEBUG = -DDEBUG
-RUN = factorial
-COMPILE = gcc -c $(DEBUG) $(CFLAGS) $< -o $@
+COMPILE = gcc -c $(CFLAGS) $< -o $@
+all: assemble emulate
 
-emulate: build/ emulate.out
+debug_ass:
+	make clean; make assemble RUN=$(RUN)
+
+assemble: build ./build/assemble.out
+	$(BUILD)assemble.out ../test/test_cases/$(RUN).s $(OUT)
+
+$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)symbolmap.o $(BUILD)referencemap.o $(BUILD)register.o
+	gcc $^ -o $@
+
+$(BUILD)assemble.o: assemble.c assemble.h
+	$(COMPILE)
+
+$(BUILD)encode.o: $(ASSEMBLE)encode.c $(ASSEMBLE)encode.h
+	$(COMPILE)
+
+$(BUILD)parser.o: $(ASSEMBLE)parser.c $(ASSEMBLE)parser.h
+	$(COMPILE)
+
+$(BUILD)tokenizer.o: $(ASSEMBLE)tokenizer.c $(ASSEMBLE)tokenizer.h
+	$(COMPILE)
+
+$(BUILD)symbolmap.o: $(ASSEMBLE)symbolmap.c $(ASSEMBLE)symbolmap.h
+	$(COMPILE)
+
+$(BUILD)referencemap.o: $(ASSEMBLE)referencemap.c $(ASSEMBLE)referencemap.h
+	$(COMPILE)
+
+emulate: build ./build/emulate.out
 	$(BUILD)emulate.out ../test/test_cases/$(RUN)
 
-emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
-	gcc $(CFLAGS) $^ -o $(BUILD)emulate.out
+$(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
+	gcc $^ -o $@
+
+$(BUILD)emulate.o: emulate.c $(UTIL)arm.h $(UTIL)io.h $(EMULATE)execute.h $(EMULATE)decode.h $(UTIL)register.h
+	$(COMPILE)
+
+$(BUILD)execute.o: $(EMULATE)execute.c $(EMULATE)execute.h $(UTIL)bitops.h $(UTIL)register.h
+	$(COMPILE)
+
+$(BUILD)decode.o: $(EMULATE)decode.c $(EMULATE)decode.h $(UTIL)arm.h $(UTIL)instructions.h $(UTIL)bitops.h
+	$(COMPILE)
+
+# UTILITY OBJECTS
+
+$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h $(UTIL)register.h
+	$(COMPILE)
+
+$(BUILD)bitops.o: $(UTIL)bitops.c $(UTIL)bitops.h
+	$(COMPILE)
+
+$(BUILD)error.o: $(UTIL)error.c $(UTIL)error.h
+	$(COMPILE)
+
+$(BUILD)register.o: $(UTIL)register.c $(UTIL)register.h $(UTIL)arm.h
+	$(COMPILE)
 
 dependencies:
 	grep '#include' *.[ch] | grep '"'
 
-$(BUILD)emulate.o: emulate.c arm.h io.h execute.h decode.h register.h
-	$(COMPILE)
-
-$(BUILD)io.o: io.c io.h bitops.h
-	$(COMPILE)
-
-$(BUILD)execute.o: execute.c execute.h bitops.h register.h
-	$(COMPILE)
-
-$(BUILD)decode.o: decode.c decode.h arm.h instructions.h bitops.h
-	$(COMPILE)
-
-$(BUILD)register.o: register.c register.h arm.h
-	$(COMPILE)
-
-$(BUILD)bitops.o: bitops.c bitops.h
-	$(COMPILE)
-
-$(BUILD)error.o: error.c error.h
-	$(COMPILE)
-
-build/:
+build:
 	mkdir -p build
 
 clean:
 	rm -rf $(BUILD)
-
-# PATHS = ./
-
-# PATHO = build/objs/
-#
-# BUILD_PATHS = $(PATHB) $(PATHO)
-#
-# SRC = $(wildcard $(PATHS)*.c)
-#
-# RESULTS = $(patsubst $(PATHS)%.c, $(SRC))
-#
-# CFLAGS=-I. -I$(PATHS) -DTEST -Wall -Werror -pedantic
-#
-# all: emulate assemble
-#
-# emulate: $(PATHB)emulate.out
-#
-# assemble: $(PATHB)assemble.out
-#
-# $(PATHB)%.out: $(PATHO)%.o
-# 	gcc -o $@ $^
-#
-# $(PATHO)%.o: $(PATHS)%.c $(PATHS)%.h
-# 	gcc -c $(CFLAGS) $< -o $@
-#
-# $(PATHB):
-# 	mkdir -p $(PATHB)
-#
-# $(PATHO):
-# 	mkdir -p $(PATHO)
-#
-
-# .PRECIOUS: $(PATHB)%.out
-# .PRECIOUS: $(PATHD)%.d
-# .PRECIOUS: $(PATHO)%.o

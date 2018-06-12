@@ -2,12 +2,23 @@
 .PHONY: unit_test
 .PHONY: src
 
-all: emulate unit_test test
+all: src unit_test test
+
+mac: src unit_test test_mac
 
 RUN = factorial
 
 test:
 	cd ./test; make
+
+test_mac:
+	cd ./test; make mac
+
+src:
+	cd src; make clean; make all DEBUG= RUN=$(RUN)
+
+assemble:
+	cd src; make clean; make assemble DEBUG= RUN=$(RUN)
 
 emulate:
 	cd src; make clean; make emulate DEBUG= RUN=$(RUN)
