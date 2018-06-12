@@ -46,6 +46,12 @@ const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
     {"andeq", MOV, &parse_halt} // ...
 };
 
+
+/*=============================================>>>>>
+= UTILITY FUNCTIONS
+===============================================>>>>>*/
+
+
 bool is_label(list_t *tklst) {
   return token_list_get_type(tklst, tklst->len - 1) == T_LABEL;
 }
@@ -66,6 +72,10 @@ int str_to_enum(char *opcode){
 char *remove_first_char(char *string) {
   return (string + 1);
 }
+
+/*=============================================>>>>>
+= DATA PROCESSING INSTRUCTION
+===============================================>>>>>*/
 
 
 /**
@@ -129,10 +139,6 @@ operand_t get_imm_op2(char *operand2) {
   }
   return result;
 }
-
-/*=============================================>>>>>
-= DATA PROCESSING INSTRUCTION
-===============================================>>>>>*/
 
 /**
  * Parse a DP instruction
