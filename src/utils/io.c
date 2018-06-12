@@ -16,7 +16,7 @@
  * @return true iff the address is a valid gpio address
  */
 bool is_gpio_addr(word_t addr) {
-  if (addr >= GPIO_SETUP_0_9 & addr <= GPIO_SETUP_20_29) {
+  if (addr >= GPIO_SETUP_0_9 && addr <= GPIO_SETUP_20_29) {
     return true;
   } else if (addr == GPIO_CLEAR) {
     return true;
