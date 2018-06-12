@@ -46,8 +46,8 @@ char **allocate_input(int lines, int lineLength) {
  */
 program_state_t *program_new() {
   program_state_t *program;
-  program_state = malloc(sizeof(program_state_t));
-  if (program_state == NULL) {
+  program = malloc(sizeof(program_state_t));
+  if (program == NULL) {
     return NULL;
   }
 
@@ -125,9 +125,9 @@ int main(int argc, char **argv) {
   int _status = EC_OK;
   assert(argc > 2);
 
-  program_state_t *program_state = program_new();
+  program_state_t *program = program_new();
 
-  if (program_state == NULL) {
+  if (program == NULL) {
     return EC_NULL_POINTER; // unable to allocate space for program.
   }
   DEBUG_PRINT("Starting read of file @%s\n", argv[1]);
@@ -165,9 +165,7 @@ int main(int argc, char **argv) {
 
     DEBUG_PRINT("Word is: %08x\n", word);
     set_word(program->out, program->mPC, word);
-    if (word != 0) {
-      program->mPC += 4;
-    }
+    program->mPC += 4;
   }
   byte_t buff[program->mPC];
   for (size_t i = 0; i < program->mPC; i++) {
