@@ -274,19 +274,19 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
             {T_HASH_EXPR, hash_expr},
             {T_R_BRACKET, "]"}
     };
-    free(hash_expr);
     token_list_t mod_tlst = {mod_tkns, 8};
-    return parse_sdt(prog, &mod_tlst, inst);
+    int status = parse_sdt(prog, &mod_tlst, inst);
+    free(hash_expr);
+    return status;
   }
-    // Case 2: [Rn]
-  if(tlst->numOfTkns == NUM_TOKS_POST_IND_ADDR){
+  // Case 2: [Rn]
+  if(tlst->numOfTkns == NUM_TOKS_PRE_IND_ADDR){
     inst->i.sdt.I = 0;
-    inst->i.sdt.offset.imm.fixed = 0;
+    inst->i.sdt.P = 1;
+    inst->i.sdt.U = 1;
     inst->i.sdt.rn = PARSE_REG(4);
-    inst->i.sdt.U = 0;
+    inst->i.sdt.offset.imm.fixed = 0;
     /*Could be either, change accordingly to test case */
-    inst->i.sdt.P = 0;
-    /*Also could be either, change accordingly to test case*/
     return EC_OK;
   }
   if(tlst->numOfTkns == NUM_TOKS_HASH_EXPR){
