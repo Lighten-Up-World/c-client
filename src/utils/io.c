@@ -16,11 +16,11 @@
  * @return true iff the address is a valid gpio address
  */
 bool is_gpio_addr(word_t addr) {
-  if (addr >= 0x20200000 & addr <= 0x20200008) {
+  if (addr >= GPIO_SETUP_0_9 & addr <= GPIO_SETUP_20_29) {
     return true;
-  } else if (addr == 0x20200028) {
+  } else if (addr == GPIO_CLEAR) {
     return true;
-  } else if (addr == 0x2020001C) {
+  } else if (addr == GPIO_WRITE) {
     return true;
   }
   return false;
@@ -32,15 +32,15 @@ bool is_gpio_addr(word_t addr) {
  * @param byteAddr: the address accessed
  */
 void print_gpio_access(word_t byteAddr) {
-  if (byteAddr == 0x20200000) {
+  if (byteAddr == GPIO_SETUP_0_9) {
     printf("One GPIO pin from 0 to 9 has been accessed\n");
-  } else if (byteAddr == 0x20200004) {
+  } else if (byteAddr == GPIO_SETUP_10_19) {
     printf("One GPIO pin from 10 to 19 has been accessed\n");
-  } else if (byteAddr == 0x20200008) {
+  } else if (byteAddr == GPIO_SETUP_20_29) {
     printf("One GPIO pin from 20 to 29 has been accessed\n");
-  } else if (byteAddr == 0x20200028) {
+  } else if (byteAddr == GPIO_CLEAR) {
     printf("PIN OFF\n");
-  } else if (byteAddr == 0x2020001C) {
+  } else if (byteAddr == GPIO_WRITE) {
     printf("PIN ON\n");
   }
 }
@@ -94,7 +94,6 @@ int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
   return 0;
 }
 
-//TODO: see inside comments
 /**
  * Read the 32 bit word from memory and return it
  *
@@ -110,7 +109,7 @@ int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
     return 1;
   }
 
-  // GPIO extension, TODO: check this is not a duplicate call to print gpio accesses, check dest is set correctly
+  // GPIO extension
   if (is_gpio_addr(byteAddr)) {
     print_gpio_access(byteAddr);
     *dest = byteAddr;

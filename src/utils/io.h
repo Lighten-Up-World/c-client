@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include "arm.h"
 
+#define GPIO_SETUP_0_9 0x20200000
+#define GPIO_SETUP_10_19 0x20200004
+#define GPIO_SETUP_20_29 0x20200008
+#define GPIO_CLEAR 0x20200028
+#define GPIO_WRITE 0x2020001C
+
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
 
