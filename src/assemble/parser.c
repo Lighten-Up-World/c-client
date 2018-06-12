@@ -373,21 +373,21 @@ int add_reference(assemble_state_t *program, label_t label, address_t addr) {
  * @param PC: the address of the branch instruction being executed
  * @return: the offset to be store - a shifted 24 bit value
  */
-word_t calculate_offset(int address, word_t PC) {
-  word_t offset = address - PC - 8;
+word_t calculate_offset(int32_t address, word_t PC) {
+  int32_t offset = address - PC - 8;
 
-  // Check we can store in 26 bits
-  if (get_bits(offset, 31, 25) != 0) {
+  if (offset > 0x3FFFFFF || offset < -0x3FFFFFF) {
     perror("Offset was too large to store");
-    return 1;
+    exit(EC_INVALID_PARAM);
   }
 
   // Shift right by 2 then store (in 24 bits)
   shift_result_t shifted_offset = a_shift_right_c(offset, 2);
   if (shifted_offset.carry == true) {
     perror("carry occurred when trying to store offset");
-    return 1;
+    exit(EC_INVALID_PARAM);
   }
+
   return shifted_offset.value;
 }
 
