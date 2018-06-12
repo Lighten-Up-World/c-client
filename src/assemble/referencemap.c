@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <strings.h>
+#include <assert.h>
 #include "referencemap.h"
 #include "../utils/error.h"
 
@@ -231,6 +232,9 @@ int rmap_put(const reference_map_t *map, const label_t label,
   memcpy(entry->label, label, label_len);
   if (address_len == 0) {
     entry->references.address = malloc(sizeof(address_t));
+
+    printf("malloc here\n");
+
     if (entry->references.address == NULL) {
       free(new_label);
       free(bucket->entries);
@@ -238,17 +242,20 @@ int rmap_put(const reference_map_t *map, const label_t label,
     }
     entry->references.count = 1;
   } else {
+
+    printf("realloc here\n");
+
     entry->references.count += 1;
-    address_t *tmp_references_address = realloc(entry->references.address,
+    entry->references.address = realloc(entry->references.address,
                                                 entry->references.count
                                                     * sizeof(address_t));
-    if (tmp_references_address == NULL) {
+    if (entry->references.address == NULL) {
       free(new_label);
       free(bucket->entries);
       bucket->count -= 1;
       return EC_NULL_POINTER;
     }
-    entry->references.address = tmp_references_address;
+    //entry->references.address = tmp_references_address;
   }
   entry->references.address[address_len] = new_address;
   return EC_OK;
