@@ -225,7 +225,8 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 * Case 4b: <code> Rd, [Rn],{+/-}Rm{,<shift>} {8-12}
 */
 
-//str r1,[r2],r4 - fails
+// TODO: check this works with loading GPIO addresses
+//str r1,[r2],r4 - fail
 int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   DEBUG_CMD(printf("SDT:\n"));
   char *opcode = GET_STR(0);
