@@ -290,18 +290,19 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
     return EC_OK;
   }
   if(tlst->numOfTkns == NUM_TOKS_HASH_EXPR){
+    DEBUG_PRINT("Hash Expression TOKENS: %d\n", NUM_TOKS_HASH_EXPR);
     inst->i.sdt.rn = PARSE_REG(4);
     inst->i.sdt.U = 1;
     inst->i.sdt.I = 0;
     // Case 3: [Rn, #expression]
-    if(GET_TYPE(6) == T_COMMA){
+    if(GET_TYPE(5) == T_COMMA){
       inst->i.sdt.P = 1;
       inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(6));
       return EC_OK;
     }
 
     // Case 4: [Rn],<#expression>
-    if(GET_TYPE(6) == T_R_BRACKET){
+    if(GET_TYPE(5) == T_R_BRACKET){
       inst->i.sdt.P = 0;
       inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(GET_STR(7));
       return EC_OK;
