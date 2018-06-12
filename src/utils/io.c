@@ -73,9 +73,26 @@ char *itoa(int n)
  *  @param dest: a non-null pointer to destination of loaded word
  *  @return an int indicating success or failure
  */
+int get_word(byte_t *buff, word_t byteAddr, word_t *word) {
+  assert(buff != NULL);
+  *word = 0;
+
+  for (size_t i = 0; i < 4; i++) {
+    *word |= ((word_t) buff[byteAddr + i]) << (i * 8);
+  }
+  return 0;
+}
+
+/**
+ *  Read a 32 bit word from memory
+ *
+ *  @param state: a non-null pointer to the machine state
+ *  @param byteAddr: the byte address to read from
+ *  @param dest: a non-null pointer to destination of loaded word
+ *  @return an int indicating success or failure
+ */
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
-  word_t word = 0;
   if (check_address_valid(byteAddr)) {
     return 1;
   }
@@ -86,11 +103,7 @@ int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
     *dest = byteAddr;
     return 0;
   }
-
-  for (size_t i = 0; i < 4; i++) {
-    word |= ((word_t) state->memory[byteAddr + i]) << (i * 8);
-  }
-  *dest = word;
+  get_word(state->memory, byteAddr, dest);
   return 0;
 }
 

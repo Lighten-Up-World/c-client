@@ -10,6 +10,7 @@
 #define GPIO_CLEAR 0x20200028
 #define GPIO_WRITE 0x2020001C
 
+int get_word(byte_t *buff, word_t byteAddr, word_t *word);
 int get_mem_word(state_t *state, word_t byteAddr, word_t *dest);
 int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest);
 
