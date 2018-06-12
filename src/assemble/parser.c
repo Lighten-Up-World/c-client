@@ -233,6 +233,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   if(!L && !COMPARE_OP("str")){
     perror("Opcode not recognised\n");
   }
+  inst->type = SDT;
   inst->i.sdt.L = L;
   inst->i.sdt.pad1 = 0x1;
   inst->i.sdt.pad0 = 0x0;
@@ -286,7 +287,6 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
     inst->i.sdt.U = 1;
     inst->i.sdt.rn = PARSE_REG(4);
     inst->i.sdt.offset.imm.fixed = 0;
-    /*Could be either, change accordingly to test case */
     return EC_OK;
   }
   if(tlst->numOfTkns == NUM_TOKS_HASH_EXPR){
