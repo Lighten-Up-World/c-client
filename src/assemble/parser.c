@@ -284,13 +284,10 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst){
       token_list_add_pair(mod_tklst, T_L_BRACKET, "[");
       token_list_add_pair(mod_tklst, T_REGISTER, "r15");
       token_list_add_pair(mod_tklst, T_COMMA, ",");
-      token_list_add_pair(mod_tklst, T_HASH_EXPR, hash_expr);
+      token_list_add_pair(mod_tklst, T_HASH_EXPR, "#0xFFF");
       token_list_add_pair(mod_tklst, T_R_BRACKET, "]");
 
-      DEBUG_PRINT("Modified hash_expr is: %s\n", hash_expr);
-      int status = parse_sdt(prog, mod_tklst, inst);
-      free(hash_expr);
-      return status;
+      return parse_sdt(prog, mod_tklst, inst);
     }
   }
   // Case 2: [Rn]
@@ -448,7 +445,7 @@ int parse_brn(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   }
 
   inst->type = BRN;
-  inst->i.brn.padA = 0xA;//15u & (unsigned) HEX_TEN; //this is necessary to remove gcc warning
+  inst->i.brn.padA = 0xA;
   inst->i.brn.offset = offset;
 
   return EC_OK;
@@ -458,28 +455,7 @@ int parse_brn(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
 = SPECIAL INSTRUCTIONS
 ===============================================>>>>>*/
 
-
-int parse_lsl(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
-  //Treat lsl Rn, <expr> as mov Rn, Rn, lsl <expr>
-  reg_address_t r = PARSE_REG(1);
-
-  inst->i.dp.padding = 0x00;
-  inst->i.dp.I = 0;
-  inst->i.dp.opcode = MOV;
-  inst->i.dp.S = 1;
-  inst->i.dp.rn = r;
-  inst->i.dp.rd = r;
-  //TODO: set this properly
-  //inst->i.dp.operand2.reg.shift.constant.integer = get_op2(tokens[2].str).imm.fixed;
-  inst->i.dp.operand2.reg.type = LSL;
-  inst->i.dp.operand2.reg.shiftBy = 0; //case where this (bit 4) is 1 is optional
-  inst->i.dp.operand2.reg.rm = r;
-
-  return EC_OK;
-}
-
-// TODO: use this if we support mov with a shifted register in DP
-int parse_lsl_conversion(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
+int parse_lsl(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
   // Create new instruction in memory, to be parsed by sdt
@@ -511,7 +487,7 @@ int parse_label(assemble_state_t *prog, list_t *tklst) {
   int _status = EC_OK;
   char *label = token_list_get_str(tklst, 0);
   if(smap_exists(prog->smap, label)){
-    return EC_SKIP;
+    return EC_IS_LABEL;
   }
   smap_put(prog->smap, label, prog->mPC);
   DEBUG_CMD(rmap_print(prog->rmap));
@@ -563,13 +539,9 @@ int parse(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
     return parse_brn(prog, tklst, inst);
   }
 
-  // Not a branch instruction so set condition to always execute
-  inst->cond = AL_COND_CODE; //0b1110
-
   if (!strcmp("lsl", opcode)) {
     DEBUG_CMD(printf("LSL:\n"));
-    perror("lsl not supported yet");
-    return EC_UNSUPPORTED_OP;
+    return parse_lsl(prog, tklst, inst);
   }
 
   // Calculate function pointer to parse an instruction from the opcode
