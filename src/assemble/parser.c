@@ -226,7 +226,6 @@ int parse_mul(program_t* prog, token_list_t *tlst, instruction_t *inst) {
 */
 
 // TODO: check this works with loading GPIO addresses
-//str r1,[r2],r4 - fail
 int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
   DEBUG_CMD(printf("SDT:\n"));
   char *opcode = GET_STR(0);
@@ -251,7 +250,7 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
               {T_OPCODE, "mov"},
               GET_TKN(1),
               GET_TKN(2), //comma
-              {GET_TYPE(3), immVal},
+              {T_HASH_EXPR, immVal},
       };
       token_list_t mod_tlst = {mod_tkns, NUM_TOKS_EQ_EXPR};
 
@@ -265,8 +264,6 @@ int parse_sdt(program_t* prog, token_list_t *tlst, instruction_t *inst){
     }
     hash_expr[0] = '#';
     strcat(hash_expr, address_str);
-    // asprintf(&newline, "ldr %s, [PC, #%d]", GET_STR(1), offset);
-    // tokenize(newline, tlst);
     token_t mod_tkns[] = {
             {T_OPCODE, "ldr"},
             GET_TKN(1),
