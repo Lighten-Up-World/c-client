@@ -15,6 +15,7 @@ typedef enum{
   T_MINUS,
   T_PLUS,
   T_LABEL,
+  T_STR,
 } token_type_t;
 
 typedef struct {
