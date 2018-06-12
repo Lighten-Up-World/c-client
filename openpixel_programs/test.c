@@ -8,15 +8,9 @@
 #include <string.h>
 
 int main() {
-	printf("running main\n");
-
-    int sd;
-    int port;
-    int rval;
-    struct hostent *hostaddr;
     struct sockaddr_in servaddr;
 
-	sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	int sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(sd == -1) {
 		perror("Socket()\n");
 		return (errno);
@@ -27,15 +21,15 @@ int main() {
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(7890);
 
-	hostaddr = gethostbyname("127.0.0.1");
+	struct hostent *hostaddr = gethostbyname("127.0.0.1");
 	memcpy(&servaddr.sin_addr, hostaddr->h_addr, hostaddr->h_length);
 
-	rval = connect(sd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+	int rval = connect(sd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 	if (rval == -1) {
-		printf("Port %d is closed\n", port);
+		printf("Port is closed\n");
 		close(sd);
 	} else {
-		printf("Port %d is open\n", port);
+		printf("Port is open\n");
 	}
 	
 	send(sd, "message", strlen("hello"), 0);
