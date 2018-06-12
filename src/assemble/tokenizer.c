@@ -110,7 +110,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
       *currentpart = &mem[j+1];
     }
   }
-
+  // free(mem); TODO: FREE THIS SOMEWHERE
   return n;
 }
 
