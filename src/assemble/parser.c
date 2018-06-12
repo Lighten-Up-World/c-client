@@ -219,6 +219,16 @@ int parse_mul(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
 = SINGLE DATA TRANSFER
 ===============================================>>>>>*/
 
+wordref_t *wordref_new(word_t word, address_t ref){
+  wordref_t *self = malloc(sizeof(wordref_t));
+  if(self == NULL){
+    return NULL;
+  }
+  self->word = word;
+  self->ref = ref;
+  return self;
+}
+
 /**
 * Case 1: <code> Rd, <=expression>          {4}
 * Case 2: <code> Rd , [ Rn ]                   {6}
@@ -258,16 +268,11 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst){
 
       return parse_dp(prog, mod_tklst, inst);
     } else {
-      char *address_str = itoa(value); //TODO: Isn't meant to be storing the value,
-                                      // mean't to be storing offset from current location to end of program_state data
-      DEBUG_PRINT("address_st is: %s\n", address_str);
-      int hash_expr_len = strlen(address_str) + 1;
-      char *hash_expr = calloc(1, hash_expr_len);
-      if(hash_expr == NULL){
+      wordref_t *addon = wordref_new(value, prog->mPC);
+      if(addon == NULL){
         return EC_NULL_POINTER;
       }
-      hash_expr[0] = '#';
-      strcat(hash_expr, address_str);
+      list_add(prog->additional_words, addon);
 
       list_t *mod_tklst = token_list_new();
       token_list_add_pair(mod_tklst, T_OPCODE, "ldr");

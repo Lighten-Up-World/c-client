@@ -62,7 +62,7 @@ assemble_state_t *program_new() {
     free(program);
     return NULL;
   }
-
+  program->additional_words = list_new(&free);
   // Ideally use function to count the number of lines
   program->in = allocate_input(MAX_NUM_LINES, LINE_SIZE);
   if (program->in == NULL) {
@@ -88,6 +88,7 @@ int program_delete(assemble_state_t *program) {
   // free data structures
   rmap_delete(program->rmap);
   smap_delete(program->smap);
+  list_delete(program->additional_words);
   // free rest of program
   free(program);
 
@@ -159,7 +160,7 @@ int main(int argc, char **argv) {
     }
     CHECK_STATUS_CLEANUP(_status, program_delete(program));
 
-    //token_list_destroy(tklst); TODO: Invalid frees atm
+    //token_list_delete(tklst); TODO: Invalid frees atm
     _status = encode(&instr, &word);
     CHECK_STATUS_CLEANUP(_status, program_delete(program));
 
@@ -167,9 +168,22 @@ int main(int argc, char **argv) {
     set_word(program->out, program->mPC, word);
     program->mPC += 4;
   }
-  byte_t buff[program->mPC];
-  for (size_t i = 0; i < program->mPC; i++) {
+  byte_t buff[program->mPC + program->additional_words->len * 4];
+  for (int i = 0; i < program->mPC; i++) {
     buff[i] = program->out[i];
+  }
+  DEBUG_PRINT("Got %d additional words\n", program->additional_words->len );
+  for (int i = 0; i < program->additional_words->len; i++) {
+    wordref_t *wordref = list_get(program->additional_words, i);
+    word_t offset = (program->mPC + i * 4 - wordref->ref - 8) | 0xFFFFF000;
+    DEBUG_PRINT("offset calculated was: %08x\n", offset);
+    word_t referenced_word;
+    get_word(buff, wordref->ref, &referenced_word);
+    DEBUG_PRINT("Referenced Word was: %08x\n", referenced_word);
+    referenced_word &= offset;
+    set_word(buff, wordref->ref, referenced_word);
+
+    set_word(buff, i * 4 + program->mPC, wordref->word);
   }
   write_file(argv[2], buff, sizeof(buff));
 

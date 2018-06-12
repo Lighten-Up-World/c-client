@@ -10,12 +10,17 @@
 #define MAX_NUM_LINES 50
 
 typedef struct {
+  word_t word;
+  address_t ref;
+} wordref_t;
+
+typedef struct {
   byte_t out[MEM_SIZE];
   symbol_map_t *smap;
   reference_map_t *rmap;
+  list_t *additional_words;
   char **in;
   int lines;
-  list_t *additional_words;
   word_t mPC;
 } assemble_state_t;
 

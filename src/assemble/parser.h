@@ -52,5 +52,4 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst);
 int parse_brn(assemble_state_t* prog, list_t *tklst, instruction_t *inst);
 int parse_lsl(assemble_state_t* prog, list_t *tklst, instruction_t *inst);
 int parse_halt(assemble_state_t* prog, list_t *tklst, instruction_t *inst);
-
 #endif
