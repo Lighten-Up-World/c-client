@@ -164,6 +164,7 @@ int parse_dp(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
 
   // Set all instruction fields
   inst->type = DP;
+  inst->cond = AL_COND_CODE; //0b1110
   inst->i.dp.padding = 0x00;
   inst->i.dp.I = token_list_get_type(tklst, rn_pos + 2) == T_HASH_EXPR;
   inst->i.dp.opcode = op_enum;
@@ -199,6 +200,7 @@ int parse_mul(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   reg_address_t rn = A ? PARSE_REG(RN_POS) : 0;
 
   inst->type = MUL;
+  inst->cond = AL_COND_CODE; //0b1110
   inst->i.mul.pad0 = (byte_t) 0x0;
   inst->i.mul.A    = A;
   inst->i.mul.S    = 0;
@@ -247,6 +249,7 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst){
     perror("Opcode not recognised\n");
   }
   inst->type = SDT;
+  inst->cond = AL_COND_CODE; //0b1110
   inst->i.sdt.L = L;
   inst->i.sdt.pad1 = 0x1;
   inst->i.sdt.pad0 = 0x0;
@@ -489,13 +492,14 @@ int parse_lsl_conversion(assemble_state_t *prog, list_t *tklst, instruction_t *i
   token_list_add_pair(mod_tklst, T_SHIFT, "lsl");
   token_list_add(mod_tklst, token_list_get(tklst, 3));
 
-  return parse_sdt(prog, mod_tklst, inst);
+  return parse_dp(prog, mod_tklst, inst);
 }
 
 int parse_halt(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
   DEBUG_CMD(printf("HAL:\n"));
   inst->type = HAL;
-  inst->i.hal.pad0 = 0u;
+  inst->cond = 0;
+  inst->i.hal.pad0 = 0;
   return EC_OK;
 }
 
