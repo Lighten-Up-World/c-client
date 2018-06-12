@@ -29,13 +29,9 @@ int token_type(char *src){
       return T_LABEL;
     case 'r':
       return T_REGISTER;
+    default:
+      return T_SHIFT;
   }
-
-  if(!strcmp(src, "asr") || !strcmp(src, "lsl")
-  || !strcmp(src, "lsr") || !strcmp(src, "ror")){
-    return T_SHIFT;
-  }
-  return T_STR;
 }
 
 

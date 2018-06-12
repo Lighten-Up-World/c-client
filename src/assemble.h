@@ -10,8 +10,8 @@
 
 typedef struct {
   byte_t out[MEM_SIZE];
-  symbol_map_t *smap;
-  reference_map_t *rmap;
+  symbol_map_t *sym_m;
+  reference_map_t *ref_m;
   char **in;
   int lines;
   word_t mPC;

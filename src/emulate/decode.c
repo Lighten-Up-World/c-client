@@ -227,7 +227,7 @@ operand_t decode_offset(flag_t I, word_t word) {
           decode_brn(instructionPtr, word);
           break;
         default: //Shouldn't be default makes errors really difficult to debug
-          assert(false); //TODO: Add error code
+          assert(false); //TODO: Add error code - this fails for all gpio test programs
           break;
       }
     }
