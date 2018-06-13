@@ -23,10 +23,10 @@ emulate:
 memcheck: compile memcheck_as memcheck_em
 
 memcheck_as: compile
-	valgrind src/build/assemble.out test/test_cases/$(RUN).s src/build/out
+	valgrind --track-origins=yes src/build/assemble.out test/test_cases/$(RUN).s src/build/out
 
 memcheck_em: compile
-	valgrind src/build/emulate.out test/test_cases/$(RUN)
+	valgrind --track-origins=yes src/build/emulate.out test/test_cases/$(RUN)
 
 compile:
 	cd src; make clean; make compile

@@ -59,10 +59,9 @@ int check_address_valid(word_t addr) {
   return 0;
 }
 
-char *itoa(int n)
-{
+char *num_to_str(int num){
   char *res = calloc(8, sizeof(int));
-  sprintf(res, "%d", n);
+  sprintf(res, "%d", num);
   return res;
 }
 
@@ -236,14 +235,17 @@ void print_state(state_t *state) {
  *  @param buffer_size: the size of the buffer allocated
  *  @return a status code denoting the result
  */
-int write_file(const char *path, byte_t *buffer, size_t buffer_size) {
-  FILE *fp = fopen(path, "wb");
-  if (fp == NULL) {
+int write_file(const char *path, byte_t *buffer, int no_bytes) {
+  assert(path != NULL);
+  assert(buffer != NULL);
+
+  FILE *fp = NULL;
+  if (!(fp = fopen(path, "wb"))) {
     perror("fopen failed at path");
     return 1;
   }
-  const int read = fwrite(buffer, buffer_size, 1, fp);
-  if (read != buffer_size && ferror(fp)) {
+  const int read = fwrite(buffer, sizeof(byte_t), no_bytes, fp);
+  if (read != sizeof(byte_t)*no_bytes || ferror(fp)) {
     perror("Couldn't write file to completion");
     return 3;
   }
@@ -263,9 +265,13 @@ int write_file(const char *path, byte_t *buffer, size_t buffer_size) {
 *  @return a status code denoting the result
 */
 int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
+  assert(path != NULL);
+  assert(buffer != NULL);
+
   long file_size = 0;
-  FILE *fp = fopen(path, "rb");
-  if (fp == NULL) {
+  FILE *fp = NULL;
+
+  if (!(fp = fopen(path, "rb"))) {
     perror("fopen failed at path");
     return 1;
   }
@@ -293,8 +299,11 @@ int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
  * @return: the number of lines in the file (including trailing whitespace lines)
  */
 int get_num_lines(const char *path) {
-  FILE *file = fopen(path, "r");
-  if (file == NULL) {
+  assert(path != NULL);
+
+  FILE *file = NULL;
+
+  if (!(file = fopen(path, "r"))) {
     perror("File could not be opened");
     exit(EC_SYS);
   }

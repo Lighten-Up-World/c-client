@@ -46,7 +46,7 @@ char **allocate_input(int lines, int lineLength) {
  */
 assemble_state_t *program_new(int num_lines) {
   assemble_state_t *program;
-  program = malloc(sizeof(assemble_state_t));
+  program = calloc(sizeof(assemble_state_t), 1);
   if (program == NULL) {
     return NULL;
   }
@@ -73,6 +73,17 @@ assemble_state_t *program_new(int num_lines) {
     return NULL;
   }
 
+  program->out = calloc(sizeof(word_t), num_lines * LINE_SIZE);
+
+  if (program->smap == NULL) {
+    rmap_delete(program->rmap);
+    smap_delete(program->smap);
+    free(program);
+    free(program->in[0]);
+    free(program->in);
+    return NULL;
+  }
+
   return program;
 }
 
@@ -83,6 +94,7 @@ assemble_state_t *program_new(int num_lines) {
  * @return : free will always succeed so returns EC_OK.
  */
 int program_delete(assemble_state_t *program) {
+  free(program->out);
   // free input characters
   free(program->in[0]);
   free(program->in);
@@ -121,6 +133,30 @@ void print_bin_instr(byte_t *out, int lines) {
   }
 }
 
+int write_program(char *path, assemble_state_t *program){
+  int no_bytes = program->mPC + program->additional_words->len * 4;
+  program->out = realloc(program->out, sizeof(byte_t) * no_bytes);
+  if(program->out == NULL){
+      return EC_NULL_POINTER;
+  }
+
+  DEBUG_PRINT("Got %d additional words\n", program->additional_words->len );
+  for (int i = 0; i < program->additional_words->len; i++) {
+    wordref_t *wordref = list_get(program->additional_words, i);
+    word_t offset = (program->mPC + i * 4 - wordref->ref - 8) | 0xFFFFF000;
+    DEBUG_PRINT("offset calculated was: %08x\n", offset);
+    word_t referenced_word;
+    get_word(program->out, wordref->ref, &referenced_word);
+    DEBUG_PRINT("Referenced Word was: %08x\n", referenced_word);
+    referenced_word &= offset;
+    set_word(program->out, wordref->ref, referenced_word);
+
+    set_word(program->out, i * 4 + program->mPC, wordref->word);
+  }
+  write_file(path, program->out, no_bytes);
+
+  return EC_OK;
+}
 
 // main assembly loop.
 int main(int argc, char **argv) {
@@ -170,25 +206,7 @@ int main(int argc, char **argv) {
     set_word(program->out, program->mPC, word);
     program->mPC += 4;
   }
-  byte_t buff[program->mPC + program->additional_words->len * 4];
-  for (int i = 0; i < program->mPC; i++) {
-    buff[i] = program->out[i];
-  }
-  DEBUG_PRINT("Got %d additional words\n", program->additional_words->len );
-  for (int i = 0; i < program->additional_words->len; i++) {
-    wordref_t *wordref = list_get(program->additional_words, i);
-    word_t offset = (program->mPC + i * 4 - wordref->ref - 8) | 0xFFFFF000;
-    DEBUG_PRINT("offset calculated was: %08x\n", offset);
-    word_t referenced_word;
-    get_word(buff, wordref->ref, &referenced_word);
-    DEBUG_PRINT("Referenced Word was: %08x\n", referenced_word);
-    referenced_word &= offset;
-    set_word(buff, wordref->ref, referenced_word);
-
-    set_word(buff, i * 4 + program->mPC, wordref->word);
-  }
-  write_file(argv[2], buff, sizeof(buff));
-
+  _status = write_program(argv[2], program);
   program_delete(program);
 
   return _status;

@@ -14,7 +14,7 @@ typedef struct {
 } wordref_t;
 
 typedef struct {
-  byte_t out[MEM_SIZE];
+  byte_t *out;
   symbol_map_t *smap;
   reference_map_t *rmap;
   list_t *additional_words;
