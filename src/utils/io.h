@@ -21,11 +21,10 @@ void print_reg(state_t *state, reg_address_t reg);
 void print_mem(state_t *state);
 void print_state(state_t *state);
 
-int write_file(const char *path, byte_t *buffer, size_t buffer_size);
+int write_file(const char *path, byte_t *buffer, int no_bytes);
 int read_file(const char *path, byte_t *buffer, size_t buffer_size);
-int get_num_lines(const char *path);
 int read_char_file(const char *path, char ** buffer);
 
-char *itoa(int n);
+char *num_to_str(int n);
 
 #endif

@@ -7,17 +7,18 @@
 #include "utils/list.h"
 
 #define LINE_SIZE 512
-
+#define MAX_LINES 100
 typedef struct {
   word_t word;
   address_t ref;
 } wordref_t;
 
 typedef struct {
-  byte_t out[MEM_SIZE];
+  byte_t *out;
   symbol_map_t *smap;
   reference_map_t *rmap;
   list_t *additional_words;
+  list_t *tklst;
   char **in;
   int lines;
   word_t mPC;

@@ -202,7 +202,7 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
 
   // There is no entry for the label in the bucket it belongs
   } else {
-    size_t label_len = strlen(label);
+    int label_len = strlen(label) + 1;
     label_t new_label = malloc(label_len);
     if (new_label == NULL) {
       return EC_NULL_POINTER;

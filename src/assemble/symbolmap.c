@@ -146,7 +146,7 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
   if(label == NULL){
     return EC_INVALID_PARAM;
   }
-  size_t label_len = strlen(label);
+  int label_len = strlen(label) + 1;
   size_t ind = smap_hash(label) % map->count;
   sbucket_t *bucket = &(map->buckets[ind]);
 
