@@ -128,51 +128,62 @@ int make_rotation(op_rotate_immediate_t *op_rot_imm, word_t value) {
  *  @param word: the instruction word
  *  @return void: modifies the operand value of the instruction
  */
+
+// Case 1: <Operand2> := <register>
+// Case 2a: <Operand2> := <register>, <shiftname> <register>
+// Case 2b: <Operand2> := <register>, <shiftname> <#expression>
+// Case 3: <Operand2> := <register>, Rn
 int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
-  op->reg.rm = PARSE_REG(start);
   DEBUG_PRINT("parse_shifted_reg @ %d\n", start);
-  // Case 2: <Operand2> := Rm
-  if(tklst->len == start + 1){
-    DEBUG_PRINT("Case 2: %s\n", "<Operand2> := Rm");
+  int operand_size = tklst->len - start;
+
+  // Case 1: <Operand2> := <register>
+  if(operand_size == 1){
+    DEBUG_PRINT("Case 1: %s\n", "<Operand2> := Rm");
+    op->reg.rm = PARSE_REG(start);
     op->reg.type = LSL;
     op->reg.shiftBy = 0;
     op->reg.shift.constant.integer = 0;
     return EC_OK;
   }
-  //Case 3: Rm, <shiftname> <register>
-  //      | Rm, <shiftname> <register>
-  if(tklst->len == start + 4){
+  //Case 2: <register>, <shiftname> <register>
+  //      | <register>, <shiftname> <#expression>
+  if(operand_size >= 4){
+    DEBUG_PRINT("Case 2: %s\n", "<Operand2> := <register>, <shiftname> <...>");
     char *shiftname = token_list_get_str(tklst, start+2);
     for (int i = 0; i < NUM_SHIFT_SUFFIXES; i++) {
       if (strcmp(shifts[i].suffix, shiftname) == 0) {
         op->reg.type = shifts[i].num;
       }
     }
-    op->reg.shiftBy = 0; //TODO: Understand why this is opposite
-    DEBUG_PRINT("LSL: %01x\n", LSL);
-    DEBUG_PRINT("Shift Type: %01x\n", op->reg.type);
+    op->reg.rm = PARSE_REG(start);
 
-    // Case 3a: <Operand2> := Rm, <shiftname> <register>
+    DEBUG_PRINT("TYPE: %d, RM: %02x, shiftBy: %d\n", op->reg.type,
+    op->reg.rm, op->reg.shiftBy);
+    // Case 2a: <Operand2> := <register>, <shiftname> <register>
     if(token_list_get_type(tklst, start + 3) == T_REGISTER){
-      DEBUG_PRINT("Case 3a: %s\n", "<Operand2> := Rm, <shiftname> <register>");
+      DEBUG_PRINT("Case 2a: %s\n", "<Operand2> := <register>, <shiftname> <register>");
+      op->reg.shiftBy = 1;
       op->reg.shift.shiftreg.rs
         = PARSE_REG(start + 3);
       op->reg.shift.shiftreg.zeroPad = 0;
       return EC_OK;
     }
 
-    // Case 3b: <Operand2> := Rm, <shiftname> <#expression>
+    // Case 2b: <Operand2> := <register>, <shiftname> <#expression>
     if(token_list_get_type(tklst, start + 3) == T_HASH_EXPR){
-      DEBUG_PRINT("Case 3b: %s\n", "<Operand2> := Rm, <shiftname> <#expression>");
+      DEBUG_PRINT("Case 2b: %s\n", "<Operand2> := <register>, <shiftname> <#expression>");
+      op->reg.shiftBy = 0;
       op->reg.shift.constant.integer
         = parse_expression(tklst, start + 3);
         return EC_OK;
     }
   }
-  // Case 4: <Operand2> := Rm, Rn
-  if(tklst->len == start + 2){
+  // Case 3: <Operand2> := <register>, Rn
+  if(operand_size == 2){
+      op->reg.rm = PARSE_REG(start);
       op->reg.type = LSL;
-      DEBUG_PRINT("Case 4: %s\n", "<Operand2> := Rm, Rn");
+      DEBUG_PRINT("Case 3: %s\n", "<Operand2> := <register>, Rn");
       op->reg.shift.shiftreg.rs
         = PARSE_REG(start + 1);
       op->reg.shift.shiftreg.zeroPad = 0;
@@ -238,18 +249,16 @@ int parse_operand(list_t *tklst, instruction_t *instr, int start) {
  *  @param word: the instruction word
  *  @return a populated operand based on the data in word
  */
+
+ /**
+ * Case 1: <=expression>          {4}
+ * Case 2: [Rn]                   {6}
+ * Case 3: [Rn,<#expression>]     {8}
+ * Case 4: [Rn],<#expression>     {8}
+ * Case 5: [Rn, {+/-}Rm{,<shift>}]
+ * Case 6: [Rn],{+/-}Rm{,<shift>
+ */
 int parse_offset(assemble_state_t *prog, list_t *tklst, instruction_t *instr, int start) {
-  // operand_t *op = &instr->i.sdt.offset;
-  //Register
-  // if (instr->i.sdt.I) {
-  //   return parse_shifted_reg(tklst, op, start);
-  //
-  // }
-  // //Immediate
-  // else {
-  //   // op->imm.fixed = ;
-  //   return EC_OK;
-  // }
 
   int value = 0;
   // Case 1: =expr -> Reexecute with mov or ldr
@@ -295,55 +304,66 @@ int parse_offset(assemble_state_t *prog, list_t *tklst, instruction_t *instr, in
     instr->i.sdt.offset.imm.fixed = 0;
     return EC_OK;
   }
+
+  // Case 3/4: [Rn{]}, #expression {]}
   if(tklst->len == NUM_TOKS_HASH_EXPR){
     DEBUG_PRINT("Hash Expression TOKENS: %d\n", NUM_TOKS_HASH_EXPR);
     instr->i.sdt.rn = PARSE_REG(4);
+    DEBUG_PRINT("Rn: %02x\n", instr->i.sdt.rn);
     instr->i.sdt.U = 1;
     instr->i.sdt.I = 0;
+
     // Case 3: [Rn, #expression]
-    if(token_list_get_type(tklst, 5) == T_COMMA){
-
-      // Case 3: [Rn, #expression]
-      if(token_list_get_type(tklst, 6) == T_HASH_EXPR){
-        DEBUG_PRINT("Case 3 hit with, %d\n", instr->i.sdt.I);
-        instr->i.sdt.P = 1;
-        word_t result = parse_expression(tklst, 6);
-        if(is_negative(result)){
-          result = negate(result);
-          instr->i.sdt.U = 0;
-        }
-        instr->i.sdt.offset.imm.fixed = result;
-        DEBUG_PRINT("Imm fixed: %d / %08x\n", parse_expression(tklst, 6), parse_expression(tklst, 6));
-        return EC_OK;
+    if(token_list_get_type(tklst, 6) == T_HASH_EXPR){
+      DEBUG_PRINT("Case 3 hit with, %d\n", instr->i.sdt.I);
+      instr->i.sdt.P = 1;
+      word_t result = parse_expression(tklst, 6);
+      if(is_negative(result)){
+        result = negate(result);
+        instr->i.sdt.U = 0;
       }
-      // Case 4: [Rn, Rn]
-      if(token_list_get_type(tklst, 6) == T_REGISTER){
-        DEBUG_PRINT("Case 3 hit with, %d\n", instr->i.sdt.I);
-
-        int ec = parse_shifted_reg(tklst, &instr->i.sdt.offset, 6);
-        instr->i.sdt.I = 1;
-        return ec;
-      }
+      instr->i.sdt.offset.imm.fixed = result;
+      DEBUG_PRINT("Imm fixed: %d / %08x\n", parse_expression(tklst, 6), parse_expression(tklst, 6));
+      return EC_OK;
     }
 
 
     if(token_list_get_type(tklst, 5) == T_R_BRACKET){
       instr->i.sdt.P = 0;
-      // Case 5: [Rn],<#expression>
+      // Case 4: [Rn],<#expression>
       if(token_list_get_type(tklst, 7) == T_HASH_EXPR){
-        DEBUG_PRINT("Case 5 hit with, %d\n", instr->i.sdt.I);
+        DEBUG_PRINT("Case 4 hit with, %d\n", instr->i.sdt.I);
         instr->i.sdt.offset.imm.fixed = parse_expression(tklst, 7);
         return EC_OK;
       }
-
-      // Case 6: [Rn], Rm
-      if(token_list_get_type(tklst, 7) == T_REGISTER){
-        DEBUG_PRINT("Case 6 hit with, %d\n", instr->i.sdt.I);
-        instr->i.sdt.I = 1;
-        return parse_shifted_reg(tklst, &instr->i.sdt.offset, 7);
-      }
     }
   }
+  // Case 5: [Rn, {+/-}Rm{,<shift>}]
+  if(token_list_get_type(tklst, 5) == T_COMMA){
+    DEBUG_PRINT("Case 5 hit with, %d\n", instr->i.sdt.I);
+    instr->i.sdt.rn = PARSE_REG(4);
+    instr->i.sdt.P = 1;
+    instr->i.sdt.I = 1; // TODO: Normally behind parse_reg
+    int shifted_reg_start = 6;
+    if(token_list_get_type(tklst, 6) == T_PLUS || token_list_get_type(tklst, 6) == T_MINUS){
+      shifted_reg_start++;
+      if(token_list_get_type(tklst, 6) == T_MINUS){
+        instr->i.sdt.U = 0;
+      }
+    }
+    int ec = parse_shifted_reg(tklst, &instr->i.sdt.offset, shifted_reg_start);
+
+    return ec;
+  }
+   // Case 6: [Rn],{+/-}Rm{,<shift>}
+  if(token_list_get_type(tklst, 5) == T_R_BRACKET){
+    DEBUG_PRINT("Case 6 hit with, %d\n", instr->i.sdt.I);
+    instr->i.sdt.rn = PARSE_REG(4);
+    instr->i.sdt.P = 0;
+    instr->i.sdt.I = 1;
+    return parse_shifted_reg(tklst, &instr->i.sdt.offset, 7);
+  }
+
   return EC_UNSUPPORTED_OP;
 }
 
@@ -382,6 +402,7 @@ int parse_dp(assemble_state_t* prog, list_t *tklst, instruction_t *instr) {
   instr->i.dp.rn = COMPARE_OP("mov")? 0 : PARSE_REG(rn_pos);
   instr->i.dp.rd = S ? 0 : PARSE_REG(RD_POS);
   DEBUG_PRINT("RN_POS: %u\n", rn_pos);
+  DEBUG_PRINT("I Flag is: %u\n", instr->i.dp.I);
 
   return parse_operand(tklst, instr, rn_pos + 2);
 }
@@ -424,16 +445,6 @@ int parse_mul(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
 = SINGLE DATA TRANSFER
 ===============================================>>>>>*/
 
-/**
-* Case 1: <code> Rd, <=expression>          {4}
-* Case 2: <code> Rd , [ Rn ]                   {6}
-* Case 3: <code> Rd, [Rn,<#expression>]     {8}
-* Case 3b: <code> Rd, [Rn,{+/-}Rm{,<shift>}  {7-11}
-* Case 4: <code> Rd, [Rn],<#expression>     {8}
-* Case 4b: <code> Rd, [Rn],{+/-}Rm{,<shift>} {8-12}
-*/
-
-// TODO: check this works with loading GPIO addresses
 int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *instr){
   DEBUG_CMD(printf("SDT:\n"));
   char *opcode = token_list_get_str(tklst, 0);
@@ -459,53 +470,53 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *instr){
 ===============================================>>>>>*/
 
 
-/**
-* Update memory according to reference entry
-*
-* @param label : current string representation of the label in entry
-* @param val : current value of entry
-* @param obj : A prog_collection_t object which collects, program, label and addr.
-*/
-void ref_entry(const label_t label, const address_t val, const void *obj){
-  prog_collection_t *prog_coll = (prog_collection_t *) obj;
-  if(label == prog_coll->label){
-    prog_coll->prog->out[val] = prog_coll->addr;
-  }
-}
-
-/**
- * Add a symbol to the symbol table in the program_state and update reference table
- *
- * @param program_state : pointer to the program_state information DataType
- * @param label : represents a point to branch off to
- * @param addr : address accompanied by label
- * @return : 0 or 1 depending whether the addition was successful or not
- */
-int add_symbol(assemble_state_t *program, label_t label, address_t addr) {
-  if (!smap_put(program->smap, label, addr)) {
-    return 0; // already in symbol map
-  }
-  prog_collection_t prog_coll = {program, label, addr};
-  // check if symbol exists in rmapap and update/remove accordingly
-  if (rmap_exists(program->rmap, label)) {
-    rmap_enum(program->rmap, ref_entry, &prog_coll);
-  }
-
-  return 1;
-}
-
-/**
- * add a symbol to the reference map stored in the program
- *
- * @param program_state : pointer to the program_state information DataType
- * @param label : represents a point to branch off to
- * @param addr : address accompanied by label
- * @return : 0 or 1 depending whether the addition was successful or not
- */
-int add_reference(assemble_state_t *program, label_t label, address_t addr) {
-  // adds reference to rmapap.
-  return !rmap_put(program->rmap, label, addr);
-}
+// /**
+// * Update memory according to reference entry
+// *
+// * @param label : current string representation of the label in entry
+// * @param val : current value of entry
+// * @param obj : A prog_collection_t object which collects, program, label and addr.
+// */
+// void ref_entry(const label_t label, const address_t val, const void *obj){
+//   prog_collection_t *prog_coll = (prog_collection_t *) obj;
+//   if(label == prog_coll->label){
+//     prog_coll->prog->out[val] = prog_coll->addr;
+//   }
+// }
+//
+// /**
+//  * Add a symbol to the symbol table in the program_state and update reference table
+//  *
+//  * @param program_state : pointer to the program_state information DataType
+//  * @param label : represents a point to branch off to
+//  * @param addr : address accompanied by label
+//  * @return : 0 or 1 depending whether the addition was successful or not
+//  */
+// int add_symbol(assemble_state_t *program, label_t label, address_t addr) {
+//   if (!smap_put(program->smap, label, addr)) {
+//     return 0; // already in symbol map
+//   }
+//   prog_collection_t prog_coll = {program, label, addr};
+//   // check if symbol exists in rmapap and update/remove accordingly
+//   if (rmap_exists(program->rmap, label)) {
+//     rmap_enum(program->rmap, ref_entry, &prog_coll);
+//   }
+//
+//   return 1;
+// }
+//
+// /**
+//  * add a symbol to the reference map stored in the program
+//  *
+//  * @param program_state : pointer to the program_state information DataType
+//  * @param label : represents a point to branch off to
+//  * @param addr : address accompanied by label
+//  * @return : 0 or 1 depending whether the addition was successful or not
+//  */
+// int add_reference(assemble_state_t *program, label_t label, address_t addr) {
+//   // adds reference to rmapap.
+//   return !rmap_put(program->rmap, label, addr);
+// }
 
 /**
  * Calculate the offset of an address from the current program_state Counter, to be stored in a BRN instruction
@@ -597,6 +608,8 @@ int parse_lsl(assemble_state_t *prog, list_t *tklst, instruction_t *inst) {
   token_list_add(mod_tklst, token_list_get(tklst, 2));
   token_list_add_pair(mod_tklst, T_SHIFT, "lsl");
   token_list_add(mod_tklst, token_list_get(tklst, 3));
+
+  DEBUG_CMD(token_list_print(mod_tklst));
 
   return parse_dp(prog, mod_tklst, inst);
 }

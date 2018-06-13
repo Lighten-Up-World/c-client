@@ -29,6 +29,7 @@ int str_separate(char *src, char *tokens, char sep, char ***output);
 list_t *token_list_new(void);
 void token_list_delete(list_t *self);
 
+void token_list_print(list_t *tklst);
 int token_list_add(list_t *self, token_t *token);
 int token_list_add_pair(list_t *self, token_type_t type, char *str);
 token_t *token_list_get(list_t *self, int idx);

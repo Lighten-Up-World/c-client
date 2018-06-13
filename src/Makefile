@@ -2,6 +2,7 @@
 .PHONY: build/
 .PHONY: emulate
 .PHONY: assemble
+.PHONY: compile
 
 DEBUG = -DDEBUG
 CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
@@ -16,6 +17,8 @@ ASSEMBLE = ./assemble/
 
 COMPILE = gcc -c $(CFLAGS) $< -o $@
 all: assemble emulate
+
+compile: build ./build/assemble.out ./build/emulate.out
 
 debug_ass:
 	make clean; make assemble RUN=$(RUN)

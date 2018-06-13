@@ -157,7 +157,7 @@ int token_list_remove(list_t *self, int idx){
   return list_remove(self, idx);
 }
 
-void print_token_lst(list_t *tklst){
+void token_list_print(list_t *tklst){
   printf("Tokens (%u)\n", tklst->len);
   for (int i = 0; i < tklst->len; i++) {
     printf("%u(T:%u): %s\n", i, token_list_get_type(tklst, i), token_list_get_str(tklst, i));
@@ -188,6 +188,6 @@ int tokenize(char *line, list_t **tkns){
   }
   free(token_strs);
 
-  DEBUG_CMD(print_token_lst(*tkns));
+  DEBUG_CMD(token_list_print(*tkns));
   return EC_OK;
 }
