@@ -23,7 +23,6 @@ void print_state(state_t *state);
 
 int write_file(const char *path, byte_t *buffer, int no_bytes);
 int read_file(const char *path, byte_t *buffer, size_t buffer_size);
-int get_num_lines(const char *path);
 int read_char_file(const char *path, char ** buffer);
 
 char *num_to_str(int n);

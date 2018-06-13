@@ -26,7 +26,7 @@ char **allocate_input(int lines, int lineLength) {
   if(in == NULL){
     return NULL;
   }
-  in[0] = malloc(lines * lineLength * sizeof(char));
+  in[0] = calloc(lines * lineLength, sizeof(char));
   if (in[0] == NULL) {
     free(in);
     return NULL; // failed;
@@ -44,14 +44,14 @@ char **allocate_input(int lines, int lineLength) {
  *
  * @return : pointer to an uninitialised program.
  */
-assemble_state_t *program_new(int num_lines) {
+assemble_state_t *program_new(void) {
   assemble_state_t *program;
   program = calloc(sizeof(assemble_state_t), 1);
   if (program == NULL) {
     return NULL;
   }
 
-  program->lines = num_lines;
+  program->lines = MAX_LINES;
 
   program->smap = smap_new(MAX_S_MAP_CAPACITY);
   if (program->smap == NULL) {
@@ -65,7 +65,7 @@ assemble_state_t *program_new(int num_lines) {
     return NULL;
   }
   program->additional_words = list_new(&free);
-  program->in = allocate_input(num_lines, LINE_SIZE);
+  program->in = allocate_input(MAX_LINES, LINE_SIZE);
   if (program->in == NULL) {
     rmap_delete(program->rmap);
     smap_delete(program->smap);
@@ -73,7 +73,7 @@ assemble_state_t *program_new(int num_lines) {
     return NULL;
   }
 
-  program->out = calloc(sizeof(word_t), num_lines * LINE_SIZE);
+  program->out = calloc(sizeof(word_t), MAX_LINES * LINE_SIZE);
 
   if (program->smap == NULL) {
     rmap_delete(program->rmap);
@@ -163,18 +163,13 @@ int main(int argc, char **argv) {
   int _status = EC_OK;
   assert(argc > 2);
 
-  int num_lines = get_num_lines(argv[1]);
-  assemble_state_t *program = program_new(num_lines);
+  assemble_state_t *program = program_new();
 
   if (program == NULL) {
     return EC_NULL_POINTER; // unable to allocate space for program.
   }
   DEBUG_PRINT("Starting read of file @%s\n", argv[1]);
-  if ((_status = read_char_file(argv[1], program->in))) {
-    DEBUG_PRINT("%u\n", _status);
-    program_delete(program);
-    return _status; // failed to read input. Need this in emulate too?
-  }
+  program->lines = read_char_file(argv[1], program->in);
 
   // set up variables for assembler
   list_t *tklst = NULL;

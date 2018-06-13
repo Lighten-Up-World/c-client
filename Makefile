@@ -1,13 +1,15 @@
 .PHONY: test
 .PHONY: unit_test
-.PHONY: src
+.PHONY: compile
 
-all: src unit_test test
+all: compile unit_test test
 
-mac: src unit_test test_mac
+mac: compile unit_test test_mac
 
 RUN = factorial
-
+RESO = low
+VALGRIND_MEM = --tool=memcheck --leak-check=full --show-reachable=yes --num-callers=20 --track-fds=yes --track-origins=yes
+VALGRIND_CALL = --tool=callgrind
 test:
 	cd ./test; make
 
@@ -23,13 +25,13 @@ emulate:
 memcheck: compile memcheck_as memcheck_em
 
 memcheck_as: compile
-	valgrind --track-origins=yes src/build/assemble.out test/test_cases/$(RUN).s src/build/out
+	valgrind $(VALGRIND_MEM) src/build/assemble.out test/test_cases/$(RUN).s src/build/out
 
 memcheck_em: compile
-	valgrind --track-origins=yes src/build/emulate.out test/test_cases/$(RUN)
+	valgrind $(VALGRIND_MEM) src/build/emulate.out test/test_cases/$(RUN)
 
 compile:
-	cd src; make clean; make compile
+	cd src; make clean; make compile DEBUG= 
 
 debug:
 	cd src; make clean; make assemble RUN=$(RUN)

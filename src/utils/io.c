@@ -293,42 +293,6 @@ int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
 }
 
 /**
- * Get the number of lines in a file
- *
- * @param path: path to the file to read from
- * @return: the number of lines in the file (including trailing whitespace lines)
- */
-int get_num_lines(const char *path) {
-  assert(path != NULL);
-
-  FILE *file = NULL;
-
-  if (!(file = fopen(path, "r"))) {
-    perror("File could not be opened");
-    exit(EC_SYS);
-  }
-
-  int line_size = LINE_SIZE * sizeof(char);
-  char *buffer = malloc(line_size);
-  int line = 0;
-  while (fgets(buffer, line_size, file) != NULL) {
-    line++;
-  }
-
-  if (ferror(file)) {
-    perror("Failed to read from file");
-    exit(EC_SYS);
-  }
-
-  if (fclose(file)) {
-    perror("File could not be closed");
-    exit(EC_SYS);
-  }
-
-  return line;
-}
-
-/**
 *  Loads a file from disk as list of strings
 *
 *  @param path: the path of the ASCII file to read from
@@ -344,7 +308,7 @@ int read_char_file(const char *path, char **buffer) {
   }
 
   int line = 0;
-  while (fgets(buffer[line], LINE_SIZE * sizeof(char), file) != NULL) {
+  while (fgets(buffer[line], LINE_SIZE-1, file) != NULL) {
     line++;
   }
 
@@ -358,5 +322,5 @@ int read_char_file(const char *path, char **buffer) {
     exit(EC_SYS);
   }
 
-  return EC_OK;
+  return line;
 }
