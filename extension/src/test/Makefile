@@ -2,9 +2,10 @@
 .PHONY: test
 
 
-PATHU = unity/
+PATHU = ../../../unity/
 PATHS = ../
 PATHT = ./
+PATHJSMN = ../jsmn
 PATHB = build/
 PATHD = build/depends/
 PATHO = build/objs/
@@ -54,6 +55,9 @@ $(PATHO)%.o:: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHO)%.o:: $(PATHU)%.c $(PATHU)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHO)%.o:: $(PATHJSMN)%.c $(PATHJSMN)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHD)%.d:: $(PATHT)%.c

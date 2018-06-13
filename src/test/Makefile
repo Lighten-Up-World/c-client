@@ -2,7 +2,7 @@
 .PHONY: test
 
 
-PATHU = unity/
+PATHU = ../../unity/
 PATHS = ../
 PATHUT = ../utils/
 PATHEM = ../emulate/
