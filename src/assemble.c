@@ -19,10 +19,7 @@
  * not initialised.
  */
 char **allocate_input(int lines, int lineLength) {
-  char **in;
-  unsigned int i;
-
-  in = malloc(lines * sizeof(char *));
+  char **in = malloc(lines * sizeof(char *));
   if(in == NULL){
     return NULL;
   }
@@ -32,11 +29,37 @@ char **allocate_input(int lines, int lineLength) {
     return NULL; // failed;
   }
 
-  for (i = 1; i < lines; i++) {
+  for (int i = 1; i < lines; i++) {
     in[i] = in[0] + i * lineLength + 1;
   }
 
   return in;
+}
+
+/**
+ * Free program_state memory
+ *
+ * @param program_state : desired program_state to remove from memory.
+ * @return : free will always succeed so returns EC_OK.
+ */
+int program_delete(assemble_state_t *program) {
+  if(program){
+    free(program->out);
+    // free input characters
+    if(program->in){
+      free(program->in[0]);
+    }
+    free(program->in);
+    // free data structures
+    rmap_delete(program->rmap);
+    smap_delete(program->smap);
+    list_delete(program->additional_words);
+    list_delete(program->tklst);
+  }
+  // free rest of program
+  free(program);
+
+  return EC_OK;
 }
 
 /**
@@ -55,58 +78,41 @@ assemble_state_t *program_new(void) {
 
   program->smap = smap_new(MAX_S_MAP_CAPACITY);
   if (program->smap == NULL) {
-    free(program);
+    program_delete(program);
     return NULL;
   }
   program->rmap = rmap_new(MAX_R_MAP_CAPACITY);
   if (program->rmap == NULL) {
-    smap_delete(program->smap);
-    free(program);
+    program_delete(program);
     return NULL;
   }
   program->additional_words = list_new(&free);
+  if(program->additional_words == NULL){
+    program_delete(program);
+    return NULL;
+  }
   program->in = allocate_input(MAX_LINES, LINE_SIZE);
   if (program->in == NULL) {
-    rmap_delete(program->rmap);
-    smap_delete(program->smap);
-    free(program);
+    program_delete(program);
+    return NULL;
+  }
+
+  program->tklst = token_list_new();
+  if (program->tklst == NULL) {
+    program_delete(program);
     return NULL;
   }
 
   program->out = calloc(sizeof(word_t), MAX_LINES * LINE_SIZE);
 
   if (program->smap == NULL) {
-    rmap_delete(program->rmap);
-    smap_delete(program->smap);
-    free(program);
-    free(program->in[0]);
-    free(program->in);
+    program_delete(program);
     return NULL;
   }
 
   return program;
 }
 
-/**
- * Free program_state memory
- *
- * @param program_state : desired program_state to remove from memory.
- * @return : free will always succeed so returns EC_OK.
- */
-int program_delete(assemble_state_t *program) {
-  free(program->out);
-  // free input characters
-  free(program->in[0]);
-  free(program->in);
-  // free data structures
-  rmap_delete(program->rmap);
-  smap_delete(program->smap);
-  list_delete(program->additional_words);
-  // free rest of program
-  free(program);
-
-  return EC_OK;
-}
 
 /**
  * Print out the string representation of the program
@@ -172,28 +178,26 @@ int main(int argc, char **argv) {
   program->lines = read_char_file(argv[1], program->in);
 
   // set up variables for assembler
-  list_t *tklst = NULL;
   instruction_t instr;
   word_t word;
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
     DEBUG_PRINT("\n======== LINE %u ======\n", i);
-    _status = tokenize(program->in[i], &tklst);
+    _status = tokenize(program->in[i], &program->tklst);
     if(_status == EC_SKIP){
       _status = EC_OK;
       continue;
     }
-    CHECK_STATUS(_status);
+    CHECK_STATUS_CLEANUP(_status, program_delete(program));
 
-    _status = parse(program, tklst, &instr);
+    _status = parse(program, &instr);
     if (_status == EC_SKIP) {
       _status = EC_OK;
       continue;
     }
     CHECK_STATUS_CLEANUP(_status, program_delete(program));
 
-    //token_list_delete(tklst); TODO: Invalid frees atm
     _status = encode(&instr, &word);
     CHECK_STATUS_CLEANUP(_status, program_delete(program));
 

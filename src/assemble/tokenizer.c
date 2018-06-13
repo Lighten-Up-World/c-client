@@ -110,7 +110,6 @@ int str_separate(char *src, char *tokens, char sep, char ***output){
       *currentpart = &mem[j+1];
     }
   }
-  // free(mem); TODO: FREE THIS SOMEWHERE
   return n;
 }
 
@@ -120,7 +119,7 @@ token_t *token_new(token_type_t type, char *str){
     return NULL;
   }
   tkn->type = type;
-  tkn->str = str;
+  tkn->str = strdup(str);
   return tkn;
 }
 
@@ -139,10 +138,10 @@ void token_list_delete(list_t *self){
   list_delete(self);
 }
 int token_list_add(list_t *self, token_t *token){
-  return list_add(self, token);
+  return token_list_add_pair(self, token->type, token->str);
 }
 int token_list_add_pair(list_t *self, token_type_t type, char *str){
-  return token_list_add(self, token_new(type, str));
+  return list_add(self, token_new(type, str));
 }
 token_t *token_list_get(list_t *self, int idx){
   return (token_t *)list_get(self, idx);
@@ -176,16 +175,20 @@ int tokenize(char *line, list_t **tkns){
   if(n==0){
     return EC_SKIP;
   }
-  *tkns = list_new(&token_free);
+  if(*tkns != NULL){
+    token_list_delete(*tkns);
+  }
+  *tkns = token_list_new();
   if(*tkns == NULL){
     return EC_NULL_POINTER;
   }
 
-  list_add(*tkns, token_new(T_OPCODE, token_strs[0]));
+  token_list_add_pair(*tkns, T_OPCODE, token_strs[0]);
 
   for (int i = 1; i < n; i++) {
-    list_add(*tkns, token_new(token_type(token_strs[i]), token_strs[i]));
+    token_list_add_pair(*tkns, token_type(token_strs[i]), token_strs[i]);
   }
+  free(token_strs[0]);
   free(token_strs);
 
   DEBUG_CMD(token_list_print(*tkns));

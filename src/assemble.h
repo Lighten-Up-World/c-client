@@ -18,6 +18,7 @@ typedef struct {
   symbol_map_t *smap;
   reference_map_t *rmap;
   list_t *additional_words;
+  list_t *tklst;
   char **in;
   int lines;
   word_t mPC;
