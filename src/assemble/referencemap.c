@@ -187,18 +187,18 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
     // If this label/address pair is already in the map return error code
     if (rmap_address_exists(address, entry->references.count, new_address) == 1) {
       return -1;
+    }
 
     // Otherwise extend the size of this entry (realloc) to map label to the additional address required
-    } else {
-      size_t num_addrs = entry->references.count;
-      address = realloc(address, (num_addrs + 1) * sizeof(address_t));
-      if (address == NULL) {
-        return EC_NULL_POINTER;
-      }
-      address[num_addrs] = new_address;
-      entry->references.count++;
-      return EC_OK;
+    size_t num_addrs = entry->references.count;
+    address = realloc(address, (num_addrs + 1) * sizeof(address_t));
+    if (address == NULL) {
+      return EC_NULL_POINTER;
     }
+
+    address[num_addrs] = new_address;
+    entry->references.count++;
+    return EC_OK;
 
   // There is no entry for the label in the bucket it belongs
   } else {
@@ -233,38 +233,38 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
     entry->label = new_label;
     memcpy(entry->label, label, label_len);
 
-    //Case: if the references array with size is empty
-    if (num_addrs == 0) {
+    // If the references array is empty
+    //if (num_addrs == 0) {
       // Allocate a new address pointer
       entry->references.address = malloc(sizeof(address_t));
 
       printf("malloc here\n");
-      // If malloc filed
+
+      // If malloc failed
       if (entry->references.address == NULL) {
         free(new_label);
         free(bucket->entries);
         return EC_NULL_POINTER;
       }
-      //Set refrences.count to 1
-      entry->references.count = 1;
-    }
-    // References array with size is not empty
-    else {
 
+    // References array is not empty
+    /*} else {
       printf("realloc here\n");
-      // Increment the count
-      entry->references.count += 1;
+
       //Reallocate the address to be one bigger
-      entry->references.address = realloc(entry->references.address, entry->references.count * sizeof(address_t));
+      entry->references.address = realloc(entry->references.address, (entry->references.count + 1) * sizeof(address_t));
 
       // Check to see if the realloc failed
       if (entry->references.address == NULL) {
         free(new_label);
         free(bucket->entries);
-        bucket->count -= 1;
         return EC_NULL_POINTER;
       }
-    }
+    }*/
+
+    // Increment the count
+    entry->references.count += 1;
+
     //Place the new_address in
     entry->references.address[num_addrs] = new_address;
 
