@@ -227,46 +227,23 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
     bucket->count += 1;
     entry = &(bucket->entries[bucket->count - 1]);
 
-    size_t num_addrs = entry->references.count;
-
     // Copy the label to add into the new entry
     entry->label = new_label;
     memcpy(entry->label, label, label_len);
 
-    // If the references array is empty
-    //if (num_addrs == 0) {
-      // Allocate a new address pointer
-      entry->references.address = malloc(sizeof(address_t));
+    // Allocate a new address pointer
+    entry->references.address = malloc(sizeof(address_t));
 
-      printf("malloc here\n");
-
-      // If malloc failed
-      if (entry->references.address == NULL) {
-        free(new_label);
-        free(bucket->entries);
-        return EC_NULL_POINTER;
-      }
-
-    // References array is not empty
-    /*} else {
-      printf("realloc here\n");
-
-      //Reallocate the address to be one bigger
-      entry->references.address = realloc(entry->references.address, (entry->references.count + 1) * sizeof(address_t));
-
-      // Check to see if the realloc failed
-      if (entry->references.address == NULL) {
-        free(new_label);
-        free(bucket->entries);
-        return EC_NULL_POINTER;
-      }
-    }*/
-
-    // Increment the count
-    entry->references.count += 1;
+    // If malloc failed
+    if (entry->references.address == NULL) {
+      free(new_label);
+      free(bucket->entries);
+      return EC_NULL_POINTER;
+    }
 
     //Place the new_address in
-    entry->references.address[num_addrs] = new_address;
+    entry->references.address[0] = new_address;
+    entry->references.count = 1;
 
     return EC_OK;
   }
