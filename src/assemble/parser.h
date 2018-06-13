@@ -7,8 +7,8 @@
 
 typedef struct {
   char *suffix;
-  byte_t cond;
-} branch_suffix_to_cond;
+  byte_t num;
+} suffix_to_num;
 
 typedef struct {
   char *op;
@@ -18,6 +18,7 @@ typedef struct {
 
 #define NUM_NON_BRANCH_OPS 16
 #define NUM_BRN_SUFFIXES 8
+#define NUM_SHIFT_SUFFIXES 4
 
 // Definitions used in aux functions
 #define MAX_ROT_VAL 16

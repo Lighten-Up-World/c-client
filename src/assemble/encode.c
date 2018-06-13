@@ -16,11 +16,12 @@
 
 int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
   assert(w != NULL);
-  DEBUG_PRINT("ENCODE_SHIFTED_REG: %08x\n", *w);
+  DEBUG_PRINT("ENCODE_SHIFTED_REG, word current is: %08x\n", *w);
   if (!is_valid_register(opShiftReg.rm)){
     return EC_INVALID_PARAM;
   }
   if (opShiftReg.shiftBy){ //Shift by reg
+    DEBUG_PRINT("ShiftBy REG: %08x\n", opShiftReg.shiftBy);
     if (!is_valid_register(opShiftReg.shift.shiftreg.rs)){
       return EC_INVALID_PARAM;
     }
@@ -31,10 +32,14 @@ int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
     *w <<=OP_SHIFT_INT_SIZE;
     *w |= opShiftReg.shift.constant.integer;
   }
+
   *w <<=OP_SHIFT_TYPE_SIZE;
   *w |= opShiftReg.type;
+
   *w <<= FLAG_SIZE;
+  DEBUG_PRINT("ShiftBy: %08x\n", opShiftReg.shiftBy);
   *w |= opShiftReg.shiftBy;
+
   *w <<= REG_SIZE;
   *w |= opShiftReg.rm;
 
@@ -52,7 +57,7 @@ int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
 int encode_operand(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
-  DEBUG_PRINT("encode_operand: %08x\n", *w);
+  DEBUG_PRINT("encode_operand, word current is:: %08x\n", *w);
   if (instr->i.dp.I){ //Operand2 is immediate constant
     *w <<= OP_ROTATE_SIZE;
     *w |= instr->i.dp.operand2.imm.rotated.rotate;
@@ -75,8 +80,9 @@ int encode_operand(instruction_t *instr, word_t *w){
 int encode_offset(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
-  DEBUG_PRINT("encode_offset: %08x\n", *w);
-  if (instr->i.dp.I){ //Offset is shifted register
+  DEBUG_PRINT("encode_offset, word current is: %08x\n", *w);
+  DEBUG_PRINT("instr->i.sdt.I: %u\n", instr->i.sdt.I);
+  if (instr->i.sdt.I){ //Offset is shifted register
     return encode_shifted_reg(instr->i.sdt.offset.reg, w);
   }else{  //Offset is 12-bit immediate value
     *w <<= SDT_OFFSET_SIZE;
@@ -196,17 +202,17 @@ int encode_sdt(instruction_t *instr, word_t *w){
   assert(w != NULL);
   assert(instr != NULL);
 
-  DEBUG_PRINT("SDT: %x|%x|%x|%x|%x|%x|%x|%x|%x|%x|\n",
-instr->cond,
-instr->i.sdt.pad1,
-instr->i.sdt.I,
-instr->i.sdt.P,
-instr->i.sdt.U,
-instr->i.sdt.pad0,
-instr->i.sdt.L,
-instr->i.sdt.rn,
-instr->i.sdt.rd,
-instr->i.sdt.offset.imm.fixed);
+  DEBUG_PRINT("SDT: cond:%x|pad1:%x|I:%x|P:%x|U:%x|0:%x|L:%x|rn:%x|rd:%x|o:%x|",
+  instr->cond,
+  instr->i.sdt.pad1,
+  instr->i.sdt.I,
+  instr->i.sdt.P,
+  instr->i.sdt.U,
+  instr->i.sdt.pad0,
+  instr->i.sdt.L,
+  instr->i.sdt.rn,
+  instr->i.sdt.rd,
+  instr->i.sdt.offset.imm.fixed);
 
   *w <<= SDT_PAD1_SIZE;
   *w |= instr->i.sdt.pad1;

@@ -10,10 +10,9 @@
 #include "../utils/instructions.h"
 
 #define PARSE_REG(Rn) (reg_address_t) atoi(remove_first_char(token_list_get_str(tklst, Rn)))
-#define PARSE_EXPR(tok) ((int) strtol(remove_first_char(tok), NULL, 0))
 #define COMPARE_OP(str) (strcmp(str, opcode) == 0)
 
-const branch_suffix_to_cond brn_suffixes[NUM_BRN_SUFFIXES] = {
+const suffix_to_num brn_suffixes[NUM_BRN_SUFFIXES] = {
     {"eq", 0x0},
     {"ne", 0x1},
     {"ge", 0xA},
@@ -23,6 +22,14 @@ const branch_suffix_to_cond brn_suffixes[NUM_BRN_SUFFIXES] = {
     {"al", 0xE},
     {"",   0xE}
 };
+
+const suffix_to_num shifts[NUM_SHIFT_SUFFIXES] = {
+    {"asr", ASR},
+    {"lsl", LSL},
+    {"lsr", LSR},
+    {"ror", ROR}
+};
+
 
 const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
     {"add", ADD, &parse_dp},
@@ -72,7 +79,10 @@ int str_to_enum(char *opcode){
 char *remove_first_char(char *string) {
   return (string + 1);
 }
-
+word_t parse_expression(list_t *tklst, int idx){
+  char *str_expr = remove_first_char(token_list_get_str(tklst, idx));
+  return (word_t) strtol(str_expr, NULL, 0);
+}
 /*=============================================>>>>>
 = DATA PROCESSING INSTRUCTION
 ===============================================>>>>>*/
@@ -140,6 +150,39 @@ operand_t get_imm_op2(char *operand2) {
   return result;
 }
 
+operand_t get_shifted_op2(list_t *tklst, int start) {
+  operand_t op2;
+  op2.reg.rm = PARSE_REG(start);
+  // Case 2a: <Operand2> := Rm
+  if(tklst->len == start + 1){
+    op2.reg.type = LSL;
+    op2.reg.shiftBy = 0;
+    op2.reg.shift.constant.integer = 0;
+  }
+  if(tklst->len == start + 4){
+    char *shiftname = token_list_get_str(tklst, start+2);
+    for (int i = 0; i < NUM_SHIFT_SUFFIXES; i++) {
+      if (strcmp(shifts[i].suffix, shiftname) == 0) {
+        op2.reg.type = shifts[i].num;
+      }
+    }
+    op2.reg.shiftBy = 0; //TODO: Understand why this is opposite
+    DEBUG_PRINT("LSL: %01x\n", LSL);
+    DEBUG_PRINT("Shift Type: %01x\n", op2.reg.type);
+    // Case 2b: <Operand2> := Rm, <shiftname> <register>
+    if(token_list_get_type(tklst, start + 3) == T_REGISTER){
+      op2.reg.shift.shiftreg.rs
+        = PARSE_REG(start + 3);
+      op2.reg.shift.shiftreg.zeroPad = 0;
+    }
+    // Case 2c: <Operand2> := Rm, <shiftname> <#expression>
+    if(token_list_get_type(tklst, start + 3) == T_HASH_EXPR){
+      op2.reg.shift.constant.integer
+        = parse_expression(tklst, start + 3);
+    }
+  }
+  return op2;
+}
 /**
  * Parse a DP instruction
  *
@@ -173,12 +216,15 @@ int parse_dp(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   inst->i.dp.rd = S ? 0 : PARSE_REG(RD_POS);
   DEBUG_PRINT("RN_POS: %u\n", rn_pos);
 
+  int operand2_start = rn_pos + 2;
+  // Case 1: <Operand2> := #expression
   if(inst->i.dp.I) {
-    inst->i.dp.operand2 = get_imm_op2(token_list_get_str(tklst, rn_pos + 2));
-  } else {
-    inst->i.dp.operand2 = (operand_t) {
-      .reg.type = LSL, .reg.rm = PARSE_REG(rn_pos + 2), .reg.shiftBy = 0, .reg.shift.constant.integer = 0};
-  }//should this be LSL instead of 0?
+    inst->i.dp.operand2 = get_imm_op2(token_list_get_str(tklst, operand2_start));
+  }
+  // Case 2: <Operand2> := Rm{,<shift>}
+  else {
+    inst->i.dp.operand2 = get_shifted_op2(tklst, operand2_start);
+  }
 
   return EC_OK;
 }
@@ -258,7 +304,7 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst){
   int value = 0;
   // Case 1: =expr
   if(tklst->len == NUM_TOKS_EQ_EXPR){
-    value = PARSE_EXPR(token_list_get_str(tklst, 3));
+    value = parse_expression(tklst, 3);
 
     if(value <= MAX_HEX){
       char * immVal = token_list_get_str(tklst, 3);
@@ -306,17 +352,48 @@ int parse_sdt(assemble_state_t* prog, list_t *tklst, instruction_t *inst){
     inst->i.sdt.I = 0;
     // Case 3: [Rn, #expression]
     if(token_list_get_type(tklst, 5) == T_COMMA){
-      inst->i.sdt.P = 1;
-      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(token_list_get_str(tklst, 6));
-      return EC_OK;
+
+      // Case 3: [Rn, #expression]
+      if(token_list_get_type(tklst, 6) == T_HASH_EXPR){
+        DEBUG_PRINT("Case 3 hit with, %d\n", inst->i.sdt.I);
+        inst->i.sdt.P = 1;
+        word_t result = parse_expression(tklst, 6);
+        if(is_negative(result)){
+          result = negate(result);
+          inst->i.sdt.U = 0;
+        }
+        inst->i.sdt.offset.imm.fixed = result;
+        DEBUG_PRINT("Imm fixed: %d / %08x\n", parse_expression(tklst, 6), parse_expression(tklst, 6));
+        return EC_OK;
+      }
+      // Case 4: [Rn, Rn]
+      if(token_list_get_type(tklst, 6) == T_REGISTER){
+        DEBUG_PRINT("Case 3 hit with, %d\n", inst->i.sdt.I);
+        inst->i.sdt.I = 1;
+        inst->i.sdt.offset = get_shifted_op2(tklst, 6);
+        return EC_OK;
+      }
     }
 
-    // Case 4: [Rn],<#expression>
+
     if(token_list_get_type(tklst, 5) == T_R_BRACKET){
       inst->i.sdt.P = 0;
-      inst->i.sdt.offset.imm.fixed = (word_t) PARSE_EXPR(token_list_get_str(tklst, 7));
-      return EC_OK;
+      // Case 5: [Rn],<#expression>
+      if(token_list_get_type(tklst, 7) == T_HASH_EXPR){
+        DEBUG_PRINT("Case 5 hit with, %d\n", inst->i.sdt.I);
+        inst->i.sdt.offset.imm.fixed = parse_expression(tklst, 7);
+        return EC_OK;
+      }
+
+      // Case 6: [Rn], Rm
+      if(token_list_get_type(tklst, 7) == T_REGISTER){
+        DEBUG_PRINT("Case 6 hit with, %d\n", inst->i.sdt.I);
+        inst->i.sdt.I = 1;
+        inst->i.sdt.offset = get_shifted_op2(tklst, 7);
+        return EC_OK;
+      }
     }
+
   }
   return EC_UNSUPPORTED_OP;
 }
@@ -420,7 +497,7 @@ int parse_brn(assemble_state_t* prog, list_t *tklst, instruction_t *inst) {
   char *suffix = remove_first_char(token_list_get_str(tklst, 0));
   for (int i = 0; i < NUM_BRN_SUFFIXES; i++) {
     if (strcmp(brn_suffixes[i].suffix, suffix) == 0) {
-      inst->cond = brn_suffixes[i].cond;
+      inst->cond = brn_suffixes[i].num;
     }
   }
 
