@@ -6,11 +6,11 @@ PATHU = ../../../unity/
 PATHS = ../
 PATHT = ./
 PATHJSMN = ../jsmn
-PATHB = build/
-PATHD = build/depends/
-PATHO = build/objs/
-PATHR = build/results/
-PATHRUN = build/runner/
+PATHB = ../build/
+PATHD = ../build/depends/
+PATHO = ../build/objs/
+PATHR = ../build/results/
+PATHRUN = ../build/runner/
 
 BUILD_PATHS = $(PATHB) $(PATHD) $(PATHO) $(PATHR) $(PATHRUN)
 
