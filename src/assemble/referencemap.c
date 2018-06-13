@@ -170,96 +170,100 @@ int rmap_exists(const reference_map_t *map, const label_t label) {
 * @param address : The address to enter into the map
 * @returns An error code (see error.h)
 */
-int rmap_put(const reference_map_t *map, const label_t label,
-             const address_t new_address) {
-  if (map == NULL) {
+int rmap_put(const reference_map_t *map, const label_t label, const address_t new_address) {
+  if (map == NULL || label == NULL) {
     return EC_INVALID_PARAM;
   }
-  if (label == NULL) {
-    return EC_INVALID_PARAM;
-  }
-  size_t label_len = strlen(label);
 
-  size_t ind = rmap_hash(label) % map->count;
-  rbucket_t *bucket = &(map->buckets[ind]);
+  // Calculate which bucket the entry should be placed in
+  size_t index = rmap_hash(label) % map->count;
+  rbucket_t *bucket = &(map->buckets[index]);
 
+  // If there is already an entry for the label in the bucket it belongs
   entry_t *entry;
   if ((entry = get_entry(bucket, label)) != NULL) {
     address_t *address = entry->references.address;
-    if (rmap_address_exists(address, entry->references.count, new_address)
-        == 1) {
+
+    // If this label/address pair is already in the map return error code
+    if (rmap_address_exists(address, entry->references.count, new_address) == 1) {
       return -1;
+
+    // Otherwise extend the size of this entry (realloc) to map label to the additional address required
     } else {
-      size_t address_len = entry->references.count;
-      address_t *tmp_references_address =
-          realloc(address, (address_len + 1) * sizeof(address_t));
-      if (tmp_references_address == NULL) {
+      size_t num_addrs = entry->references.count;
+      address = realloc(address, (num_addrs + 1) * sizeof(address_t));
+      if (address == NULL) {
         return EC_NULL_POINTER;
       }
-      address = tmp_references_address;
-      address[address_len] = new_address;
+      address[num_addrs] = new_address;
       entry->references.count++;
       return EC_OK;
     }
-  }
-  label_t new_label = malloc(label_len);
-  if (new_label == NULL) {
-    return EC_NULL_POINTER;
-  }
-  if (bucket->count == 0) {
-    bucket->entries = malloc(sizeof(entry_t));
-    if (bucket->entries == NULL) {
-      free(new_label);
+
+  // There is no entry for the label in the bucket it belongs
+  } else {
+    size_t label_len = strlen(label);
+    label_t new_label = malloc(label_len);
+    if (new_label == NULL) {
       return EC_NULL_POINTER;
     }
-    bucket->count = 1;
-  } else {
+
+    // If there are no entries in the bucket, allocate an entry
+    if (bucket->count == 0) {
+      bucket->entries = malloc(sizeof(entry_t));
+      if (bucket->entries == NULL) {
+        free(new_label);
+        return EC_NULL_POINTER;
+      }
+
+    // There are already entries in the bucket, increase size to store 1 more
+    } else {
+      bucket->entries = realloc(bucket->entries, (bucket->count + 1) * sizeof(entry_t));
+      if (bucket->entries == NULL) {
+        free(new_label);
+        return EC_NULL_POINTER;
+      }
+    }
     bucket->count += 1;
-    entry_t *tmp_entries =
-        realloc(bucket->entries, bucket->count * sizeof(entry_t));
-    if (tmp_entries == NULL) {
-      free(new_label);
-      bucket->count -= 1;
-      return EC_NULL_POINTER;
+    entry = &(bucket->entries[bucket->count - 1]);
+
+    size_t num_addrs = entry->references.count;
+
+    // Copy the label to add into the new entry
+    entry->label = new_label;
+    memcpy(entry->label, label, label_len);
+
+
+    if (num_addrs == 0) {
+      entry->references.address = malloc(sizeof(address_t));
+
+      printf("malloc here\n");
+
+      if (entry->references.address == NULL) {
+        free(new_label);
+        free(bucket->entries);
+        return EC_NULL_POINTER;
+      }
+      entry->references.count = 1;
+    } else {
+
+      printf("realloc here\n");
+
+      entry->references.count += 1;
+      entry->references.address = realloc(entry->references.address, entry->references.count * sizeof(address_t));
+      if (entry->references.address == NULL) {
+        free(new_label);
+        free(bucket->entries);
+        bucket->count -= 1;
+        return EC_NULL_POINTER;
+      }
     }
-    bucket->entries = tmp_entries;
+    entry->references.address[num_addrs] = new_address;
+
+    return EC_OK;
   }
-  entry = &(bucket->entries[bucket->count - 1]);
-
-  size_t address_len = entry->references.count;
-
-  entry->label = new_label;
-  memcpy(entry->label, label, label_len);
-  if (address_len == 0) {
-    entry->references.address = malloc(sizeof(address_t));
-
-    printf("malloc here\n");
-
-    if (entry->references.address == NULL) {
-      free(new_label);
-      free(bucket->entries);
-      return EC_NULL_POINTER;
-    }
-    entry->references.count = 1;
-  } else {
-
-    printf("realloc here\n");
-
-    entry->references.count += 1;
-    entry->references.address = realloc(entry->references.address,
-                                                entry->references.count
-                                                    * sizeof(address_t));
-    if (entry->references.address == NULL) {
-      free(new_label);
-      free(bucket->entries);
-      bucket->count -= 1;
-      return EC_NULL_POINTER;
-    }
-    //entry->references.address = tmp_references_address;
-  }
-  entry->references.address[address_len] = new_address;
-  return EC_OK;
 }
+
 
 /**
 * Enumerates through each label-address combination and applies the map function
