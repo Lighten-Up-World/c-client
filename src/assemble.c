@@ -44,12 +44,14 @@ char **allocate_input(int lines, int lineLength) {
  *
  * @return : pointer to an uninitialised program.
  */
-assemble_state_t *program_new() {
+assemble_state_t *program_new(int num_lines) {
   assemble_state_t *program;
   program = malloc(sizeof(assemble_state_t));
   if (program == NULL) {
     return NULL;
   }
+
+  program->lines = num_lines;
 
   program->smap = smap_new(MAX_S_MAP_CAPACITY);
   if (program->smap == NULL) {
@@ -63,8 +65,7 @@ assemble_state_t *program_new() {
     return NULL;
   }
   program->additional_words = list_new(&free);
-  // Ideally use function to count the number of lines
-  program->in = allocate_input(MAX_NUM_LINES, LINE_SIZE);
+  program->in = allocate_input(num_lines, LINE_SIZE);
   if (program->in == NULL) {
     rmap_delete(program->rmap);
     smap_delete(program->smap);
@@ -126,13 +127,14 @@ int main(int argc, char **argv) {
   int _status = EC_OK;
   assert(argc > 2);
 
-  assemble_state_t *program = program_new();
+  int num_lines = get_num_lines(argv[1]);
+  assemble_state_t *program = program_new(num_lines);
 
   if (program == NULL) {
     return EC_NULL_POINTER; // unable to allocate space for program.
   }
   DEBUG_PRINT("Starting read of file @%s\n", argv[1]);
-  if ((_status = read_char_file(argv[1], program->in,  &program->lines))) {
+  if ((_status = read_char_file(argv[1], program->in))) {
     DEBUG_PRINT("%u\n", _status);
     program_delete(program);
     return _status; // failed to read input. Need this in emulate too?

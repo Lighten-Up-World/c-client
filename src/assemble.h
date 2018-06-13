@@ -7,7 +7,6 @@
 #include "utils/list.h"
 
 #define LINE_SIZE 512
-#define MAX_NUM_LINES 50
 
 typedef struct {
   word_t word;
