@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "../assemble.h"
 #include "io.h"
 #include "bitops.h"
 #include "register.h"
@@ -290,31 +291,31 @@ int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
 *
 *  @param path: the path of the ASCII file to read from
 *  @param buffer: a pointer to an allocated array which the file will be read to
-*  @param buffer_size: the size of the buffer allocated
 *  @param num_of_lines: pointer to an int denoting the number of lines found in file
 *  @return a status code denoting the result
 */
-int read_char_file(const char *path, char ** buffer, int* num_of_lines) {
-  FILE *fp = fopen(path, "r");
-  if (fp == NULL || fp == 0) {
-    perror("fopen failed at path");
-    return 1;
-  }
-  int line = 0;
-  size_t lineLength = 512 * sizeof(char);
-  while (fgets(buffer[line], lineLength, fp) != NULL){
-    DEBUG_PRINT("%s\n", buffer[line]);
-    line++;
-  }
-  if (ferror(fp)){
-    perror("fget failed");
-    return 2;
+int read_char_file(const char *path, char **buffer, int *num_lines) {
+  FILE *file = fopen(path, "r");
+  if (file == NULL) {
+    perror("File could not be opened");
+    exit(EC_SYS);
   }
 
-  if (fclose(fp) != 0) {
-    perror("Couldn't close file");
-    return 4;
+  int line = 0;
+  while (fgets(buffer[line], LINE_SIZE * sizeof(char), file) != NULL) {
+    line++;
   }
-  *num_of_lines = line;
-  return 0;
+  *num_lines = line;
+
+  if (ferror(file)) {
+    perror("Failed to read from file");
+    exit(EC_SYS);
+  }
+
+  if (fclose(file)) {
+    perror("File could not be closed");
+    exit(EC_SYS);
+  }
+
+  return EC_OK;
 }
