@@ -1,0 +1,11 @@
+test_encode.c:8:test_encode_hal:PASS
+test_encode.c:22:test_encode_mul:PASS
+test_encode.c:44:test_encode_dp_rotated_immediate:PASS
+test_encode.c:69:test_encode_dp_shifted_register:PASS
+test_encode.c:97:test_encode_sdt:PASS
+test_encode.c:121:test_encode_sdt_with_invalidreg:PASS
+test_encode.c:144:test_encodeBrn:PASS
+
+-----------------------
+7 Tests 0 Failures 0 Ignored 
+OK

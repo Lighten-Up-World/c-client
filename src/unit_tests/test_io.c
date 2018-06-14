@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 void test_read_char_file(void){
-  char path[] = "../../test/test_cases/add01.s";
+  char path[] = "../../unit_tests/test_cases/add01.s";
   char **buff = malloc(100 * sizeof(char *));
   for (size_t i = 0; i < 100; i++) {
     buff[i] = malloc(512 * sizeof(char));
@@ -19,7 +19,7 @@ void test_read_char_file(void){
 }
 
 void test_read_file(void){
-  char path[] = "../../test/test_cases/add01.s";
+  char path[] = "../../unit_tests/test_cases/add01.s";
   char *buff = malloc(100 * sizeof(char));
   read_file(path, buff, 100 * sizeof(char));
   for (size_t i = 0; i < 100; i++) {

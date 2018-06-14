@@ -242,8 +242,8 @@ void test_decodeHal(void) {
   compareInstructions(expected, decoded);
 }
 
-// TODO: translate into test code?
-// main to test decodeBrn decode.c
+// TODO: translate into unit_tests code?
+// main to unit_tests decodeBrn decode.c
 /*int main() {
   instruction_t inst;
   word_t w2 = 0b11111010111111111111111111111111;
