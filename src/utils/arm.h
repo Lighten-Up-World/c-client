@@ -55,21 +55,4 @@ typedef enum {
 
 #include "instructions.h"
 
-typedef struct {
-  word_t fetched;
-  instruction_t *decoded;
-} pipeline_t;
-
-typedef struct {
-  word_t r[NUM_GENERAL_REGISTERS];
-  word_t pc;
-  word_t cpsr;
-} registers_t;
-
-typedef struct {
-  registers_t registers;
-  byte_t memory[MEM_SIZE];
-  pipeline_t pipeline;
-} state_t;
-
 #endif

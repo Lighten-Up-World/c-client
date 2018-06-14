@@ -8,6 +8,7 @@
 #include "../utils/io.h"
 #include "../utils/instructions.h"
 #include "../utils/arm.h"
+#include "../emulate.h"
 #include "decode.h"
 
 #define OFFSET_BITMASK 0xFF000000
