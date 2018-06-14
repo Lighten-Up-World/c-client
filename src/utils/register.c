@@ -26,7 +26,7 @@ int is_valid_register(reg_address_t reg){
  *  @param reg: the register's address
  *  @return the word stored at that register
  */
-word_t get_register(state_t *state, reg_address_t reg) {
+word_t get_register(emulate_state_t *state, reg_address_t reg) {
   if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     return state->registers.r[reg];
   }
@@ -51,7 +51,7 @@ word_t get_register(state_t *state, reg_address_t reg) {
  *  @param reg: the register's address
  *  @return void
  */
-void set_register(state_t *state, reg_address_t reg, word_t value) {
+void set_register(emulate_state_t *state, reg_address_t reg, word_t value) {
   if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     state->registers.r[reg] = value;
   }
@@ -75,7 +75,7 @@ void set_register(state_t *state, reg_address_t reg, word_t value) {
  *  @param state: a non-null pointer to the machine state
  *  @return the word stored in the PC
  */
-word_t get_pc(state_t *state) {
+word_t get_pc(emulate_state_t *state) {
   return get_register(state, REG_N_PC);
 }
 
@@ -85,7 +85,7 @@ word_t get_pc(state_t *state) {
  *  @param state: a non-null pointer to the machine state
  *  @param value: the value to set the PC to
  */
-void set_pc(state_t *state, word_t value) {
+void set_pc(emulate_state_t *state, word_t value) {
   set_register(state, REG_N_PC, value);
 }
 
@@ -94,7 +94,7 @@ void set_pc(state_t *state, word_t value) {
  *
  *  @param state: a non-null pointer to the machine state
  */
-void increment_pc(state_t *state) {
+void increment_pc(emulate_state_t *state) {
   set_register(state, REG_N_PC, get_pc(state) + 4);
 }
 
@@ -104,7 +104,7 @@ void increment_pc(state_t *state) {
  *  @param state: a non-null pointer to the machine state
  *  @return a byte with the 4 least significant bits set to the value of the flags
  */
-byte_t get_flags(state_t *state) {
+byte_t get_flags(emulate_state_t *state) {
   return (get_register(state, REG_N_CPSR) >> (sizeof(word_t) * 8 - NUM_FLAGS));
 }
 
@@ -115,6 +115,6 @@ byte_t get_flags(state_t *state) {
  *  @param value: a byte with the 4 least significant bits set to the flag values
  *  @return void
  */
-void set_flags(state_t *state, byte_t value) {
+void set_flags(emulate_state_t *state, byte_t value) {
   set_register(state, REG_N_CPSR, value << (sizeof(word_t) * 8 - NUM_FLAGS));
 }
