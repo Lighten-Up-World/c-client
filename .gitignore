@@ -40,6 +40,10 @@ src/out
 #Ignore test outputs
 src/test/build/*
 
+#ignore extension layouts
+extension/layout/*.txt
+extension/layout/*.csv
+
 #ignore other junk files
 *.backup
 *.kate-swp
