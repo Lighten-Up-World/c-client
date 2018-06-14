@@ -2,6 +2,7 @@
 #define OPC_CLIENT_T
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct opc_client opc_client_t;
 typedef struct opc_header opc_header_t;
