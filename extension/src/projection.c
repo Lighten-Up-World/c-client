@@ -45,9 +45,6 @@ int grid_x(double lon){
 }
 
 int grid_y(double lat){
-  printf("%f\n", merc_y(lat));
-  printf("%f\n", merc_y(lat) + MAX_Y);
-  printf("%f\n", MAX_Y / GRID_WIDTH);
   return (merc_y(lat) + MAX_Y) / (2 * (double)MAX_Y / (double)GRID_HEIGHT);
 }
 
@@ -56,5 +53,5 @@ grid_t geolocation_grid(double latitude, double longitude){
 }
 
 geolocation_t grid_geolocation(double x, double y){
-  return (geolocation_t){merc_lat(y * MAX_Y), merc_lon(x * MAX_X), 0};
+  return (geolocation_t){merc_lat(y * MAX_Y), merc_lon(x * MAX_X)};
 }

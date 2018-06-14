@@ -38,7 +38,6 @@
 typedef struct geolocation{
     double latitude;
     double longitude;
-    double value;
 } geolocation_t;
 
 typedef enum http_request_method{
