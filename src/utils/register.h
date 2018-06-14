@@ -9,6 +9,7 @@
 #define NUM_FLAGS 4
 
 #include "../utils/arm.h"
+#include "../emulate.h"
 
 int is_valid_register(reg_address_t reg);
 
