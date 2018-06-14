@@ -347,7 +347,6 @@ int parse_offset(assemble_state_t *prog, instruction_t *instr, int start) {
  * Parse a DP instruction
  *
  * @param prog: pointer to the program state
- * @param tlst: pointer to a list of tokens in the assembly instruction
  * @param inst: pointer to the Instruction to store information in
  * @return: integer error code based on success of function
  */
@@ -382,7 +381,6 @@ int parse_dp(assemble_state_t *prog, instruction_t *instr) {
  * Parse a MUL instruction
  *
  * @param prog: pointer to the program state
- * @param tlst: pointer to a list of tokens in the assembly instruction
  * @param inst: pointer to the Instruction to store information in
  * @return: integer error code based on success of function
  */
@@ -412,7 +410,6 @@ int parse_mul(assemble_state_t *prog, instruction_t *inst) {
  * Parse an SDT instruction
  *
  * @param prog: pointer to the program state
- * @param tlst: pointer to a list of tokens in the assembly instruction
  * @param inst: pointer to the Instruction to store information in
  * @return: integer error code based on success of function
  */
@@ -433,11 +430,12 @@ int parse_sdt(assemble_state_t *prog, instruction_t *instr) {
 }
 
 /**
- * Calculate the offset of an address from the current program_state Counter, to be stored in a BRN instruction
+ * Calculate the offset of an address from the current program_state Counter,
+ * to be stored in a BRN instruction
  *
- * @param address: the address to calculate the offset of
- * @param PC: the address of the branch instruction being executed
- * @return: the offset to be store - a shifted 24 bit value
+ * @param address: address to calculate the offset of
+ * @param PC: address of the branch instruction being executed
+ * @return: offset to be stored in instruction - a shifted 24 bit value
  */
 word_t calculate_offset(int32_t address, word_t PC) {
   int32_t offset = address - PC - 8;
@@ -458,19 +456,24 @@ word_t calculate_offset(int32_t address, word_t PC) {
 }
 
 /**
-* Parses a branch instruction
-* Syntax is: b<code> <expression>
-* <code>       - eq|ne|ge|lt|gt|al|
-* <expression> - Label name whose address is retreived
-*
-* The <expression> is the target address, which may be a label.
-* The assembler should compute the offset between the current address and
-* the label, taking into account the off-by-8 bytes effect that will occur
-* due to the ARM pipeline. This signed offset should be 26 bits in length,
-* before being shifted right two bits and having the lower 24 bits stored
-* in the Offset field
-*/
-int parse_brn(assemble_state_t* prog, instruction_t *inst) {
+ * Parse a BRN instruction
+ *
+ * Syntax is: b<code> <expression>
+ * <code>       - eq|ne|ge|lt|gt|al|
+ * <expression> - Label name whose address is retreived
+ *
+ * The <expression> is the target address, which may be a label.
+ * The assembler should compute the offset between the current address and
+ * the label, taking into account the off-by-8 bytes effect that will occur
+ * due to the ARM pipeline. This signed offset should be 26 bits in length,
+ * before being shifted right two bits and having the lower 24 bits stored
+ * in the Offset field.
+ *
+ * @param prog: pointer to the program state
+ * @param inst: pointer to the Instruction to store information in
+ * @return: integer error code based on success of function
+ */
+int parse_brn(assemble_state_t *prog, instruction_t *inst) {
   // Parse for condition
   char *suffix = remove_first_char(token_list_get_str(prog->tklst, 0));
   for (int i = 0; i < NUM_BRN_SUFFIXES; i++) {
@@ -481,19 +484,19 @@ int parse_brn(assemble_state_t* prog, instruction_t *inst) {
 
   word_t offset;
   if (token_list_get_type(prog->tklst, 1) == T_STR) {
-    // TODO
     // Check if label is already in map, if so get address
     char *label = token_list_get_str(prog->tklst, 1);
     if (smap_exists(prog->smap, label)) {
-             address_t addr = 0;
+      address_t addr = 0;
       smap_get_address(prog->smap, label, &addr);
-             offset = calculate_offset(addr, prog->mPC);
+      offset = calculate_offset(addr, prog->mPC);
     } else {
-             rmap_put(prog->rmap, label, prog->mPC);
+      rmap_put(prog->rmap, label, prog->mPC);
       offset = 0xFFFFFF; // dummy value
     }
   } else {
-    offset = calculate_offset(atoi(token_list_get_str(prog->tklst, 0)), prog->mPC);
+    offset =
+        calculate_offset(atoi(token_list_get_str(prog->tklst, 0)), prog->mPC);
   }
 
   inst->type = BRN;
@@ -503,10 +506,15 @@ int parse_brn(assemble_state_t* prog, instruction_t *inst) {
   return EC_OK;
 }
 
-/*=============================================>>>>>
-= SPECIAL INSTRUCTIONS
-===============================================>>>>>*/
+//// SPECIAL INSTRUCTIONS ////
 
+/**
+ * Parse a logical shift left instruction
+ *
+ * @param prog: pointer to the program state
+ * @param inst: pointer to the Instruction to store information in
+ * @return: integer error code based on success of function
+ */
 int parse_lsl(assemble_state_t *prog, instruction_t *inst) {
   //lsl Rn, <expr> === mov Rn, Rn, lsl <expr>
 
@@ -527,33 +535,44 @@ int parse_lsl(assemble_state_t *prog, instruction_t *inst) {
   return parse_dp(prog, inst);
 }
 
+/**
+ * Parse the HAL instruction
+ *
+ * @param prog: pointer to the program state
+ * @param inst: pointer to the Instruction to store information in
+ * @return: integer error code based on success of function
+ */
 int parse_halt(assemble_state_t *prog, instruction_t *inst) {
-     inst->type = HAL;
+  inst->type = HAL;
   inst->cond = 0;
   inst->i.hal.pad0 = 0;
   return EC_OK;
 }
 
-/*=============================================>>>>>
-= LABEL INSTRUCTIONS
-===============================================>>>>>*/
+//// LABEL INSTRUCTIONS ////
 
+/**
+ * Parse a line containing a branch with a label
+ *
+ * @param prog: pointer to the program state
+ * @return: integer error code based on success of function
+ */
 int parse_label(assemble_state_t *prog) {
   int _status = EC_OK;
   char *label = token_list_get_str(prog->tklst, 0);
-  if(smap_exists(prog->smap, label)){
+  if (smap_exists(prog->smap, label)) {
     return EC_IS_LABEL;
   }
   smap_put(prog->smap, label, prog->mPC);
-     if(rmap_exists(prog->rmap, label)){
+  if (rmap_exists(prog->rmap, label)) {
     int num_references = rmap_get_references(prog->rmap, label, NULL, 0);
     size_t size_ref = num_references * sizeof(address_t);
     address_t *addrs = malloc(size_ref);
-    if(addrs == NULL){
+    if (addrs == NULL) {
       perror("parse_label(): malloc failed");
       return EC_NULL_POINTER;
     }
-    if((_status = rmap_get_references(prog->rmap, label, addrs, size_ref))){
+    if ((_status = rmap_get_references(prog->rmap, label, addrs, size_ref))) {
       return _status;
     }
     for (int i = 0; i < num_references; i++) {
@@ -562,23 +581,24 @@ int parse_label(assemble_state_t *prog) {
       get_word(prog->out, addrs[i], &curr);
       curr &= offset;
       set_word(prog->out, addrs[i], curr);
-           }
+    }
   }
   return _status;
 }
 
 /**
- *  Translates a list of tokens comprising a line of assembly
+ *  Translate a list of tokens comprising a line of assembly
  *  into its corresponding instruction_t form by calling the appropriate
  *  sub-functions
  *
- *  @param tokens: a pointer to the array of tokens
- *  @param inst: a pointer to the instruction to be stored
+ * @param prog: pointer to the program state
+ * @param inst: pointer to the Instruction to store information in
+ * @return: integer error code based on success of function
  */
 int parse(assemble_state_t *prog, instruction_t *inst) {
   // If the assembly line is a label
   if (is_label(prog->tklst)) {
-         parse_label(prog);
+    parse_label(prog);
     return EC_SKIP;
   }
 
@@ -587,11 +607,11 @@ int parse(assemble_state_t *prog, instruction_t *inst) {
 
   // Parse a branch instruction and its condition
   if (!strncmp(opcode, "b", 1)) {
-         return parse_brn(prog, inst);
+    return parse_brn(prog, inst);
   }
 
   if (!strcmp("lsl", opcode)) {
-         return parse_lsl(prog, inst);
+    return parse_lsl(prog, inst);
   }
 
   // Calculate function pointer to parse an instruction from the opcode
