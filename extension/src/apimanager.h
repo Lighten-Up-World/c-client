@@ -22,6 +22,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include "jsmn/jsmn.h"
+#include "pixel.h"
 
 //OPEN_WEATHER_MAP
 

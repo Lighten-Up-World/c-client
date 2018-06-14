@@ -18,6 +18,12 @@ LINK=gcc
 DEBUG = -DDEBUG
 CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
 
+simulation: mkdir control $(PATHB)main.out
+	cd simulation; make
+
+control:
+	cd ../../openpixelcontrol; make
+
 run: mkdir $(PATHB)main.out
 	./build/main.out
 
