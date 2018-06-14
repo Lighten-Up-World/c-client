@@ -1,30 +1,43 @@
 #ifndef OPC_CLIENT_T
 #define OPC_CLIENT_T
 
-#include <stdint.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include "opc.h"
 
-typedef struct opc_client opc_client_t;
-typedef struct opc_header opc_header_t;
+// TCP connection data in here
+typedef struct {
+  int sockid;
+} opc_connection_t;
 
-struct opc_client{
-  int fd;
-  char *host;
-  char *address;
-};
+typedef struct {
+  int r;
+  int g;
+  int b;
+} opc_pixel;
 
-struct opc_header{
-  uint8_t channel;
-  uint8_t command;
-  uint8_t length[2];
-};
+/* Wait at most 0.5 second for a connection or a write. */
+#define OPC_SEND_TIMEOUT_MS 1000
 
-opc_header_t *opc_header_init(uint8_t channel, uint8_t command, uint8_t length);
-uint8_t *opc_header_data(opc_header_t *self);
+/* Internal structure for a sink.  sock >= 0 iff the connection is open. */
+typedef struct {
+  struct sockaddr_in address;
+  int sock;
+  char address_string[64];
+} opc_sink_info;
 
-int opc_connect(opc_client_t* self);
-int opc_close(opc_client_t* self);
-int opc_resolve(opc_client_t* self, const char *hostport, int defaultPort);
-int opc_write(const uint8_t *data, size_t length);
+static opc_sink_info opc_sinks[OPC_MAX_SINKS];
+static opc_sink opc_next_sink = 0;
 
 #endif
