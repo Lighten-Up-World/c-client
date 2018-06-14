@@ -44,6 +44,23 @@ typedef struct {
   do {if (pred) {_status = EC_FROM_SYS_ERROR(errno); goto fail;}} while(0)
 #define FAIL_FORWARD(expr) \
   do {_status = expr; if (_status != EC_OK) goto fail;} while(0)
+
+
+#define MEM_CHECK_C(expr, ret, cleanup) \
+  do { \
+    if(expr == NULL){ \
+      fprintf(stderr, "%s:%d:%s(): allocate failed\n", __FILE__, __LINE__, __func__); \
+      cleanup; \
+      return ret; \
+    }} while(0)
+
+#define MEM_CHECK(expr, ret) \
+  do { \
+    if(expr == NULL){ \
+      fprintf(stderr, "%s:%d:%s(): allocate failed\n", __FILE__, __LINE__, __func__); \
+      return ret; \
+    }} while(0)
+
 #define CHECK_STATUS(status, cleanup) \
   do {if(status != EC_OK){ \
     ec_strerror(stderr, status, __FILE__, __LINE__, __func__); \

@@ -7,6 +7,7 @@
 
 #include "utils/arm.h"
 #include "utils/instructions.h"
+#include "utils/error.h"
 
 //Forward Definitions
 typedef struct pipeline pipeline_t;
@@ -20,7 +21,7 @@ typedef struct emulate_state emulate_state_t;
 #include "emulate/decode.h"
 
 struct pipeline{
-  word_t fetched;
+  word_t *fetched;
   instruction_t *decoded;
 };
 

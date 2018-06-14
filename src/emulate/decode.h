@@ -5,11 +5,12 @@
 #ifndef DECODE_H
 #define DECODE_H
 
+#include <assert.h>
+#include <stdio.h>
 #include "../utils/arm.h"
 #include "../utils/instructions.h"
 #include "../utils/bitops.h"
-#include <assert.h>
-#include <stdio.h>
+#include "../utils/error.h"
 
 // GENERAL INSTRUCTION DEFINITIONS
 #define COND_START 31
@@ -58,6 +59,6 @@
 
 #define SDT_RD_START 15
 
-instruction_t decode_word(word_t word);
+int decode_word(instruction_t *instr, word_t word);
 
 #endif
