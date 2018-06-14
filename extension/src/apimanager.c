@@ -31,12 +31,10 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   char req[300];
   size_t byte_count;
   snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\nConnection:keep-alive\r\n",request.path, request.host);
-  printf("%s \n", req);
   if (send(sockfd,req,sizeof(req),0) < 0) {
     return -1;
   }
   byte_count = recv(sockfd,buf,buf_size,0);
-  printf("%s \n", buf);
   return byte_count;
 }
 
@@ -56,8 +54,9 @@ int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *
   char buff[500];
   if (send_get_request(sockfd, request, buff, sizeof(buff)) < 0){
     return -1;
+  }else{
+    return get_double_from_json(buff, attr, val);
   }
-  return get_double_from_json(buff, attr, val);
 }
 
 int socket_connect(const char *host, in_port_t port){
@@ -96,29 +95,6 @@ int socket_close(int sockfd){
   }
   return 0;
 }
-
-int tcp_construct(api_manager_t *self, char *host){
-  int *sock = malloc(sizeof(int));
-  if (sock == NULL){
-    perror("tcp_construct");
-    return -1;
-  }
-  *sock = socket_connect(host, 80);
-  if (*sock < 0){
-    perror("tcp_construct");
-    return -1;
-  }
-  self->obj = sock;
-  return 0;
-}
-
-int tcp_destruct(api_manager_t *self){
-  int *sockfd = (int *) self->obj;
-  socket_close(*sockfd);
-  free(self->obj);
-  return 0;
-}
-
 
 api_manager_t *api_manager_new(void){
   api_manager_t *api_manager = NULL;
