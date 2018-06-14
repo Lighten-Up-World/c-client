@@ -30,13 +30,13 @@
 #define LONGITUDE_START 29
 
 #define WEATHER_HOST "api.openweathermap.org"
-#define WEATHER_PATH "data/2.5/weather?lat=000&lon=000&appid=6ee4372288ed6d49c7dea5ed1f39a118"
+#define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=6ee4372288ed6d49c7dea5ed1f39a118"
 
 //GENERAL
 
 typedef struct geolocation{
-    int latitude;
-    int longitude;
+    double latitude;
+    double longitude;
     double value;
 } geolocation_t;
 

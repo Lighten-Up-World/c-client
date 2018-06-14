@@ -17,9 +17,9 @@ int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *
   int sockfd = socket_connect(host, 80);
   http_request_t request;
   request.host = host;
-  request.path = path;
   request.method = GET;
 
+  /*
   char *lon = calloc(4, sizeof(char));
   snprintf(lon, 4, "%d",loc->longitude);
   char *lat = calloc(4, sizeof(char));
@@ -30,6 +30,9 @@ int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *
 
   free(lat);
   free(lon);
+   */
+
+  asprintf(&(request.path),path, loc->latitude, loc->longitude);
 
   char buff[500];
   send_get_request(sockfd, request, buff, sizeof(buff));
@@ -43,6 +46,7 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   char req[300];
   size_t byte_count;
   snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\nConnection:keep-alive\r\n",request.path, request.host);
+  //printf("%s \n", req);
   if (send(sockfd,req,sizeof(req),0) < 0) {
     return -1;
   }
