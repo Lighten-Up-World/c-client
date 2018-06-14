@@ -1,4 +1,4 @@
-#include "unity/unity.h"
+#include "../../unity/src/unity.h"
 #include "../assemble/symbolmap.h"
 #include "../assemble/referencemap.h"
 #include "../utils/bitops.h"
@@ -114,7 +114,7 @@ void test_parse_hal(void){
   token_list_add_pair(tklst, T_REGISTER, "r0");
 
   instruction_t result;
-  if (parse(prog, tklst, &result)){
+  if (parse(prog, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
   token_list_delete(tklst);
@@ -143,7 +143,7 @@ void test_parse_mul(void){
   token_list_add_pair(tklst, T_REGISTER, "r1");
 
   instruction_t result;
-  if (parse(prog, tklst, &result)){
+  if (parse(prog, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
   token_list_delete(tklst);
@@ -174,7 +174,7 @@ void test_parse_mla(void){
   token_list_add_pair(tklst, T_REGISTER, "r10");
 
   instruction_t result;
-  if (parse(prog, tklst, &result)){
+  if (parse(prog, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
   token_list_delete(tklst);
@@ -203,7 +203,7 @@ void test_parse_dp(void){
 
 
   instruction_t result;
-  if (parse(prog, tklst, &result)){
+  if (parse(prog, &result)){
   TEST_ASSERT_MESSAGE(false, "False Error");
   }
   token_list_delete(tklst);
@@ -233,7 +233,7 @@ void test_parse_sdt_imm(void) {
   token_list_add_pair(tklst, T_EQ_EXPR, "=0x555");
 
   instruction_t result;
-  if (parse(prog, tklst, &result)){
+  if (parse(prog, &result)){
     TEST_ASSERT_MESSAGE(false, "False Error");
   }
   token_list_delete(tklst);
