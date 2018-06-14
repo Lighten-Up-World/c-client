@@ -75,7 +75,6 @@ int decode_offset(flag_t I, word_t word, operand_t *op) {
   return EC_OK;
 }
 
-
 /**
  *  Decodes a Data Processing instruction
  *

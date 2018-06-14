@@ -126,7 +126,7 @@ int make_rotation(op_rotate_immediate_t *op_rot_imm, word_t value) {
 }
 
 /**
- * TODO: comment this function
+ * TODO: comment this function (DAN)
  *
  * Case 1: <Operand2> := <register>
  * Case 2a: <Operand2> := <register>, <shiftname> <register>
@@ -185,7 +185,7 @@ int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
 }
 
 /**
- * TODO: comment this function
+ * TODO: comment this function (DAN)
  */
 int parse_operand(list_t *tklst, instruction_t *instr, int start) {
   operand_t *op = &instr->i.dp.operand2;
@@ -224,7 +224,7 @@ int parse_operand(list_t *tklst, instruction_t *instr, int start) {
 }
 
 /**
- * TODO: comment this function
+ * TODO: comment this function (DAN)
  *
  * Case 1: <=expression>          {4}
  * Case 2: [Rn]                   {6}

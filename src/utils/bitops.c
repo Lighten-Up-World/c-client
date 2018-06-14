@@ -15,20 +15,20 @@
 /**
  *  Get the bit at a given position, return it as a boolean flag
  *
- *  @param inst: the instruction to get flag from
- *  @param pos: the position of the flag
- *  @return a flag that is true iff the bit at pos is not 0
+ *  @param inst: instruction to get flag from
+ *  @param pos: position of the flag
+ *  @return: flag that is true iff the bit at pos is not 0
  */
 flag_t get_flag(word_t inst, byte_t pos) {
- return (inst & ( 1 << pos )) >> pos;
+  return (inst & (1 << pos)) >> pos;
 }
 
 /**
  *  Get the byte at a given position
  *
- *  @param inst: the instruction to get byte from
- *  @param pos: the start of the byte
- *  @return a byte containing the 8 bits downwards from pos, in inst
+ *  @param inst: instruction to get byte from
+ *  @param pos: start of the byte
+ *  @return: byte containing the 8 bits downwards from pos, in inst
  */
 byte_t get_byte(word_t inst, byte_t pos) {
   assert(pos >= 7);
@@ -38,9 +38,9 @@ byte_t get_byte(word_t inst, byte_t pos) {
 /**
  *  Get the nibble at a given position (left pad by cast to byte_t)
  *
- *  @param inst: the instruction to get nibble from
- *  @param pos: the start of the nibble
- *  @return a byte containing the 4 bits downwards from pos, in inst
+ *  @param inst: instruction to get nibble from
+ *  @param pos: start of the nibble
+ *  @return: byte containing the 4 bits downwards from pos, in inst
  */
 byte_t get_nibble(word_t inst, byte_t pos) {
   assert(pos >= 3);
@@ -51,26 +51,26 @@ byte_t get_nibble(word_t inst, byte_t pos) {
  *  Get the specified interval of bits from an instruction, left padding with zeros
  *  Limits are inclusive.
  *
- *  @param inst: the instruction to get bits from
- *  @param x: the MSb of interval to return
- *  @param y: the LSb of interval to return
- *  @return a word containing the specified bits, right aligned
+ *  @param inst: instruction to get bits from
+ *  @param x: MSb of interval to return
+ *  @param y: LSb of interval to return
+ *  @return: word containing the specified bits, right aligned
  */
 word_t get_bits(word_t inst, byte_t x, byte_t y) {
   assert(x <= 31);
   assert(x >= y);
   assert(y >= 0);
-  assert(!(x==31 && y==0));
+  assert(!(x == 31 && y == 0));
 
-  return (inst >> y) & ~(~(word_t)0 << (x + 1 - y));
+  return (inst >> y) & ~(~(word_t) 0 << (x + 1 - y));
 }
 
 /**
  *  Logical shift left with carry
  *
- *  @param value: the value to shift
- *  @param shift: the amount to shift by
- *  @return a pair containing the shifted value and carry
+ *  @param value: value to shift
+ *  @param shift: amount to shift by
+ *  @return: pair containing the shifted value and carry
  */
 shift_result_t l_shift_left_c(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -88,9 +88,9 @@ shift_result_t l_shift_left_c(word_t value, byte_t shift) {
 /**
  *  Logical shift right with carry
  *
- *  @param value: the value to shift
- *  @param shift: the amount to shift by
- *  @return a pair containing the shifted value and carry
+ *  @param value: value to shift
+ *  @param shift: amount to shift by
+ *  @return: pair containing the shifted value and carry
  */
 shift_result_t l_shift_right_c(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -105,9 +105,9 @@ shift_result_t l_shift_right_c(word_t value, byte_t shift) {
 /**
  *  Arithmetic shift right with carry
  *
- *  @param value: the value to shift
- *  @param shift: the amount to shift by
- *  @return a pair containing the shifted value and carry
+ *  @param value: value to shift
+ *  @param shift: amount to shift by
+ *  @return: pair containing the shifted value and carry
  */
 shift_result_t a_shift_right_c(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -122,9 +122,9 @@ shift_result_t a_shift_right_c(word_t value, byte_t shift) {
 /**
  *  Rotate right
  *
- *  @param value: the value to shift
- *  @param rotate: the amount to rotate by
- *  @return a pair containing the shifted value and carry
+ *  @param value: value to shift
+ *  @param rotate: amount to rotate by
+ *  @return: pair containing the shifted value and carry
  */
 shift_result_t rotate_right_c(word_t value, byte_t rotate) {
   assert(rotate >= 0);
@@ -139,9 +139,9 @@ shift_result_t rotate_right_c(word_t value, byte_t rotate) {
 /**
  *  Logical shift left
  *
- *  @param value: the value to shift
- *  @param shift: the amount to shift by
- *  @return the shifted value
+ *  @param value: value to shift
+ *  @param shift: amount to shift by
+ *  @return: shifted value
  */
 word_t l_shift_left(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -151,9 +151,9 @@ word_t l_shift_left(word_t value, byte_t shift) {
 /**
  *  Logical shift right
  *
- *  @param value: the value to shift
- *  @param shift: the amount to shift by
- *  @return the shifted value
+ *  @param value: value to shift
+ *  @param shift: amount to shift by
+ *  @return: shifted value
  */
 word_t l_shift_right(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -163,9 +163,9 @@ word_t l_shift_right(word_t value, byte_t shift) {
 /**
  *  Arithmetic shift right
  *
- *  @param value: the value to shift
- *  @param shift: the amount to shift by
- *  @return the shifted value
+ *  @param value: value to shift
+ *  @param shift: amount to shift by
+ *  @return: shifted value
  */
 word_t a_shift_right(word_t value, byte_t shift) {
   assert(shift >= 0);
@@ -188,9 +188,9 @@ word_t a_shift_right(word_t value, byte_t shift) {
 /**
  *  Rotate right
  *
- *  @param value: the value to rotate
- *  @param rotate: the amount to rotate by
- *  @return the rotated value
+ *  @param value: value to rotate
+ *  @param rotate: amount to rotate by
+ *  @return: rotated value
  */
 word_t rotate_right(word_t value, byte_t rotate) {
   assert(rotate >= 0);
@@ -208,9 +208,9 @@ word_t rotate_right(word_t value, byte_t rotate) {
 /**
  *  Rotate left
  *
- *  @param value: the value to rotated
- *  @param rotate: the amount to rotate by
- *  @return the rotated value
+ *  @param value: value to rotated
+ *  @param rotate: amount to rotate by
+ *  @return: rotated value
  */
 word_t rotate_left(word_t value, byte_t rotate) {
   assert(rotate >= 0);
@@ -224,30 +224,30 @@ word_t rotate_left(word_t value, byte_t rotate) {
 }
 
 /**
- *  Checks if a 2s complement word is negative
+ *  Check if a 2s complement word is negative
  *
- *  @param word: the value to check the sign of
- *  @returns a flag that is set iff value is negative in 2s complement
+ *  @param word: value to check the sign of
+ *  @return: flag that is set iff value is negative in 2s complement
  */
-flag_t is_negative(word_t word){
+flag_t is_negative(word_t word) {
   return (flag_t) l_shift_right(word, 31);
 }
 
 /**
- *  Negates a 2s complement word
+ *  Negate a 2s complement word
  *
- *  @param word: the value to be negated
- *  @returns the negated word
+ *  @param word: value to be negated
+ *  @return: negated word
  */
-word_t negate(word_t word){
+word_t negate(word_t word) {
   return (~word) + 1;
 }
 
 /**
  *  Pad out a byte value to a word value, with zeros
  *
- *  @param value: the value to zero extend
- *  @return the zero extended value
+ *  @param value: value to zero extend
+ *  @return: zero extended value
  */
 word_t left_pad_zeros(byte_t value) {
   return value;

@@ -20,18 +20,18 @@ typedef struct emulate_state emulate_state_t;
 #include "emulate/execute.h"
 #include "emulate/decode.h"
 
-struct pipeline{
+struct pipeline {
   word_t *fetched;
   instruction_t *decoded;
 };
 
-struct registers{
+struct registers {
   word_t r[NUM_GENERAL_REGISTERS];
   word_t pc;
   word_t cpsr;
 };
 
-struct emulate_state{
+struct emulate_state {
   registers_t registers;
   byte_t memory[MEM_SIZE];
   pipeline_t pipeline;

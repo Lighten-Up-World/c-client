@@ -45,7 +45,6 @@ typedef struct {
 #define FAIL_FORWARD(expr) \
   do {_status = expr; if (_status != EC_OK) goto fail;} while(0)
 
-
 #define MEM_CHECK_C(expr, ret, cleanup) \
   do { \
     if(expr == NULL){ \
@@ -68,6 +67,6 @@ typedef struct {
     return status; \
   }} while(0)
 void ec_strerror(FILE *out, const int status, char *file, int line,
-  const char* func);
+                 const char *func);
 
 #endif

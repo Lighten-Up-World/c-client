@@ -29,7 +29,7 @@ void print_state(emulate_state_t *state);
 
 int write_file(const char *path, byte_t *buffer, int no_bytes);
 int read_file(const char *path, byte_t *buffer, size_t buffer_size);
-int read_char_file(const char *path, char ** buffer);
+int read_char_file(const char *path, char **buffer);
 
 char *num_to_str(int n);
 

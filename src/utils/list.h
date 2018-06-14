@@ -8,10 +8,10 @@
 #define EC_LIST_OK 0
 #define EC_LIST_NULL 1
 
-typedef void * any_t;
+typedef void *any_t;
 
-typedef void (*free_func_t) (any_t value);
-typedef void (*call_func_t) (any_t value, any_t obj);
+typedef void (*free_func_t)(any_t value);
+typedef void (*call_func_t)(any_t value, any_t obj);
 
 typedef struct list_elem {
   struct list_elem *prev;
