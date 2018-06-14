@@ -2,11 +2,14 @@
  *  This file defines the bit ranges for specific bit groups in instructions.
  */
 
-#ifndef ARM11_22_DECODE_H
-#define ARM11_22_DECODE_H
+#ifndef DECODE_H
+#define DECODE_H
 
 #include "../utils/arm.h"
 #include "../utils/instructions.h"
+#include "../utils/bitops.h"
+#include <assert.h>
+#include <stdio.h>
 
 // GENERAL INSTRUCTION DEFINITIONS
 #define COND_START 31

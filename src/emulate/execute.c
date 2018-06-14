@@ -3,15 +3,8 @@
  *  instruction
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "execute.h"
-#include "../utils/bitops.h"
-#include "../utils/register.h"
-#include "../utils/io.h"
-#include "../utils/instructions.h"
-#include "../utils/arm.h"
-#include "decode.h"
+
 
 /**
  *  Check if the condition on the decoded instruction is met using the current

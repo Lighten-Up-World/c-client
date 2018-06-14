@@ -5,12 +5,7 @@
  *  process at the lowest level and work up.
  */
 
-#include "../utils/arm.h"
-#include "../utils/instructions.h"
-#include "../utils/bitops.h"
 #include "decode.h"
-#include <assert.h>
-#include <stdio.h>
 
 /**
  *  Set the value of the operand when I is 0

@@ -1,7 +1,14 @@
 #ifndef EXECUTE_H
 #define EXECUTE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include "../utils/bitops.h"
+#include "../utils/register.h"
+#include "../utils/io.h"
+#include "../utils/instructions.h"
 #include "../utils/arm.h"
+#include "decode.h"
 
 #define OFFSET_BITMASK 0xFF000000
 

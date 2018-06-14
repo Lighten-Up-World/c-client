@@ -2,18 +2,7 @@
  * Initialises the memory and registers and loops through the instructions,
  * executing them until the halt instruction or end of memory is reached.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include "utils/arm.h"
-#include "utils/instructions.h"
 #include "emulate.h"
-
-#include "utils/io.h"
-#include "emulate/execute.h"
-#include "emulate/decode.h"
-#include "utils/register.h"
-
 
 int main(int argc, char **argv) {
   assert(argc > 1);
