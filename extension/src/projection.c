@@ -1,10 +1,4 @@
-#include <math.h>
-
-#define R_MAJOR 6378137.0
-#define R_MINOR 6356752.3142
-#define RATIO (R_MINOR/R_MAJOR)
-#define ECCENT (sqrt(1.0 - (RATIO * RATIO)))
-#define COM (0.5 * ECCENT)
+#include "projection.h"
 
 static double deg_rad (double ang) {
         return ang * (M_PI / 180.0);
@@ -34,13 +28,33 @@ double merc_lon (double x) {
 
 double merc_lat (double y) {
         double ts = exp ( -y / R_MAJOR);
-        double phi = M_PI_2 - 2 * atan(ts);
+        double phi = (M_PI / 2) - 2 * atan(ts);
         double dphi = 1.0;
         int i;
         for (i = 0; fabs(dphi) > 0.000000001 && i < 15; i++) {
                 double con = ECCENT * sin (phi);
-                dphi = M_PI_2 - 2 * atan (ts * pow((1.0 - con) / (1.0 + con), COM)) - phi;
+                dphi = (M_PI / 2) - 2 * atan (ts * pow((1.0 - con) / (1.0 + con), COM)) - phi;
                 phi += dphi;
         }
         return rad_deg (phi);
+}
+
+
+int grid_x(double lon){
+  return (merc_x(lon) + MAX_X) / (2 * (double)MAX_X / (double)GRID_WIDTH);
+}
+
+int grid_y(double lat){
+  printf("%f\n", merc_y(lat));
+  printf("%f\n", merc_y(lat) + MAX_Y);
+  printf("%f\n", MAX_Y / GRID_WIDTH);
+  return (merc_y(lat) + MAX_Y) / (2 * (double)MAX_Y / (double)GRID_HEIGHT);
+}
+
+grid_t geolocation_grid(double latitude, double longitude){
+  return (grid_t){grid_x(longitude), grid_y(latitude)};
+}
+
+geolocation_t grid_geolocation(double x, double y){
+  return (geolocation_t){merc_lat(y * MAX_Y), merc_lon(x * MAX_X), 0};
 }

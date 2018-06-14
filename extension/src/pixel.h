@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "apimanager.h"
 
+#define GRID_WIDTH 52
+#define GRID_HEIGHT 24
 
 typedef uint32_t intensity_t;
 
@@ -24,16 +26,7 @@ typedef struct pixel{
   intensity_t intensity;
 } pixel_t;
 
-typedef struct map{
-  pixel_t *pixels;
-  int size;
-} map_t;
-
 // Node Functions
 pixel_t *pixel_new(grid_t grid, colour_t colour, intensity_t intensity);
-
-// List Construction
-map_t *map_new();
-void map_delete(map_t *self);
 
 #endif

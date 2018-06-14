@@ -5,7 +5,7 @@
 //  Created by User on 13/06/2018.
 //  Copyright © 2018 User. All rights reserved.
 //
-
+#define _GNU_SOURCE
 #include "apimanager.h"
 
 int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *attr){

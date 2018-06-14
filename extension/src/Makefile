@@ -16,7 +16,7 @@ COMPILE=gcc -c
 LINK=gcc
 
 DEBUG = -DDEBUG
-CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
+CFLAGS = -Wall -Werror -pedantic -g -O0 -std=c99 $(DEBUG)
 
 simulation: mkdir control $(PATHB)main.out
 	cd simulation; make
@@ -27,11 +27,11 @@ control:
 run: mkdir $(PATHB)main.out
 	./build/main.out
 
-$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o
-	$(LINK) -o $@ $^
+$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o
+	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
-	$(LINK) -o $@ $^
+	$(LINK) -o $@ $^ -lm
 
 $(PATHOBJ)%.o: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@

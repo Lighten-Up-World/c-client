@@ -21,8 +21,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include "parson/parson.h"
 #include "pixel.h"
+#include "parson/parson.h"
+
 
 //OPEN_WEATHER_MAP
 
@@ -30,7 +31,7 @@
 #define LONGITUDE_START 29
 
 #define WEATHER_HOST "api.openweathermap.org"
-#define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=6ee4372288ed6d49c7dea5ed1f39a118"
+#define WEATHER_PATH "data/2.5/weather?lat=000&lon=000&appid=6ee4372288ed6d49c7dea5ed1f39a118"
 
 //GENERAL
 
@@ -39,11 +40,6 @@ typedef struct geolocation{
     double longitude;
     double value;
 } geolocation_t;
-
-typedef struct location_map{
-    geolocation_t *loc;
-    grid_t *pix;
-}location_map_t;
 
 typedef enum http_request_method{
     GET,
