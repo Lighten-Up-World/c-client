@@ -2,8 +2,8 @@
 #define PIXEL_H
 
 #include <stdint.h>
+#include "apimanager.h"
 
-#include "api.h"
 
 typedef uint32_t intensity_t;
 
@@ -12,6 +12,11 @@ typedef struct colour{
   uint32_t green;
   uint32_t blue;
 } colour_t;
+
+typedef struct grid{
+    int x;
+    int y;
+} grid_t;
 
 typedef struct pixel{
   grid_t      grid;
