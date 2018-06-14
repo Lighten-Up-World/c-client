@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
   u8 count;
   pixel pixels[NUM_PIXELS];
 
+  //TODO: all pixels that appear red are not mapped to by the get_pixel_location function, possible error in layout creation
   // Zero all pixels
   pixel black = {255,0,0};
   for (int p = 0; p < NUM_PIXELS; p++) {
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
     for (uint8_t x = 0; x < MAX_X; x++) {
       for (uint8_t y = 0; y < MAX_Y; y++) {
         // Get pixel at x, y
-        pixel p = {0,255,255};
+        pixel p = {255,255,255};
 
         // Translate x, y into layout json position
         pos = get_pixel_location(x, y, CONFIG_FILE);
