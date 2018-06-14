@@ -9,28 +9,26 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "apimanager.h"
+#include "api/weather_api.h"
 #include "projection.h"
 
 int main(int argc, const char * argv[]) {
 
-  //Placeholder main.
+  api_manager_t *api_manager = api_manager_new();
 
+  temp_construct(api_manager);
 
-  char *attr = "temp";
-  geolocation_t locs[100];
-  printf("MAX X: %f, MAX Y: %f\n", merc_x(180), merc_y(90));
-  printf("MIN X: %f, MIN Y: %f\n", merc_x(-180), merc_y(-90));
-  for (int j = 0; j < 100; j++) {
-    sleep(1);
-    locs[j] = (geolocation_t) {.latitude = -90, .longitude = -180, .value = 0};
-
-    if (get_value_for_geolocation(locs+j,WEATHER_HOST, WEATHER_PATH, attr) < 0) {
-      continue;
+  pixel_t pixels[100];
+  for (int i = 0; i < 100 ; ++i) {
+    geolocation_t geoloc = {.longitude = rand() % 10, .latitude = rand() % 12};
+    if(temp_get_pixel_for_xy(api_manager, &pixels[i],&geoloc) < 0){
+      printf("Failed");
     }
-    printf("Latitude: %f, Longitude: %f, Value: %f \n", locs[j].latitude, locs[j].longitude, locs[j].value);
-    grid_t gref = geolocation_grid(locs[j].longitude, locs[j].latitude);
-    printf("X: %d, Y: %d\n", gref.x,  gref.y);
+    printf("x: %d, y: %d, r: %d, g: %d, b: %d \n", pixels[i].grid.x, pixels[i].grid.y, pixels[i].colour.red, pixels[i].colour.green, pixels[i].colour.blue);
   }
+
+  temp_destruct(api_manager);
+  api_manager_delete(api_manager);
 
   return 0;
 }
