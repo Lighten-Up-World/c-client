@@ -11,7 +11,7 @@
 //Forward Definitions
 typedef struct pipeline pipeline_t;
 typedef struct registers registers_t;
-typedef struct state state_t;
+typedef struct emulate_state emulate_state_t;
 
 #include "utils/io.h"
 #include "utils/register.h"
@@ -30,11 +30,9 @@ struct registers{
   word_t cpsr;
 };
 
-struct state{
+struct emulate_state{
   registers_t registers;
   byte_t memory[MEM_SIZE];
   pipeline_t pipeline;
 };
-
-int main(int argc, char **argv);
 #endif

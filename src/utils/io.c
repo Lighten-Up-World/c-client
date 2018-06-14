@@ -1,15 +1,8 @@
 /*
 *  Contains IO related operations, operating on either the ARM machine state or local disk.
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include "../assemble.h"
 #include "io.h"
-#include "bitops.h"
-#include "register.h"
-#include "arm.h"
-#include "error.h"
+
 /**
  * Determine whether an address is a gpio key memory location
  *
@@ -91,7 +84,7 @@ int get_word(byte_t *buff, word_t byteAddr, word_t *word) {
  *  @param dest: a non-null pointer to destination of loaded word
  *  @return an int indicating success or failure
  */
-int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
+int get_mem_word(emulate_state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
   if (check_address_valid(byteAddr)) {
     return 1;
@@ -115,7 +108,7 @@ int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
  * @param dest: a non-null pointer to destination of loaded word
  * @return an int indicating success or failure
  */
-int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
+int get_mem_word_big_end(emulate_state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
   word_t word = 0;
   if (check_address_valid(byteAddr)) {
@@ -159,7 +152,7 @@ int set_word(byte_t *buff, word_t byteAddr, word_t word){
  *  @param word: the word to write into memory
  *  @return: return 0 iff success
  */
-int set_mem_word(state_t *state, word_t byteAddr, word_t word) {
+int set_mem_word(emulate_state_t *state, word_t byteAddr, word_t word) {
   assert(state != NULL);
   if (check_address_valid(byteAddr)) { return EC_INVALID_PARAM; }
   return set_word(state->memory, byteAddr, word);
@@ -172,7 +165,7 @@ int set_mem_word(state_t *state, word_t byteAddr, word_t word) {
  *  @param reg: the address of the register to print
  *  @return void
  */
-void print_reg(state_t *state, reg_address_t reg) {
+void print_reg(emulate_state_t *state, reg_address_t reg) {
   assert(reg >= 0 && reg < REG_N);
   assert(state != NULL);
   if (reg == REG_N_LR || reg == REG_N_SP) {
@@ -196,7 +189,7 @@ void print_reg(state_t *state, reg_address_t reg) {
  *  @param state: a non-null pointer to the machine state
  *  @return void
  */
-void print_mem(state_t *state) {
+void print_mem(emulate_state_t *state) {
   assert(state != NULL);
   word_t memWord;
 
@@ -215,7 +208,7 @@ void print_mem(state_t *state) {
  *  @param state - a pointer to the state of the ARM machine
  *  @return void
  */
-void print_state(state_t *state) {
+void print_state(emulate_state_t *state) {
   assert(state != NULL);
 
   printf("Registers:\n");

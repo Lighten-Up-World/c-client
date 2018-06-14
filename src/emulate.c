@@ -7,7 +7,7 @@
 int main(int argc, char **argv) {
   assert(argc > 1);
 
-  state_t *state = calloc(1, sizeof(state_t));
+  emulate_state_t *state = calloc(1, sizeof(emulate_state_t));
   assert(state != NULL);
   state->pipeline.decoded = calloc(1, sizeof(instruction_t));
   assert(state->pipeline.decoded != NULL);

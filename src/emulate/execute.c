@@ -14,7 +14,7 @@
  *  @param cond: The condition extracted from the instructionn
  *  @return 1 when condition is met, 0 if not.
  */
-int condition(state_t *state, byte_t cond) {
+int condition(emulate_state_t *state, byte_t cond) {
   byte_t flags = get_flags(state);
   switch (cond) {
     case EQ:
@@ -42,12 +42,12 @@ int condition(state_t *state, byte_t cond) {
  *  Evaluates the value of shifted reg and stores result.
  *  Called from evaluateOperand or from evaluateOffset
  *
- *  @param - state_t *state is pointer to state of program
+ *  @param - emulate_state_t *state is pointer to state of program
  *  @param - operand_t op operand/offset from evaluateOperand or evaluateOffset
  *  @param - shift_result_t *result is the pointer to the result,
  *           so that changes can be made directly to it.
  */
-void evaluate_shifted_reg(state_t *state, operand_t op, shift_result_t *result) {
+void evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *result) {
   word_t rm = get_register(state, op.reg.rm);
   byte_t shiftAmount = 0;
      if (op.reg.shiftBy) { //Shift by register
@@ -77,12 +77,12 @@ void evaluate_shifted_reg(state_t *state, operand_t op, shift_result_t *result) 
 /**
  * Evaluates the operand and returns the result
  *
- * @param - state_t *state is pointer to the program_state state
+ * @param - emulate_state_t *state is pointer to the program_state state
  * @param - flag_t I is the flag that determines the meaning of operand
  * @param - operand_t op is the operand being evaluated
  * @return - the result of evaluating the operand
  */
-shift_result_t evaluate_operand(state_t *state, flag_t I, operand_t op){
+shift_result_t evaluate_operand(emulate_state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if (I) {
 
@@ -99,12 +99,12 @@ shift_result_t evaluate_operand(state_t *state, flag_t I, operand_t op){
 /**
  * Evaluates the offset and returns the result from
  *
- * @param - state_t *state is pointer to the program_state state
+ * @param - emulate_state_t *state is pointer to the program_state state
  * @param - flag_t I is the flag that determines the meaning of offset
  * @param - operand_t op is the offset being evaluated
  * @return - the result of evaluating the offset
  */
-shift_result_t evaluate_offset(state_t *state, flag_t I, operand_t op){
+shift_result_t evaluate_offset(emulate_state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if (I) {
     evaluate_shifted_reg(state, op, &result);
@@ -121,7 +121,7 @@ shift_result_t evaluate_offset(state_t *state, flag_t I, operand_t op){
  *  @param state: pointer to the program_state state
  *  @param instr: the instruction to execute
  */
-int execute(state_t *state) {
+int execute(emulate_state_t *state) {
   instruction_t *decoded = state->pipeline.decoded;
   if (decoded->type == HAL) {
     return execute_halt(state);
@@ -152,7 +152,7 @@ int execute(state_t *state) {
  *  @param state: pointer to the program_state state
  *  @param instr: the DP instruction to execute
  */
-int execute_dp(state_t *state, dp_instruction_t instr) {
+int execute_dp(emulate_state_t *state, dp_instruction_t instr) {
   shift_result_t barrel = evaluate_operand(state, instr.I, instr.operand2);
         word_t op2 = barrel.value;
   word_t result = 0;
@@ -221,7 +221,7 @@ int execute_dp(state_t *state, dp_instruction_t instr) {
  *  @param state: pointer to the program_state state
  *  @param instr: the MUL instruction to execute
  */
-int execute_mul(state_t *state, mul_instruction_t instr) {
+int execute_mul(emulate_state_t *state, mul_instruction_t instr) {
   // Cast the operands to 64 bit since this is the max result of A * B
   // where A, B are 32 bit
   uint64_t Rm = get_register(state, instr.rm);
@@ -268,7 +268,7 @@ int execute_mul(state_t *state, mul_instruction_t instr) {
  *  @param state: pointer to the program_state state
  *  @param instr: the BRN instruction to execute
  */
-int execute_brn(state_t *state, brn_instruction_t instr) {
+int execute_brn(emulate_state_t *state, brn_instruction_t instr) {
   word_t pc = get_pc(state);
 
   //Shift offset left by 2 bits
@@ -295,7 +295,7 @@ int execute_brn(state_t *state, brn_instruction_t instr) {
  *  @param state: pointer to the program_state state
  *  @param instr: the SDT instruction to execute
  */
-int execute_sdt(state_t *state, sdt_instruction_t instr) {
+int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
   shift_result_t barrel = evaluate_offset(state, instr.I, instr.offset);
   word_t offset = barrel.value;
   word_t rn = get_register(state, instr.rn);
@@ -350,7 +350,7 @@ int execute_sdt(state_t *state, sdt_instruction_t instr) {
  *  @param state: pointer to the program_state state
  *  @param instr: the halt instruction to execute
  */
-int execute_halt(state_t *state) {
+int execute_halt(emulate_state_t *state) {
   print_state(state);
   return 0;
 }
