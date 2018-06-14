@@ -26,6 +26,6 @@ with open('WorldMap.csv', 'rb') as csvfile:
         y+=1
     with open('WorldMap.json', 'w') as out:
          out.write('[\n' + ',\n'.join(pixels) + '\n]')
-    with open('CoordInteger.txt', 'w') as ci:
+    with open('CoordsToListPos.txt', 'w') as ci:
         ci.write('\n'.join(mappings))
     print('Written: ' + str(count) + ' pixels')

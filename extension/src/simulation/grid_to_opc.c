@@ -1,8 +1,8 @@
 #include <stdlib.h>
-#include "utils/error.h"
+#include "../../../src/utils/error.h"
 #include <string.h>
 #include "grid_to_opc.h"
-#include "utils/io.h"
+#include "../../../src/utils/io.h"
 
 /**
  * Get the number of lines in a file
@@ -17,7 +17,7 @@ int get_num_lines(const char *path) {
     exit(EC_SYS);
   }
 
-  size_t line_size = 100 * sizeof(char); //shouldn't be larger than this, should calculate and move to global constant
+  size_t line_size = 100 * sizeof(char); //TODO: shouldn't be larger than this, should calculate and move to global constant
   char *buffer = malloc(line_size);
   int line = 0;
   while (fgets(buffer, (int) line_size, file) != NULL) {
