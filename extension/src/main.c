@@ -32,7 +32,7 @@ int main(int argc, const char * argv[]) {
     if (get_value_for_geolocation(locs+j,hostName, pathName, attr) < 0) {
       continue;
     }
-    printf("Latitude: %d, Longitude: %d, Value: %d \n", locs[j].latitude, locs[j].longitude, locs[j].value);
+    printf("Latitude: %d, Longitude: %d, Value: %f \n", locs[j].latitude, locs[j].longitude, locs[j].value);
     strncpy(pathName + LATITUDE_START, "000", 3);
     strncpy(pathName + LONGITUDE_START, "000", 3);
   }
