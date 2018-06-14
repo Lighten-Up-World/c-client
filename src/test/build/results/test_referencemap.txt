@@ -1,0 +1,23 @@
+Put ver 2 0
+Put ver 3 0
+Put ver 4 0
+Label: application version 5
+Size of Bucket 5: 1
+Label 0 of Bucket 5: application version
+Count of Label 0 of Bucket 5: 3
+Reference 0 of Label 0 of Bucket 5: 0002
+(application name, 0x00000001) 
+(application version, 0x00000002) 
+(application version, 0x00000003) 
+(application version, 0x00000004) 
+Size of application version: 3
+Res 0KEY: application version Not found
+KEY: application version
+	 Value: 2
+	 Value: 3
+	 Value: 4
+test_referencemap.c:4:test_referencemap:PASS
+
+-----------------------
+1 Tests 0 Failures 0 Ignored 
+OK

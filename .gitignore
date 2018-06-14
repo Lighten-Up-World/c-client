@@ -38,7 +38,7 @@ src/out
 *.class
 
 #Ignore test outputs
-src/test/build/*
+src/unit_tests/build/*
 
 #ignore other junk files
 *.backup

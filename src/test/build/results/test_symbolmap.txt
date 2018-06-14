@@ -1,0 +1,9 @@
+(application name, 1) 
+(application version, 2) 
+KEY: application name Not found
+KEY: application name, Value: 1
+test_symbolmap.c:11:test_symbolmap:PASS
+
+-----------------------
+1 Tests 0 Failures 0 Ignored 
+OK
