@@ -24,14 +24,14 @@ typedef struct geolocation{
     int value;
 } geolocation_t;
 
-typedef struct pixel{
+typedef struct grid{
     int x;
     int y;
-}pixel_t;
+} grid_t;
 
 typedef struct location_map{
     geolocation_t *loc;
-    pixel_t *pix;
+    grid_t *pix;
 }location_map_t;
 
 #endif /* api_h */
