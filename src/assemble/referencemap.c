@@ -5,21 +5,21 @@
 #include "../utils/error.h"
 
 // Based on djb2 by Dan Bernstein
-unsigned long rmap_hash(const label_t label){
+unsigned long rmap_hash(const label_t label) {
   unsigned long rmap_hash = 5381;
   for (size_t i = 0; i < strlen(label); i++) {
     rmap_hash = ((rmap_hash << 5) + rmap_hash) + label[i];
   }
-	return rmap_hash;
+  return rmap_hash;
 }
 
 /**
-* Gets an entry in the map from a particular bucket
-*
-* @param label : String representation of the label
-* @param bucket : Pointer to bucket structure containing symbols in bucket
-* @returns The corresponding entry for that label in that bucket.
-*/
+ * Get an entry in the map from a particular bucket
+ *
+ * @param label: string representation of the label
+ * @param bucket: pointer to bucket structure containing symbols in bucket
+ * @return: corresponding entry for that label in that bucket
+ */
 static entry_t *get_entry(rbucket_t *bucket, const label_t label) {
   size_t n = bucket->count;
   if (n == 0) {
@@ -38,11 +38,11 @@ static entry_t *get_entry(rbucket_t *bucket, const label_t label) {
 }
 
 /**
-* Allocates memory for reference map and sets capacity
-*
-* @param capacity : Max capacity of the map
-* @returns A pointer to the new rmap
-*/
+ * Allocate memory for reference map and set capacity
+ *
+ * @param capacity: max capacity of the map
+ * @return: pointer to the new rmap
+ */
 reference_map_t *rmap_new(size_t capacity) {
   reference_map_t *map;
   map = calloc(1, sizeof(reference_map_t));
@@ -60,11 +60,11 @@ reference_map_t *rmap_new(size_t capacity) {
 }
 
 /**
-* Frees up the memory allocated for the map
-*
-* @param map : Pointer to the map
-* @returns An error code (see error.h)
-*/
+ * Free up the memory allocated for the map
+ *
+ * @param map: pointer to the map
+ * @return: error code (see error.h)
+ */
 int rmap_delete(reference_map_t *map) {
   if (map == NULL) {
     return EC_NULL_POINTER;
@@ -86,15 +86,15 @@ int rmap_delete(reference_map_t *map) {
 }
 
 /**
-* Gets the list of reference addresses and stores it in the given pointer
-*
-* @param map : Pointer to the the symbol map object
-* @param label : The label object to compare against
-* @param out : The preallocated space for the addresses to be placed
-* @param out_size : The number of references to copy.
-* @returns An error code (see error.h)
-*          or the number of references if out_size < reference count
-*/
+ * Get the list of reference addresses and store it in the given pointer
+ *
+ * @param map: pointer to the the symbol map object
+ * @param label: label object to compare against
+ * @param out: preallocated space for the addresses to be placed
+ * @param out_size: number of references to copy.
+ * @return: error code (see error.h)
+ *          or the number of references if out_size < reference count
+ */
 int rmap_get_references(const reference_map_t *map, const label_t label,
                         address_t *out, size_t out_size) {
   if (map == NULL) {
@@ -120,13 +120,13 @@ int rmap_get_references(const reference_map_t *map, const label_t label,
 }
 
 /**
-* Checks if an address exists in the given map or not
-*
-* @param address : Block of addresses
-* @param count : Size of teh address block
-* @param key : the address to look for in the block the addresses
-* @returns 1 iff address exists in map
-*/
+ * Checks if an address exists in the given map or not
+ *
+ * @param address: block of addresses
+ * @param count: size of teh address block
+ * @param key: address to look for in the block the addresses
+ * @return: 1 iff address exists in map
+ */
 int rmap_address_exists(address_t *address, size_t count, address_t key) {
   if (address == NULL) {
     return 0;
@@ -140,12 +140,12 @@ int rmap_address_exists(address_t *address, size_t count, address_t key) {
 }
 
 /**
-* Checks if an address exists in the given map or not
-*
-* @param map : Pointer to the the symbol map object
-* @param label : The label object to compare against
-* @returns 1 iff label exists in map
-*/
+ * Check if an address exists in the given map or not
+ *
+ * @param map: pointer to the the symbol map object
+ * @param label: label object to compare against
+ * @return: 1 iff label exists in map
+ */
 int rmap_exists(const reference_map_t *map, const label_t label) {
   if (map == NULL) {
     return 0;
@@ -163,14 +163,16 @@ int rmap_exists(const reference_map_t *map, const label_t label) {
 }
 
 /**
-* Puts a address into the map under the given label
-*
-* @param map : Pointer to the the symbol map object
-* @param label : The label under which to place the address
-* @param address : The address to enter into the map
-* @returns An error code (see error.h)
-*/
-int rmap_put(const reference_map_t *map, const label_t label, const address_t new_address) {
+ * Put an address into the map under the given label
+ *
+ * @param map: pointer to the the symbol map object
+ * @param label: label under which to place the address
+ * @param address: address to enter into the map
+ * @return: error code (see error.h)
+ */
+int rmap_put(const reference_map_t *map,
+             const label_t label,
+             const address_t new_address) {
   if (map == NULL || label == NULL) {
     return EC_INVALID_PARAM;
   }
@@ -185,7 +187,8 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
     address_t *address = entry->references.address;
 
     // If this label/address pair is already in the map return error code
-    if (rmap_address_exists(address, entry->references.count, new_address) == 1) {
+    if (rmap_address_exists(address, entry->references.count, new_address)
+        == 1) {
       return -1;
     }
 
@@ -200,7 +203,7 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
     entry->references.count++;
     return EC_OK;
 
-  // There is no entry for the label in the bucket it belongs
+    // There is no entry for the label in the bucket it belongs
   } else {
     int label_len = strlen(label) + 1;
     label_t new_label = malloc(label_len);
@@ -216,9 +219,10 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
         return EC_NULL_POINTER;
       }
 
-    // There are already entries in the bucket, increase size to store 1 more
+      // There are already entries in the bucket, increase size to store 1 more
     } else {
-      bucket->entries = realloc(bucket->entries, (bucket->count + 1) * sizeof(entry_t));
+      bucket->entries =
+          realloc(bucket->entries, (bucket->count + 1) * sizeof(entry_t));
       if (bucket->entries == NULL) {
         free(new_label);
         return EC_NULL_POINTER;
@@ -251,14 +255,14 @@ int rmap_put(const reference_map_t *map, const label_t label, const address_t ne
 
 
 /**
-* Enumerates through each label-address combination and applies the map function
-* to the entry with the object for return/side-effects.
-*
-* @param map : Pointer to the the symbol map object
-* @param func : A void function that take a label, address and object params
-* @param obj : The object to pass around to each func. Can be null.
-* @returns An error code (see error.h)
-*/
+ * Enumerate through each label-address combination and apply the map function
+ * to the entry with the object for return/side-effects.
+ *
+ * @param map: pointer to the the symbol map object
+ * @param func: void function that takes a label, address and object params
+ * @param obj: object to pass around to each func. Can be null.
+ * @return: error code (see error.h)
+ */
 int rmap_enum(reference_map_t *map, map_func_t func, const void *obj) {
   if (map == NULL) {
     return EC_INVALID_PARAM;
@@ -283,11 +287,11 @@ int rmap_enum(reference_map_t *map, map_func_t func, const void *obj) {
 }
 
 /**
-* Applies the smap_count_func to each entry to get a total count of entries
-*
-* @param map : Pointer to the the symbol map object
-* @returns An integer for the total count of the map objects
-*/
+ * Apply the smap_count_func to each entry to get a total count of entries
+ *
+ * @param map: pointer to the the symbol map object
+ * @return: integer for the total count of the map objects
+ */
 int rmap_get_count(reference_map_t *map) {
   size_t count = 0;
   if (map == NULL) {
@@ -306,10 +310,11 @@ int rmap_get_count(reference_map_t *map) {
 }
 
 
-void rmap_print_entry(const label_t label, const address_t val, const void *obj) {
+void rmap_print_entry(const label_t label, const address_t val,
+                      const void *obj) {
   printf("(%s, 0x%08x) \n", label, val);
 }
 
-void rmap_print(reference_map_t *map){
+void rmap_print(reference_map_t *map) {
   rmap_enum(map, &rmap_print_entry, NULL);
 }
