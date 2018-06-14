@@ -5,6 +5,7 @@ with open('WorldMap.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile)
     width = 52
     height = 24
+    total_pixels = 472
     x_offset = -width / 2
     y = 0
     count = 0
@@ -20,7 +21,7 @@ with open('WorldMap.csv', 'rb') as csvfile:
             count+=1
             pixels.append('  {"point": [%.2f, %.2f, %.2f]}' %
                          (x*spacing, 0, y*spacing))
-            mappings.append('%d %d %d' % (x + width , height-y, count))
+            mappings.append('%d %d %d' % (x + width , height-y, total_pixels - count))
 
         y+=1
     with open('WorldMap.json', 'w') as out:

@@ -21,7 +21,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include "jsmn/jsmn.h"
+#include "pixel.h"
+#include "parson/parson.h"
+
 
 //OPEN_WEATHER_MAP
 
@@ -34,15 +36,9 @@
 //GENERAL
 
 typedef struct geolocation{
-    int latitude;
-    int longitude;
-    int value;
+    double latitude;
+    double longitude;
 } geolocation_t;
-
-typedef struct location_map{
-    geolocation_t *loc;
-    grid_t *pix;
-}location_map_t;
 
 typedef enum http_request_method{
     GET,
@@ -58,7 +54,7 @@ typedef struct http_request{
 
 int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *attr);
 
-int get_int_from_json(char *buf, char *name, int *val);
+int get_double_from_json(char *buf, char *name, double *val);
 
 int send_get_request(int sock, http_request_t request, char *buf, size_t buf_size);
 

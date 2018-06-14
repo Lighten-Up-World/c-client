@@ -3,7 +3,7 @@
 .PHONY: mkdir
 
 PATHS = ./
-PATHJSMN = jsmn/
+PATHJSON = parson/
 PATHB = build/
 PATHOBJ = build/objs/
 
@@ -16,21 +16,27 @@ COMPILE=gcc -c
 LINK=gcc
 
 DEBUG = -DDEBUG
-CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
+CFLAGS = -Wall -Werror -pedantic -g -O0 -std=c99 $(DEBUG)
+
+simulation: mkdir control $(PATHB)main.out
+	cd simulation; make
+
+control:
+	cd ../../openpixelcontrol; make
 
 run: mkdir $(PATHB)main.out
 	./build/main.out
 
-$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)jsmn.o
-	$(LINK) -o $@ $^
+$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o
+	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
-	$(LINK) -o $@ $^
+	$(LINK) -o $@ $^ -lm
 
 $(PATHOBJ)%.o: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(PATHOBJ)%.o: $(PATHJSMN)%.c $(PATHJSMN)%.h
+$(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)

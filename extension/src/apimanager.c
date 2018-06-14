@@ -5,7 +5,7 @@
 //  Created by User on 13/06/2018.
 //  Copyright © 2018 User. All rights reserved.
 //
-
+#define _GNU_SOURCE
 #include "apimanager.h"
 
 int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *attr){
@@ -17,9 +17,9 @@ int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *
   int sockfd = socket_connect(host, 80);
   http_request_t request;
   request.host = host;
-  request.path = path;
   request.method = GET;
 
+  /*
   char *lon = calloc(4, sizeof(char));
   snprintf(lon, 4, "%d",loc->longitude);
   char *lat = calloc(4, sizeof(char));
@@ -30,12 +30,14 @@ int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *
 
   free(lat);
   free(lon);
+   */
+
+  asprintf(&(request.path),path, loc->latitude, loc->longitude);
 
   char buff[500];
   send_get_request(sockfd, request, buff, sizeof(buff));
 
-
-  return get_int_from_tokens(buff, attr, &(loc->value));
+  return get_double_from_json(buff, attr, &(loc->value));
 }
 
 int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_size){
@@ -44,6 +46,7 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   char req[300];
   size_t byte_count;
   snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\nConnection:keep-alive\r\n",request.path, request.host);
+  //printf("%s \n", req);
   if (send(sockfd,req,sizeof(req),0) < 0) {
     return -1;
   }
@@ -51,47 +54,21 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   return byte_count;
 }
 
-int get_int_from_json(char *buf, char *name, int *val){
+int get_double_from_json(char *buf, char *name, double *val){
   assert(buf != NULL);
   assert(name != NULL);
   assert(val != NULL);
+  JSON_Value *root_value;
+  root_value = json_parse_string(buf);
 
-  jsmn_parser parser;
-  jsmn_init(&parser);
-
-  jsmntok_t tokens[256];
-
-  int num_of_tokens;
-  num_of_tokens = jsmn_parse(&parser, buf, strlen(buf), tokens, 256);
-
-  if (num_of_tokens < 0) {
-    printf("%d \n",num_of_tokens);
-    //perror("jsmn_parse failed");
+  if (json_value_get_type(root_value) != JSONObject) {
+    printf("Not a json object \n");
     return -1;
   }
-
-  int i = 0;
-  char key[50];
-  char value[10];
-  while (i+1 < num_of_tokens) {
-    switch (tokens[i].type) {
-      case JSMN_UNDEFINED:
-        printf("Undefined");
-        break;
-      case JSMN_STRING:
-        snprintf(key, sizeof(key), "%.*s", tokens[i].end - tokens[i].start, buf+tokens[i].start);
-        if (!strncmp(key, name, strlen(name))) {
-          snprintf(value, sizeof(value),"%.*s",tokens[i+1].end - tokens[i+1].start, buf+tokens[i+1].start);
-          *val = atoi(value);
-          return 0;
-        }
-        break;
-      default:
-        break;
-    }
-    i++;
-  }
-  return -1;
+  JSON_Object *obj;
+  obj = json_object_get_object(json_object(root_value), "main");
+  *val = json_object_get_number (obj, name);
+  return -(*val == 0);
 }
 
 int socket_connect(const char *host, in_port_t port){
