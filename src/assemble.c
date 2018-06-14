@@ -13,14 +13,14 @@
 /**
  * Allocate memory for the input stored in the program
  *
- * @param lines : number of lines of the input file
- * @param lineLength : length of input file lines
- * @return : pointer to the array containing input, with memory allocated but
- * not initialised.
+ * @param lines: number of lines of the input file
+ * @param lineLength: length of input file lines
+ * @return: pointer to the array containing input, with memory allocated but
+ * not initialised
  */
 char **allocate_input(int lines, int lineLength) {
   char **in = malloc(lines * sizeof(char *));
-  if(in == NULL){
+  if (in == NULL) {
     return NULL;
   }
   in[0] = calloc(lines * lineLength, sizeof(char));
@@ -39,14 +39,14 @@ char **allocate_input(int lines, int lineLength) {
 /**
  * Free program_state memory
  *
- * @param program_state : desired program_state to remove from memory.
- * @return : free will always succeed so returns EC_OK.
+ * @param program_state: desired program_state to remove from memory
+ * @return: free will always succeed so returns EC_OK
  */
 int program_delete(assemble_state_t *program) {
-  if(program){
+  if (program) {
     free(program->out);
     // free input characters
-    if(program->in){
+    if (program->in) {
       free(program->in[0]);
     }
     free(program->in);
@@ -63,9 +63,9 @@ int program_delete(assemble_state_t *program) {
 }
 
 /**
- * Allocate memory for the program.
+ * Allocate memory for the program
  *
- * @return : pointer to an uninitialised program.
+ * @return: pointer to an uninitialised program
  */
 assemble_state_t *program_new(void) {
   assemble_state_t *program;
@@ -87,7 +87,7 @@ assemble_state_t *program_new(void) {
     return NULL;
   }
   program->additional_words = list_new(&free);
-  if(program->additional_words == NULL){
+  if (program->additional_words == NULL) {
     program_delete(program);
     return NULL;
   }
@@ -113,58 +113,41 @@ assemble_state_t *program_new(void) {
   return program;
 }
 
-
 /**
- * Print out the string representation of the program
+ * Write the binary stored in the program struct to a file
  *
- * @param out : Current binary stored in memory
- * @param lines : Number of lines to print
+ * @param path: path to the binary file to write out to
+ * @param program: pointer to the program state
+ * @return: integer error code to represent success or failure
  */
-void print_bin_instr(byte_t *out, int lines) {
-  int grouping = 2;
-  int per_row = 8;
-
-  int wordAddr;
-  for (wordAddr = 0; wordAddr < lines; wordAddr += 1) {
-    printf("%x", out[wordAddr]);
-    if ((wordAddr + 1) % grouping == 0) {
-      printf(" ");
-    }
-    if ((wordAddr + 1) % per_row == 0) {
-      printf("\n");
-    }
-  }
-  if ((wordAddr + 1) % 4 != 0) {
-    printf("\n");
-  }
-}
-
-int write_program(char *path, assemble_state_t *program){
+int write_program(char *path, assemble_state_t *program) {
   int no_bytes = program->mPC + program->additional_words->len * 4;
   program->out = realloc(program->out, sizeof(byte_t) * no_bytes);
-  if(program->out == NULL){
-      return EC_NULL_POINTER;
+  if (program->out == NULL) {
+    return EC_NULL_POINTER;
   }
 
-  DEBUG_PRINT("Got %d additional words\n", program->additional_words->len );
   for (int i = 0; i < program->additional_words->len; i++) {
     wordref_t *wordref = list_get(program->additional_words, i);
     word_t offset = (program->mPC + i * 4 - wordref->ref - 8) | 0xFFFFF000;
-    DEBUG_PRINT("offset calculated was: %08x\n", offset);
     word_t referenced_word;
     get_word(program->out, wordref->ref, &referenced_word);
-    DEBUG_PRINT("Referenced Word was: %08x\n", referenced_word);
     referenced_word &= offset;
     set_word(program->out, wordref->ref, referenced_word);
 
     set_word(program->out, i * 4 + program->mPC, wordref->word);
   }
-  write_file(path, program->out, no_bytes);
 
-  return EC_OK;
+  return write_file(path, program->out, no_bytes);
 }
 
-// main assembly loop.
+/**
+ * Main Assembler Loop
+ *
+ * Takes as arguments the .s file to assemble and the path name of the .bin
+ * file to write out to.
+ *
+ */
 int main(int argc, char **argv) {
   int _status = EC_OK;
   assert(argc > 2);
@@ -174,7 +157,6 @@ int main(int argc, char **argv) {
   if (program == NULL) {
     return EC_NULL_POINTER; // unable to allocate space for program.
   }
-  DEBUG_PRINT("Starting read of file @%s\n", argv[1]);
   program->lines = read_char_file(argv[1], program->in);
 
   // set up variables for assembler
@@ -183,25 +165,23 @@ int main(int argc, char **argv) {
 
   //convert each line to binary
   for (int i = 0; i < program->lines; i++) {
-    DEBUG_PRINT("\n======== LINE %u ======\n", i);
     _status = tokenize(program->in[i], &program->tklst);
-    if(_status == EC_SKIP){
+    if (_status == EC_SKIP) {
       _status = EC_OK;
       continue;
     }
-    CHECK_STATUS_CLEANUP(_status, program_delete(program));
+    CHECK_STATUS(_status, program_delete(program));
 
     _status = parse(program, &instr);
     if (_status == EC_SKIP) {
       _status = EC_OK;
       continue;
     }
-    CHECK_STATUS_CLEANUP(_status, program_delete(program));
+    CHECK_STATUS(_status, program_delete(program));
 
     _status = encode(&instr, &word);
-    CHECK_STATUS_CLEANUP(_status, program_delete(program));
+    CHECK_STATUS(_status, program_delete(program));
 
-    DEBUG_PRINT("Word is: %08x\n", word);
     set_word(program->out, program->mPC, word);
     program->mPC += 4;
   }

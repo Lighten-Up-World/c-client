@@ -44,12 +44,7 @@ typedef struct {
   do {if (pred) {_status = EC_FROM_SYS_ERROR(errno); goto fail;}} while(0)
 #define FAIL_FORWARD(expr) \
   do {_status = expr; if (_status != EC_OK) goto fail;} while(0)
-#define CHECK_STATUS(status) \
-  do {if(status != EC_OK){ \
-    ec_strerror(stderr, status, __FILE__, __LINE__, __func__); \
-    return status; \
-  }} while(0)
-#define CHECK_STATUS_CLEANUP(status, cleanup) \
+#define CHECK_STATUS(status, cleanup) \
   do {if(status != EC_OK){ \
     ec_strerror(stderr, status, __FILE__, __LINE__, __func__); \
     cleanup; \

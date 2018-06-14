@@ -243,10 +243,8 @@ operand_t decode_offset(flag_t I, word_t word) {
  */
   instruction_t decode_word(word_t word) {
     instruction_t instruction;
-    DEBUG_PRINT("\nWord: %08x\n", word);
-    instruction.cond = get_nibble(word, COND_START);
-    DEBUG_PRINT("Word: %01x\n", instruction.cond);
-    decode_instruction_type(&instruction, word);
+         instruction.cond = get_nibble(word, COND_START);
+         decode_instruction_type(&instruction, word);
 
     return instruction;
   }

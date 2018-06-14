@@ -165,14 +165,12 @@ void token_list_print(list_t *tklst){
 
 int tokenize(char *line, list_t **tkns){
   assert(tkns != NULL);
-  DEBUG_PRINT("Tokenize started on line: %s", line);
-  char **token_strs = NULL;
+     char **token_strs = NULL;
 
   line[strcspn(line, "\r\n")] = 0; //Ends new line
 
   int n = str_separate(line, "[],:", ' ', &token_strs);
-  DEBUG_PRINT("Number of tokens:%d\n", n);
-  if(n==0){
+     if(n==0){
     return EC_SKIP;
   }
   if(*tkns != NULL){

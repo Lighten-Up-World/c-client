@@ -6,38 +6,38 @@
 #include "../utils/bitops.h"
 #include "../utils/register.h"
 #include "encode.h"
-/**
- * encode shifted register for DP or SDT instruction
- *
- * @param instr
- * @param word
- * @return
- */
 
-int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
+/**
+ * Encode shifted register for DP or SDT instruction
+ *
+ * @param opShiftReg: shifted register operand containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
+ */
+int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w) {
   assert(w != NULL);
-  DEBUG_PRINT("ENCODE_SHIFTED_REG, word current is: %08x\n", *w);
-  if (!is_valid_register(opShiftReg.rm)){
+
+  if (!is_valid_register(opShiftReg.rm)) {
     return EC_INVALID_PARAM;
   }
-  if (opShiftReg.shiftBy){ //Shift by reg
-    DEBUG_PRINT("ShiftBy REG: %08x\n", opShiftReg.shiftBy);
-    if (!is_valid_register(opShiftReg.shift.shiftreg.rs)){
+  // Shift by reg
+  if (opShiftReg.shiftBy) {
+    if (!is_valid_register(opShiftReg.shift.shiftreg.rs)) {
       return EC_INVALID_PARAM;
     }
     *w <<= REG_SIZE;
     *w |= opShiftReg.shift.shiftreg.rs;
-    *w <<=1;
-  }else{
-    *w <<=OP_SHIFT_INT_SIZE;
+    *w <<= 1;
+    // Shift by constant
+  } else {
+    *w <<= OP_SHIFT_INT_SIZE;
     *w |= opShiftReg.shift.constant.integer;
   }
 
-  *w <<=OP_SHIFT_TYPE_SIZE;
+  *w <<= OP_SHIFT_TYPE_SIZE;
   *w |= opShiftReg.type;
 
   *w <<= FLAG_SIZE;
-  DEBUG_PRINT("ShiftBy: %08x\n", opShiftReg.shiftBy);
   *w |= opShiftReg.shiftBy;
 
   *w <<= REG_SIZE;
@@ -46,67 +46,64 @@ int encode_shifted_reg(op_shiftreg_t opShiftReg, word_t *w){
   return EC_OK;
 }
 
-
 /**
- * encode the operand for the dp instruction
+ * Encode the operand for the dp instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode_operand(instruction_t *instr, word_t *w){
+int encode_operand(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
-  DEBUG_PRINT("encode_operand, word current is:: %08x\n", *w);
-  if (instr->i.dp.I){ //Operand2 is immediate constant
+
+  if (instr->i.dp.I) {
+    // Operand2 is immediate constant
     *w <<= OP_ROTATE_SIZE;
     *w |= instr->i.dp.operand2.imm.rotated.rotate;
     *w <<= OP_IMM_SIZE;
     *w |= instr->i.dp.operand2.imm.rotated.value;
     return EC_OK;
-  }else{  //Operand2 is shifted register
+  } else {
+    // Operand2 is shifted register
     return encode_shifted_reg(instr->i.dp.operand2.reg, w);
   };
 }
 
 /**
- * encode the offset for the sdt instruction
+ * Encode the offset for the sdt instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-
-int encode_offset(instruction_t *instr, word_t *w){
+int encode_offset(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
-  DEBUG_PRINT("encode_offset, word current is: %08x\n", *w);
-  DEBUG_PRINT("instr->i.sdt.I: %u\n", instr->i.sdt.I);
-  if (instr->i.sdt.I){ //Offset is shifted register
+
+  if (instr->i.sdt.I) { //Offset is shifted register
     return encode_shifted_reg(instr->i.sdt.offset.reg, w);
-  }else{  //Offset is 12-bit immediate value
+  } else {  //Offset is 12-bit immediate value
     *w <<= SDT_OFFSET_SIZE;
     *w |= instr->i.sdt.offset.imm.fixed;
     return EC_OK;
   }
 }
 
-
-
 /**
- * encode for the dp instruction
+ * Encode the dp instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode_dp(instruction_t *instr, word_t *w){
+int encode_dp(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
 
   *w <<= (DP_PAD0_SIZE + FLAG_SIZE);
   *w |= instr->i.dp.I;
-  switch (instr->i.dp.opcode){
+  switch (instr->i.dp.opcode) {
     case AND:
     case EOR:
     case SUB:
@@ -126,19 +123,19 @@ int encode_dp(instruction_t *instr, word_t *w){
   *w <<= FLAG_SIZE;
   *w |= instr->i.dp.S;
 
-  if (instr->i.dp.rn >= NUM_GENERAL_REGISTERS){
+  if (instr->i.dp.rn >= NUM_GENERAL_REGISTERS) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.dp.rn;
 
-  if (instr->i.dp.rd >= NUM_GENERAL_REGISTERS){
+  if (instr->i.dp.rd >= NUM_GENERAL_REGISTERS) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.dp.rd;
 
-  if (encode_operand(instr, w)){
+  if (encode_operand(instr, w)) {
     return EC_INVALID_PARAM;
   }
 
@@ -146,13 +143,13 @@ int encode_dp(instruction_t *instr, word_t *w){
 }
 
 /**
- * encode the mul instruction
+ * Encode the mul instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode_mul(instruction_t *instr, word_t *w){
+int encode_mul(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
 
@@ -161,19 +158,19 @@ int encode_mul(instruction_t *instr, word_t *w){
   *w <<= FLAG_SIZE;
   *w |= instr->i.mul.S;
 
-  if (instr->i.mul.rd >= NUM_GENERAL_REGISTERS){
+  if (instr->i.mul.rd >= NUM_GENERAL_REGISTERS) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.mul.rd;
 
-  if (instr->i.mul.rn >= NUM_GENERAL_REGISTERS){
+  if (instr->i.mul.rn >= NUM_GENERAL_REGISTERS) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.mul.rn;
 
-  if (instr->i.mul.rs >= NUM_GENERAL_REGISTERS){
+  if (instr->i.mul.rs >= NUM_GENERAL_REGISTERS) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
@@ -182,7 +179,7 @@ int encode_mul(instruction_t *instr, word_t *w){
   *w <<= PAD9_SIZE;
   *w |= instr->i.mul.pad9;
 
-  if (instr->i.mul.rs >= NUM_GENERAL_REGISTERS){
+  if (instr->i.mul.rs >= NUM_GENERAL_REGISTERS) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
@@ -192,27 +189,15 @@ int encode_mul(instruction_t *instr, word_t *w){
 }
 
 /**
- * encode the sdt instruction
+ * Encode the sdt instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode_sdt(instruction_t *instr, word_t *w){
+int encode_sdt(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
-
-  DEBUG_PRINT("SDT: cond:%x|pad1:%x|I:%x|P:%x|U:%x|0:%x|L:%x|rn:%x|rd:%x|o:%x|",
-  instr->cond,
-  instr->i.sdt.pad1,
-  instr->i.sdt.I,
-  instr->i.sdt.P,
-  instr->i.sdt.U,
-  instr->i.sdt.pad0,
-  instr->i.sdt.L,
-  instr->i.sdt.rn,
-  instr->i.sdt.rd,
-  instr->i.sdt.offset.imm.fixed);
 
   *w <<= SDT_PAD1_SIZE;
   *w |= instr->i.sdt.pad1;
@@ -229,19 +214,19 @@ int encode_sdt(instruction_t *instr, word_t *w){
   *w <<= (SDT_PAD0_SIZE + FLAG_SIZE);
   *w |= instr->i.sdt.L;
 
-  if (!is_valid_register(instr->i.sdt.rn)){
+  if (!is_valid_register(instr->i.sdt.rn)) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.sdt.rn;
 
-  if (!is_valid_register(instr->i.sdt.rd)){
+  if (!is_valid_register(instr->i.sdt.rd)) {
     return EC_INVALID_PARAM;
   }
   *w <<= REG_SIZE;
   *w |= instr->i.sdt.rd;
 
-  if(encode_offset(instr, w)){
+  if (encode_offset(instr, w)) {
     return EC_INVALID_PARAM;
   }
 
@@ -249,13 +234,13 @@ int encode_sdt(instruction_t *instr, word_t *w){
 }
 
 /**
- * encode the brn instruction
+ * Encode the brn instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode_brn(instruction_t *instr, word_t *w){
+int encode_brn(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
 
@@ -268,34 +253,34 @@ int encode_brn(instruction_t *instr, word_t *w){
 }
 
 /**
- * encode the hal instruction
+ * Encode the hal instruction
  *
- * @param instr
- * @param word
- * @return
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode_hal(instruction_t *instr, word_t *w){
+int encode_hal(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
-  if (instr->i.hal.pad0){
+
+  if (instr->i.hal.pad0) {
     return EC_INVALID_PARAM;
   }
   return EC_OK;
 }
 
-
 /**
- * encode cond
+ * Encode condition bits of instruction
  *
- * @param instr - pointer to instruction to be encoded into binary
- * @param word - pointer to encoded binary word
- * @return status code for success of encoding
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-
-int encode_cond(instruction_t *instr, word_t *w){
+int encode_cond(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
-  switch (instr->cond){
+
+  switch (instr->cond) {
     case EQ:
     case NE:
     case GE:
@@ -311,20 +296,21 @@ int encode_cond(instruction_t *instr, word_t *w){
 }
 
 /**
- * encode entry function
+ * Encode entry function
  *
- * @param instr - pointer to instruction to be encoded into binary
- * @param word - pointer to encoded binary word
- * @return status code for success of encoding
+ * @param instr: pointer to instruction containing data to encode
+ * @param word: pointer to binary word to encode with instruction information
+ * @return: integer error code based on success of the function
  */
-int encode(instruction_t *instr, word_t *w){
+int encode(instruction_t *instr, word_t *w) {
   assert(w != NULL);
   assert(instr != NULL);
+
   *w = 0;
-  if(encode_cond(instr, w)){
+  if (encode_cond(instr, w)) {
     return EC_INVALID_PARAM;
   }
-  switch (instr->type){
+  switch (instr->type) {
     case DP:
       return encode_dp(instr, w);
     case MUL:

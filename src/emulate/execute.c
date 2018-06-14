@@ -57,15 +57,12 @@ int condition(state_t *state, byte_t cond) {
 void evaluate_shifted_reg(state_t *state, operand_t op, shift_result_t *result) {
   word_t rm = get_register(state, op.reg.rm);
   byte_t shiftAmount = 0;
-  DEBUG_PRINT("ShiftBY: %01x\n\t\t", op.reg.shiftBy);
-  if (op.reg.shiftBy) { //Shift by register
+     if (op.reg.shiftBy) { //Shift by register
     shiftAmount = get_byte(get_register(state, op.reg.shift.shiftreg.rs), 7);
   } else { //Shift by constant
     shiftAmount = op.reg.shift.constant.integer;
   }
-  DEBUG_PRINT("shiftAmount: %04x\n\t\t", shiftAmount);
-  DEBUG_PRINT("shiftType: %02x\n\t\t", op.reg.type);
-  switch (op.reg.type) {
+        switch (op.reg.type) {
     case LSL:
       *result = l_shift_left_c(rm, shiftAmount);
       break;
@@ -95,13 +92,10 @@ void evaluate_shifted_reg(state_t *state, operand_t op, shift_result_t *result) 
 shift_result_t evaluate_operand(state_t *state, flag_t I, operand_t op){
   shift_result_t result;
   if (I) {
-    DEBUG_PRINT("val: %08x\n\t\t", op.imm.rotated.value);
 
     result.value = left_pad_zeros(op.imm.rotated.value);
     result = rotate_right_c(result.value, op.imm.rotated.rotate * 2);
 
-    DEBUG_PRINT("rotate: %08x\n\t\t", op.imm.rotated.rotate);
-    DEBUG_PRINT("result: %08x\n\t\t", result.value);
 
   } else {
     evaluate_shifted_reg(state, op, &result);
@@ -140,23 +134,17 @@ int execute(state_t *state) {
     return execute_halt(state);
   }
 
-  DEBUG_PRINT("Flags: %04x:\n\t", get_flags(state));
-  DEBUG_PRINT("Execute?: %01x:\n\t", condition(state, decoded->cond));
 
   if (condition(state, decoded->cond)) {
     switch (decoded->type) {
       case DP:
-        DEBUG_PRINT("DP(%01x)\n\t\t", DP);
-        return execute_dp(state, decoded->i.dp);
+                 return execute_dp(state, decoded->i.dp);
       case MUL:
-        DEBUG_PRINT("MUL(%01x)\n\t\t", MUL);
-        return execute_mul(state, decoded->i.mul);
+                 return execute_mul(state, decoded->i.mul);
       case SDT:
-        DEBUG_PRINT("SDT(%01x)\n\t\t", SDT);
-        return execute_sdt(state, decoded->i.sdt);
+                 return execute_sdt(state, decoded->i.sdt);
       case BRN:
-        DEBUG_PRINT("BRN(%01x)\n\t\t", BRN);
-        return execute_brn(state, decoded->i.brn);
+                 return execute_brn(state, decoded->i.brn);
       default:fprintf(stderr, "Invalid type%x\n", decoded->type);
         return 2;
         //free_state();
@@ -173,9 +161,7 @@ int execute(state_t *state) {
  */
 int execute_dp(state_t *state, dp_instruction_t instr) {
   shift_result_t barrel = evaluate_operand(state, instr.I, instr.operand2);
-  DEBUG_PRINT("barrelv: %08x\n\t\t", barrel.value);
-  DEBUG_PRINT("barrelc: %01x\n\t\t", barrel.carry);
-  word_t op2 = barrel.value;
+        word_t op2 = barrel.value;
   word_t result = 0;
   word_t rn = get_register(state, instr.rn);
   switch (instr.opcode) {
@@ -205,8 +191,6 @@ int execute_dp(state_t *state, dp_instruction_t instr) {
       break;
   }
 
-  DEBUG_PRINT("S: %01x\n\t\t", instr.S);
-  DEBUG_PRINT("Result: %08x\n\t\t", result);
 
   if (instr.S) {
     byte_t flags = 0x0;
@@ -229,10 +213,8 @@ int execute_dp(state_t *state, dp_instruction_t instr) {
     }
     flags |= (N * is_negative(result));
     flags |= (Z * (result == 0));
-    DEBUG_PRINT("Flags are: %04x\n\t\t", flags);
-    set_flags(state, flags);
-    DEBUG_PRINT("CPSR Updated: %04x\n\t\t", get_flags(state));
-  }
+         set_flags(state, flags);
+       }
 
   if (instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP) {
     set_register(state, instr.rd, result);
@@ -297,13 +279,10 @@ int execute_brn(state_t *state, brn_instruction_t instr) {
   word_t pc = get_pc(state);
 
   //Shift offset left by 2 bits
-  DEBUG_PRINT("offset: 0x%08x\n\t\t", instr.offset);
-  word_t shiftedOffset = l_shift_left(instr.offset, 0x2);
-  DEBUG_PRINT("shiftedOffset: 0x%08x\n\t\t", shiftedOffset);
+     word_t shiftedOffset = l_shift_left(instr.offset, 0x2);
 
   //Sign extend offset to 32 bits
   shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
-  DEBUG_PRINT("signextended: (%d) 0x%08x\n\t\t", shiftedOffset, shiftedOffset);
 
   //Assume that the offset takes into account the knowledge that the PC is
   // 8 bytes ahead of the instruction being executed.
@@ -328,9 +307,6 @@ int execute_sdt(state_t *state, sdt_instruction_t instr) {
   word_t offset = barrel.value;
   word_t rn = get_register(state, instr.rn);
   word_t data;
-  DEBUG_PRINT("Offset: 0x%08x\n\t\t", offset);
-  DEBUG_PRINT("rn: 0x%08x\n\t\t", rn);
-  DEBUG_PRINT("P = %01x\n\t\t", instr.P);
 
 
   if (instr.P) {
@@ -341,19 +317,15 @@ int execute_sdt(state_t *state, sdt_instruction_t instr) {
     } else {
       rn -= offset;
     }
-    DEBUG_PRINT("rn+-offset: 0x%08x\n\t\t", rn);
-    if (instr.L) {
+         if (instr.L) {
       //Load from memory at address rn into reg rd.
       if (!get_mem_word(state, rn, &data)) {
         set_register(state, instr.rd, data);
       }
-      DEBUG_PRINT("MEM[rn(%u)] -> R[rd(%u)]\n\t\t", rn, instr.rd);
-    } else {
+           } else {
       //Store contents of reg rd in memory at address rn.
-      DEBUG_PRINT("R[rd(%u)] -> MEM[rn(%u)]\n\t\t", instr.rd, rn);
-      set_mem_word(state, rn, get_register(state, instr.rd));
-      DEBUG_PRINT("MEM[%04x] = 0x%08x\n", rn, get_register(state, instr.rd));
-    }
+             set_mem_word(state, rn, get_register(state, instr.rd));
+           }
     return 0;
   } else {
     //Post-indexing
@@ -362,14 +334,11 @@ int execute_sdt(state_t *state, sdt_instruction_t instr) {
       if (!get_mem_word(state, rn, &data)) {
         set_register(state, instr.rd, data);
       }
-      DEBUG_PRINT("MEM[rn(%u)] -> rd(%u)\n\t\t", rn, instr.rd);
 
     } else {
       //Store contents of reg rd in memory at address rn.
-      DEBUG_PRINT("rd(%u) -> MEN[rn(%u)]\n\t\t", instr.rd, rn);
-      set_mem_word(state, rn, get_register(state, instr.rd));
-      DEBUG_PRINT("MEN[%04x] = rn(0x%08x)\n", get_register(state, instr.rd), rn);
-    }
+             set_mem_word(state, rn, get_register(state, instr.rd));
+           }
     if (instr.U) {
       rn += offset;
     } else {
@@ -377,8 +346,7 @@ int execute_sdt(state_t *state, sdt_instruction_t instr) {
     }
 
     //Change contents of reg rn (the base register)
-    DEBUG_PRINT("rn+-offset(0x%08x) -> rn(%04x)\n", rn, instr.rn);
-    set_register(state, instr.rn, rn);
+         set_register(state, instr.rn, rn);
     return 0;
   }
 }

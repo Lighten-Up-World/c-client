@@ -23,7 +23,6 @@ int main(int argc, char **argv) {
   state->pipeline.decoded = calloc(1, sizeof(instruction_t));
   assert(state->pipeline.decoded != NULL);
   read_file(argv[1], state->memory, MEM_SIZE);
-  DEBUG_PRINT("\n=========\nEmulating: %s\n=========\n", argv[1]);
 
   //Setup Pipeline
   set_pc(state, 0x8);
@@ -35,19 +34,14 @@ int main(int argc, char **argv) {
               get_pc(state), state->pipeline.fetched);
 
   while (state->pipeline.decoded->type != HAL) {
-    DEBUG_PRINT("\n---------(PC=%04x PC@%04x)---------\n", get_pc(state), get_pc(state) - 0x8);
-    DEBUG_CMD(print_state(state));
-    DEBUG_PRINT("Executing: %01x Instruction:\n\t", state->pipeline.decoded->type);
+         DEBUG_CMD(print_state(state));
 
     if (!execute(state)) {
       *state->pipeline.decoded = decode_word(state->pipeline.fetched);
-      DEBUG_PRINT("\nDecoded: %08x\n", state->pipeline.fetched);
-      get_mem_word(state, get_pc(state), &state->pipeline.fetched);
-      DEBUG_PRINT("\nFetching@%04x: %08x\n", get_pc(state), state->pipeline.fetched);
-    }
+             get_mem_word(state, get_pc(state), &state->pipeline.fetched);
+           }
     increment_pc(state);
-    DEBUG_PRINT("\n---------(PC=%04x)---------\n\n", get_pc(state));
-  }
+       }
 
   // Execute HAL instruction
   execute(state);

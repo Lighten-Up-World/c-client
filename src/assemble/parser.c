@@ -138,13 +138,11 @@ int make_rotation(op_rotate_immediate_t *op_rot_imm, word_t value) {
 // Case 2b: <Operand2> := <register>, <shiftname> <#expression>
 // Case 3: <Operand2> := <register>, Rn
 int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
-  DEBUG_PRINT("parse_shifted_reg @ %d\n", start);
-  int operand_size = tklst->len - start;
+     int operand_size = tklst->len - start;
 
   // Case 1: <Operand2> := <register>
   if(operand_size == 1){
-    DEBUG_PRINT("Case 1: %s\n", "<Operand2> := Rm");
-    op->reg.rm = parse_register(tklst, start);
+         op->reg.rm = parse_register(tklst, start);
     op->reg.type = LSL;
     op->reg.shiftBy = 0;
     op->reg.shift.constant.integer = 0;
@@ -154,8 +152,7 @@ int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
   if(operand_size == 2){
       op->reg.rm = parse_register(tklst, start);
       op->reg.type = LSL;
-      DEBUG_PRINT("Case 3: %s\n", "<Operand2> := <register>, Rn");
-      op->reg.shift.shiftreg.rs = parse_register(tklst, start + 1);
+             op->reg.shift.shiftreg.rs = parse_register(tklst, start + 1);
       op->reg.shift.shiftreg.zeroPad = 0;
       op->reg.shiftBy = 0; //TODO: Understand why this is opposite
       return EC_OK;
@@ -163,8 +160,7 @@ int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
   //Case 2: <register>, <shiftname> <register>
   //      | <register>, <shiftname> <#expression>
   if(operand_size >= 4){
-    DEBUG_PRINT("Case 2: %s\n", "<Operand2> := <register>, <shiftname> <...>");
-    char *shiftname = token_list_get_str(tklst, start+2);
+         char *shiftname = token_list_get_str(tklst, start+2);
     for (int i = 0; i < NUM_SHIFT_SUFFIXES; i++) {
       if (strcmp(shifts[i].suffix, shiftname) == 0) {
         op->reg.type = shifts[i].num;
@@ -172,12 +168,9 @@ int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
     }
     op->reg.rm = parse_register(tklst, start);
 
-    DEBUG_PRINT("TYPE: %d, RM: %02x, shiftBy: %d\n", op->reg.type,
-    op->reg.rm, op->reg.shiftBy);
     // Case 2a: <Operand2> := <register>, <shiftname> <register>
     if(token_list_get_type(tklst, start + 3) == T_REGISTER){
-      DEBUG_PRINT("Case 2a: %s\n", "<Operand2> := <register>, <shiftname> <register>");
-      op->reg.shiftBy = 1;
+             op->reg.shiftBy = 1;
       op->reg.shift.shiftreg.rs = parse_register(tklst, start + 3);
       op->reg.shift.shiftreg.zeroPad = 0;
       return EC_OK;
@@ -185,16 +178,14 @@ int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
 
     // Case 2b: <Operand2> := <register>, <shiftname> <#expression>
     if(token_list_get_type(tklst, start + 3) == T_HASH_EXPR){
-      DEBUG_PRINT("Case 2b: %s\n", "<Operand2> := <register>, <shiftname> <#expression>");
-      op->reg.shiftBy = 0;
+             op->reg.shiftBy = 0;
       op->reg.shift.constant.integer
         = parse_expression(tklst, start + 3);
         return EC_OK;
     }
   }
 
-  DEBUG_PRINT("tklst->len: %d, start %d\n", tklst->len, start);
-  return EC_UNSUPPORTED_OP;
+     return EC_UNSUPPORTED_OP;
 }
 
 /**
@@ -214,8 +205,7 @@ int parse_operand(list_t *tklst, instruction_t *instr, int start) {
     // Strip leading hash sign
     char *strVal = remove_first_char(operand2);
 
-    DEBUG_PRINT("Operand2: %s\n", operand2);
-    // Determine the base (hex or decimal) and convert to int
+         // Determine the base (hex or decimal) and convert to int
     uint8_t base = (uint8_t) ((strncmp("0x", strVal, 2) == 0) ? HEX_BASE : DEC_BASE);
 
     DEBUG_CMD(printf("Raw Val\n"));
@@ -316,24 +306,20 @@ int parse_offset(assemble_state_t *prog, instruction_t *instr, int start) {
 
   // Case 3/4: [Rn{]}, #expression {]}
   if(prog->tklst->len == NUM_TOKS_HASH_EXPR){
-    DEBUG_PRINT("Hash Expression TOKENS: %d\n", NUM_TOKS_HASH_EXPR);
-    instr->i.sdt.rn = parse_register(prog->tklst, 4);
-    DEBUG_PRINT("Rn: %02x\n", instr->i.sdt.rn);
-    instr->i.sdt.U = 1;
+         instr->i.sdt.rn = parse_register(prog->tklst, 4);
+         instr->i.sdt.U = 1;
     instr->i.sdt.I = 0;
 
     // Case 3: [Rn, #expression]
     if(token_list_get_type(prog->tklst, 6) == T_HASH_EXPR){
-      DEBUG_PRINT("Case 3 hit with, %d\n", instr->i.sdt.I);
-      instr->i.sdt.P = 1;
+             instr->i.sdt.P = 1;
       word_t result = parse_expression(prog->tklst, 6);
       if(is_negative(result)){
         result = negate(result);
         instr->i.sdt.U = 0;
       }
       instr->i.sdt.offset.imm.fixed = result;
-      DEBUG_PRINT("Imm fixed: %d / %08x\n", parse_expression(prog->tklst, 6), parse_expression(prog->tklst, 6));
-      return EC_OK;
+             return EC_OK;
     }
 
 
@@ -341,16 +327,14 @@ int parse_offset(assemble_state_t *prog, instruction_t *instr, int start) {
       instr->i.sdt.P = 0;
       // Case 4: [Rn],<#expression>
       if(token_list_get_type(prog->tklst, 7) == T_HASH_EXPR){
-        DEBUG_PRINT("Case 4 hit with, %d\n", instr->i.sdt.I);
-        instr->i.sdt.offset.imm.fixed = parse_expression(prog->tklst, 7);
+                 instr->i.sdt.offset.imm.fixed = parse_expression(prog->tklst, 7);
         return EC_OK;
       }
     }
   }
   // Case 5: [Rn, {+/-}Rm{,<shift>}]
   if(token_list_get_type(prog->tklst, 5) == T_COMMA){
-    DEBUG_PRINT("Case 5 hit with, %d\n", instr->i.sdt.I);
-    instr->i.sdt.rn = parse_register(prog->tklst, 4);
+         instr->i.sdt.rn = parse_register(prog->tklst, 4);
     instr->i.sdt.P = 1;
     instr->i.sdt.I = 1; // TODO: Normally behind parse_reg
     int shifted_reg_start = 6;
@@ -366,8 +350,7 @@ int parse_offset(assemble_state_t *prog, instruction_t *instr, int start) {
   }
    // Case 6: [Rn],{+/-}Rm{,<shift>}
   if(token_list_get_type(prog->tklst, 5) == T_R_BRACKET){
-    DEBUG_PRINT("Case 6 hit with, %d\n", instr->i.sdt.I);
-    instr->i.sdt.rn = parse_register(prog->tklst, 4);
+         instr->i.sdt.rn = parse_register(prog->tklst, 4);
     instr->i.sdt.P = 0;
     instr->i.sdt.I = 1;
     return parse_shifted_reg(prog->tklst, &instr->i.sdt.offset, 7);
@@ -410,8 +393,6 @@ int parse_dp(assemble_state_t* prog, instruction_t *instr) {
   instr->i.dp.S = S;
   instr->i.dp.rn = compare_op(opcode, "mov")? 0 : parse_register(prog->tklst, rn_pos);
   instr->i.dp.rd = S ? 0 : parse_register(prog->tklst, RD_POS);
-  DEBUG_PRINT("RN_POS: %u\n", rn_pos);
-  DEBUG_PRINT("I Flag is: %u\n", instr->i.dp.I);
 
   return parse_operand(prog->tklst, instr, rn_pos + 2);
 }
@@ -580,14 +561,11 @@ int parse_brn(assemble_state_t* prog, instruction_t *inst) {
     // Check if label is already in map, if so get address
     char *label = token_list_get_str(prog->tklst, 1);
     if (smap_exists(prog->smap, label)) {
-      DEBUG_PRINT("Getting label: (%s @%08x)\n", label, prog->mPC);
-      address_t addr = 0;
+             address_t addr = 0;
       smap_get_address(prog->smap, label, &addr);
-      DEBUG_PRINT("Got Address: %08x\n", addr);
-      offset = calculate_offset(addr, prog->mPC);
+             offset = calculate_offset(addr, prog->mPC);
     } else {
-      DEBUG_PRINT("Placing (%s, %08x) in reference\n", label, prog->mPC);
-      rmap_put(prog->rmap, label, prog->mPC);
+             rmap_put(prog->rmap, label, prog->mPC);
       offset = 0xFFFFFF; // dummy value
     }
   } else {
@@ -663,8 +641,7 @@ int parse_label(assemble_state_t *prog) {
       get_word(prog->out, addrs[i], &curr);
       curr &= offset;
       set_word(prog->out, addrs[i], curr);
-      DEBUG_PRINT("REFERENCE: %u\n", addrs[i]);
-    }
+           }
   }
   return _status;
 }
