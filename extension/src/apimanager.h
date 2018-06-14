@@ -24,21 +24,30 @@
 #include "pixel.h"
 #include "parson/parson.h"
 
+//Forward Defs
+typedef struct api_manager api_manager_t;
+typedef struct geolocation geolocation_t;
 
-//OPEN_WEATHER_MAP
+#include "projection.h"
 
-#define LATITUDE_START 21
-#define LONGITUDE_START 29
+typedef int (*get_pixel_func) (api_manager_t *self, pixel_t *pixel, void *obj);
+typedef int (*api_manager_construct)(api_manager_t *self);
+typedef int (*api_manager_destruct)(api_manager_t *self);
 
-#define WEATHER_HOST "api.openweathermap.org"
-#define WEATHER_PATH "data/2.5/weather?lat=000&lon=000&appid=6ee4372288ed6d49c7dea5ed1f39a118"
+struct api_manager {
+    get_pixel_func get_pixel;
+    api_manager_construct construct;
+    api_manager_destruct destruct;
+    void *obj;
+};
+
 
 //GENERAL
 
-typedef struct geolocation{
+struct geolocation{
     double latitude;
     double longitude;
-} geolocation_t;
+};
 
 typedef enum http_request_method{
     GET,
@@ -52,13 +61,12 @@ typedef struct http_request{
     char *path;
 }http_request_t;
 
-int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *attr);
+int tcp_construct(api_manager_t *api_manager, char *host);
+int tcp_destruct(api_manager_t *api_manager);
 
-int get_double_from_json(char *buf, char *name, double *val);
+api_manager_t *api_manager_new(void);
+int api_manager_delete(api_manager_t *self);
 
-int send_get_request(int sock, http_request_t request, char *buf, size_t buf_size);
-
-int socket_connect(const char *host, in_port_t port);
-int socket_close(int sockfd);
+int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path ,char *attr, double *val);
 
 #endif /* apimanager_h */

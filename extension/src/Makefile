@@ -4,6 +4,7 @@
 
 PATHS = ./
 PATHJSON = parson/
+PATHAPI = api/
 PATHB = build/
 PATHOBJ = build/objs/
 
@@ -27,7 +28,7 @@ control:
 run: mkdir $(PATHB)main.out
 	./build/main.out
 
-$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o
+$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
@@ -37,6 +38,9 @@ $(PATHOBJ)%.o: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHOBJ)%.o: $(PATHAPI)%.c $(PATHAPI)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)
