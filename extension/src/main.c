@@ -26,7 +26,7 @@ int main(int argc, const char * argv[]) {
   char *attr = "temp";
   geolocation_t locs[100];
   for (int j = 0; j < 100; j++) {
-    sleep(0.5);
+    sleep(1);
     locs[j] = (geolocation_t) {.latitude = rand() % 90, .longitude = rand() % 180, .value = 0};
 
     if (get_value_for_geolocation(locs+j,hostName, pathName, attr) < 0) {

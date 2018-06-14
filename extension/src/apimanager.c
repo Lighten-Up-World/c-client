@@ -34,7 +34,7 @@ int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *
   char buff[500];
   send_get_request(sockfd, request, buff, sizeof(buff));
 
-  return get_int_from_json(buff, attr, &(loc->value));
+  return get_double_from_json(buff, attr, &(loc->value));
 }
 
 int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_size){
