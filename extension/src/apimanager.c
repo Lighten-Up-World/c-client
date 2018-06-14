@@ -34,9 +34,8 @@ int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *
   char buff[500];
   send_get_request(sockfd, request, buff, sizeof(buff));
 
-  jsmntok_t tokens[256];
 
-  return get_int_from_tokens(buff, tokens, 256, attr, &(loc->value));
+  return get_int_from_tokens(buff, attr, &(loc->value));
 }
 
 int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_size){
@@ -52,14 +51,15 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   return byte_count;
 }
 
-int get_int_from_tokens(char *buf, jsmntok_t *tokens, size_t num_tokens, char *name, int *val){
+int get_int_from_json(char *buf, char *name, int *val){
   assert(buf != NULL);
-  assert(tokens != NULL);
   assert(name != NULL);
   assert(val != NULL);
 
   jsmn_parser parser;
   jsmn_init(&parser);
+
+  jsmntok_t tokens[256];
 
   int num_of_tokens;
   num_of_tokens = jsmn_parse(&parser, buf, strlen(buf), tokens, 256);

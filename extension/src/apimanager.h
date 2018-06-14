@@ -38,7 +38,7 @@ typedef struct http_request{
 
 int get_value_for_geolocation(geolocation_t *loc, char *host, char *path ,char *attr);
 
-int get_int_from_tokens(char *buf, jsmntok_t *tokens, size_t num_tokens, char *name, int *val);
+int get_int_from_json(char *buf, char *name, int *val);
 
 int send_get_request(int sock, http_request_t request, char *buf, size_t buf_size);
 
