@@ -253,7 +253,6 @@ int rmap_put(const reference_map_t *map,
   }
 }
 
-
 /**
  * Enumerate through each label-address combination and apply the map function
  * to the entry with the object for return/side-effects.
@@ -308,7 +307,6 @@ int rmap_get_count(reference_map_t *map) {
   }
   return count;
 }
-
 
 void rmap_print_entry(const label_t label, const address_t val,
                       const void *obj) {
