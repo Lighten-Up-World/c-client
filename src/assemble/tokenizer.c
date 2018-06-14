@@ -189,6 +189,5 @@ int tokenize(char *line, list_t **tkns){
   free(token_strs[0]);
   free(token_strs);
 
-  DEBUG_CMD(token_list_print(*tkns));
-  return EC_OK;
+     return EC_OK;
 }

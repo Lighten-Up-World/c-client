@@ -30,11 +30,7 @@ int main(int argc, char **argv) {
   *state->pipeline.decoded = decode_word(state->pipeline.fetched);
   get_mem_word(state, 0x4, &state->pipeline.fetched);
 
-  DEBUG_PRINT("Initial Pipeline setup:\n\tPC (0x%08x)\n\tFetched (0x%08x)\n",
-              get_pc(state), state->pipeline.fetched);
-
   while (state->pipeline.decoded->type != HAL) {
-         DEBUG_CMD(print_state(state));
 
     if (!execute(state)) {
       *state->pipeline.decoded = decode_word(state->pipeline.fetched);
