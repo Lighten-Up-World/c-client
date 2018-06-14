@@ -2,7 +2,8 @@
 .PHONY: test
 
 
-PATHU = unity/
+PATHU = ../../unity/src/
+PATHU_AUTO = ../../unity/auto/
 PATHS = ../
 PATHUT = ../utils/
 PATHEM = ../emulate/
@@ -62,7 +63,7 @@ $(PATHO)%.o:: $(PATHT)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHO)%_run.o:: $(PATHT)%.c
-	ruby $(PATHU)generate_test_runner.rb $< $(PATHRUN)$(*F).c
+	ruby $(PATHU_AUTO)generate_test_runner.rb $< $(PATHRUN)$(*F).c
 	$(COMPILE) $(CFLAGS) $(PATHRUN)$(*F).c -o $@
 
 $(PATHO)%.o:: $(PATHS)%.c
