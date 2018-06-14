@@ -2,30 +2,30 @@
 #include "../utils/error.h"
 
 // Based on djb2 by Dan Bernstein
-unsigned long smap_hash(const label_t label){
+unsigned long smap_hash(const label_t label) {
   unsigned long smap_hash = 5381;
   for (size_t i = 0; i < strlen(label); i++) {
     smap_hash = ((smap_hash << 5) + smap_hash) + label[i];
   }
-	return smap_hash;
+  return smap_hash;
 }
 
 /**
-* Gets a symbol entry in the map from a particular bucket
-*
-* @param label : String representation of the label
-* @param bucket : Pointer to bucket structure containing symbols in bucket
-* @returns The corresponding symbol for that label in that bucket.
-*/
-static symbol_t *get_symbol(sbucket_t *bucket, const label_t label){
+ * Get a symbol entry in the map from a particular bucket
+ *
+ * @param label: string representation of the label
+ * @param bucket: pointer to bucket structure containing symbols in bucket
+ * @return: corresponding symbol for that label in that bucket.
+ */
+static symbol_t *get_symbol(sbucket_t *bucket, const label_t label) {
   size_t n = bucket->count;
-	if (n == 0) {
-		return NULL;
-	}
+  if (n == 0) {
+    return NULL;
+  }
   symbol_t *symbol = bucket->symbols;
-  for(size_t i = 0; i < n; i++){
-    if(symbol->label != NULL){
-      if(strcmp(symbol->label, label) == 0){
+  for (size_t i = 0; i < n; i++) {
+    if (symbol->label != NULL) {
+      if (strcmp(symbol->label, label) == 0) {
         return symbol;
       }
     }
@@ -35,20 +35,20 @@ static symbol_t *get_symbol(sbucket_t *bucket, const label_t label){
 }
 
 /**
-* Allocates memory for symbol map and sets capacity
-*
-* @param capacity : Max capacity of the map
-* @returns A pointer to the new smap
-*/
-symbol_map_t *smap_new(size_t capacity){
+ * Allocate memory for symbol map and set capacity
+ *
+ * @param capacity: max capacity of the map
+ * @return: pointer to the new smap
+ */
+symbol_map_t *smap_new(size_t capacity) {
   symbol_map_t *map;
   map = calloc(1, sizeof(symbol_map_t));
-  if(map == NULL){
+  if (map == NULL) {
     return NULL;
   }
   map->count = capacity;
   map->buckets = calloc(map->count, sizeof(sbucket_t));
-  if(map->buckets == NULL){
+  if (map->buckets == NULL) {
     free(map);
     return NULL;
   }
@@ -56,19 +56,19 @@ symbol_map_t *smap_new(size_t capacity){
 }
 
 /**
-* Frees up the memory allocated for the map
-*
-* @param map : Pointer to the map
-* @returns An error code (see error.h)
-*/
-int smap_delete(symbol_map_t *map){
-  if(map == NULL){
+ * Free up the memory allocated for the map
+ *
+ * @param map: Pointer to the map
+ * @return: error code (see error.h)
+ */
+int smap_delete(symbol_map_t *map) {
+  if (map == NULL) {
     return EC_NULL_POINTER;
   }
   sbucket_t *bucket = map->buckets;
-  for(size_t i = 0; i < map->count; i++){
+  for (size_t i = 0; i < map->count; i++) {
     symbol_t *symbol = bucket->symbols;
-    for(size_t j = 0; j < bucket->count; j++){
+    for (size_t j = 0; j < bucket->count; j++) {
       free(symbol->label);
       symbol++;
     }
@@ -81,27 +81,28 @@ int smap_delete(symbol_map_t *map){
 }
 
 /**
-* Gets an address and stores it in the given pointer
-*
-* @param map : Pointer to the the symbol map object
-* @param label : The label object to compare against
-* @param out : The preallocated space for the address to be placed
-* @returns An error code (see error.h)
-*/
-int smap_get_address(const symbol_map_t *map, const label_t label, address_t *out){
-  if(map == NULL){
+ * Get an address and store it in the given pointer
+ *
+ * @param map: pointer to the the symbol map object
+ * @param label: label object to compare against
+ * @param out: preallocated space for the address to be placed
+ * @return: error code (see error.h)
+ */
+int smap_get_address(const symbol_map_t *map, const label_t label,
+                     address_t *out){
+  if (map == NULL) {
     return EC_INVALID_PARAM;
   }
-  if(label == NULL){
+  if (label == NULL) {
     return EC_INVALID_PARAM;
   }
-  if(out == NULL){
+  if (out == NULL) {
     return EC_INVALID_PARAM;
   }
   size_t ind = smap_hash(label) % map->count;
   sbucket_t *bucket = &(map->buckets[ind]);
   symbol_t *symbol = get_symbol(bucket, label);
-  if(symbol == NULL){
+  if (symbol == NULL) {
     return EC_NULL_POINTER;
   }
   *out = symbol->address;
@@ -109,41 +110,42 @@ int smap_get_address(const symbol_map_t *map, const label_t label, address_t *ou
 }
 
 /**
-* Checks if a label exists in the given map or not
-*
-* @param map : Pointer to the the symbol map object
-* @param label : The label object to compare against
-* @returns 1 iff label exists in map
-*/
-int smap_exists(const symbol_map_t *map, const label_t label){
-  if(map == NULL){
+ * Check if a label exists in the given map or not
+ *
+ * @param map: pointer to the the symbol map object
+ * @param label: label object to compare against
+ * @return: 1 iff label exists in map
+ */
+int smap_exists(const symbol_map_t *map, const label_t label) {
+  if (map == NULL) {
     return 0;
   }
-  if(label == NULL){
+  if (label == NULL) {
     return 0;
   }
   size_t ind = smap_hash(label) % map->count;
   sbucket_t *bucket = &(map->buckets[ind]);
   symbol_t *symbol = get_symbol(bucket, label);
-  if(symbol == NULL){
+  if (symbol == NULL) {
     return 0;
   }
   return 1;
 }
 
 /**
-* Puts a label-address pair as an entry into the map
-*
-* @param map : Pointer to the the symbol map object
-* @param label : The label to place in the map
-* @param address : The address to enter into the map
-* @returns An error code (see error.h)
-*/
-int smap_put(const symbol_map_t *map, const label_t label, const address_t address){
-  if(map == NULL){
+ * Put a label-address pair as an entry into the map
+ *
+ * @param map: pointer to the the symbol map object
+ * @param label: label to place in the map
+ * @param address: address to enter into the map
+ * @return: error code (see error.h)
+ */
+int smap_put(const symbol_map_t *map, const label_t label,
+             const address_t address){
+  if (map == NULL) {
     return EC_INVALID_PARAM;
   }
-  if(label == NULL){
+  if (label == NULL) {
     return EC_INVALID_PARAM;
   }
   int label_len = strlen(label) + 1;
@@ -151,27 +153,27 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
   sbucket_t *bucket = &(map->buckets[ind]);
 
   symbol_t *symbol;
-  if((symbol = get_symbol(bucket, label)) != NULL){
+  if ((symbol = get_symbol(bucket, label)) != NULL) {
     symbol->address = address;
     return EC_NULL_POINTER;
   }
   label_t new_label = malloc(label_len);
-  if(new_label == NULL){
+  if (new_label == NULL) {
     return EC_NULL_POINTER;
   }
   address_t new_address = address;
-  if(bucket->count == 0){
+  if (bucket->count == 0) {
     bucket->symbols = malloc(sizeof(symbol_t));
-    if(bucket->symbols == NULL){
+    if (bucket->symbols == NULL) {
       free(new_label);
       return EC_NULL_POINTER;
     }
     bucket->count = 1;
-  }
-  else {
+  } else {
     bucket->count += 1;
-    symbol_t *tmp_symbols = realloc(bucket->symbols, bucket->count * sizeof(symbol_t));
-    if(tmp_symbols == NULL){
+    symbol_t *tmp_symbols =
+        realloc(bucket->symbols, bucket->count * sizeof(symbol_t));
+    if (tmp_symbols == NULL) {
       free(new_label);
       bucket->count -= 1;
       return EC_NULL_POINTER;
@@ -186,25 +188,25 @@ int smap_put(const symbol_map_t *map, const label_t label, const address_t addre
 }
 
 /**
-* Enumerates through each label-address pair and applies the map function
-* to the entry with the object for return/side-effects.
-*
-* @param map : Pointer to the the symbol map object
-* @param func : A void function that take a label, address and object params
-* @param obj : The object to pass around to each func. Can be null.
-* @returns An error code (see error.h)
-*/
-int smap_enum(symbol_map_t *map, map_func_t func, const void *obj){
-  if(map == NULL){
+ * Enumerate through each label-address pair and apply the map function
+ * to the entry with the object for return/side-effects.
+ *
+ * @param map: Pointer to the the symbol map object
+ * @param func: void function that takes a label, address and object params
+ * @param obj: The object to pass around to each func. Can be null.
+ * @return: error code (see error.h)
+ */
+int smap_enum(symbol_map_t *map, map_func_t func, const void *obj) {
+  if (map == NULL) {
     return EC_INVALID_PARAM;
   }
-  if(func == NULL){
+  if (func == NULL) {
     return EC_INVALID_PARAM;
   }
   sbucket_t *bucket = map->buckets;
-  for(size_t i = 0; i < map->count; i++){
+  for (size_t i = 0; i < map->count; i++) {
     symbol_t *symbol = bucket->symbols;
-    for(size_t j = 0; j < bucket->count; j++){
+    for (size_t j = 0; j < bucket->count; j++) {
       func(symbol->label, symbol->address, obj);
       symbol++;
     }
@@ -214,20 +216,20 @@ int smap_enum(symbol_map_t *map, map_func_t func, const void *obj){
 }
 
 /**
-* Simple map function that takes a pointer to a size_t object and increments it
-*/
+ * Simple map function that takes a pointer to a size_t object and increments it
+ */
 void smap_count_func(const label_t label, const address_t val, const void *obj){
   size_t *cnt = (size_t *) obj;
   *cnt += 1;
 }
 
 /**
-* Applies the smap_count_func to each entry to get a total count of entries
-*
-* @param map : Pointer to the the symbol map object
-* @returns An integer for the total count of the map objects
-*/
-int smap_get_count(symbol_map_t *map){
+ * Apply the smap_count_func to each entry to get a total count of entries
+ *
+ * @param map: pointer to the the symbol map object
+ * @return: integer for the total count of the map objects
+ */
+int smap_get_count(symbol_map_t *map) {
   size_t count = 0;
   smap_enum(map, &smap_count_func, &count);
   return count;
