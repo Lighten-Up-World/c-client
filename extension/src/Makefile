@@ -3,7 +3,7 @@
 .PHONY: mkdir
 
 PATHS = ./
-PATHJSMN = jsmn/
+PATHJSON = parson/
 PATHB = build/
 PATHOBJ = build/objs/
 
@@ -27,7 +27,7 @@ control:
 run: mkdir $(PATHB)main.out
 	./build/main.out
 
-$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)jsmn.o
+$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o
 	$(LINK) -o $@ $^
 
 $(PATHB)%.out: $(PATHOBJ)%.o
@@ -36,7 +36,7 @@ $(PATHB)%.out: $(PATHOBJ)%.o
 $(PATHOBJ)%.o: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(PATHOBJ)%.o: $(PATHJSMN)%.c $(PATHJSMN)%.h
+$(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)
