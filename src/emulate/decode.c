@@ -11,15 +11,15 @@
  *  Set the value of the operand when I is 0
  *
  *  @param opPtr: pointer to the operand
- *  @param word: the instruction word
- *  @return void: modifies the operand value of the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
 int decode_shifted_reg(operand_t *op, word_t word) {
 
   op->reg.type = get_bits(word, OP_SHIFT_TYPE_START, OP_SHIFT_TYPE_END);
   op->reg.shiftBy = get_flag(word, OP_SHIFTBY_FLAG);
 
-  //Shift by register
+  // Shift by register
   if (op->reg.shiftBy) {
     op->reg.shift.shiftreg = (op_shift_register_t) {
         .rs = get_nibble(word, OP_START),
@@ -39,17 +39,17 @@ int decode_shifted_reg(operand_t *op, word_t word) {
 /**
  *  Get the operand by decoding the word instruction
  *
- *  @param I: the immediate flag deciding how to decode the operand
- *  @param word: the instruction word
- *  @return a populated operand based on the data in word
+ *  @param I: immediate flag deciding how to decode the operand
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
-int decode_operand(flag_t I, word_t word, operand_t* op) {
-  //Immediate
+int decode_operand(flag_t I, word_t word, operand_t *op) {
+  // Immediate
   if (I) {
     op->imm = (op_immediate_t) {.rotated.rotate = get_nibble(word, OP_START),
         .rotated.value = get_byte(word, OP_IMM_START)};
   }
-  //Register
+  // Register
   else {
     return decode_shifted_reg(op, word);
   }
@@ -59,16 +59,16 @@ int decode_operand(flag_t I, word_t word, operand_t* op) {
 /**
  *  Get the offset (operand) by decoding the word instruction
  *
- *  @param I: the immediate flag on how to decode the operand
- *  @param word: the instruction word
- *  @return a populated operand based on the data in word
+ *  @param I: immediate flag on how to decode the operand
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
- int decode_offset(flag_t I, word_t word, operand_t* op) {
-  //Register
+int decode_offset(flag_t I, word_t word, operand_t *op) {
+  // Register
   if (I) {
     return decode_shifted_reg(op, word);
   }
-  //Immediate
+  // Immediate
   else {
     op->imm.fixed = get_bits(word, OP_START, 0);
   }
@@ -79,73 +79,73 @@ int decode_operand(flag_t I, word_t word, operand_t* op) {
 /**
  *  Decodes a Data Processing instruction
  *
- *  @param instr: a pointer to the instruction
- *  @param word: the instruction word
- *  @return void: modifies the instruction pointed to by instr
+ *  @param instr: pointer to the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
-  int decode_dp(instruction_t *instr, word_t word) {
-    assert(instr != NULL);
+int decode_dp(instruction_t *instr, word_t word) {
+  assert(instr != NULL);
 
-    instr->i.dp.padding = 0x0;
-    instr->i.dp.I = get_flag(word, I_FLAG);
-    instr->i.dp.opcode = get_nibble(word, OPCODE_START);
-    instr->i.dp.S = get_flag(word, S_FLAG);
-    instr->i.dp.rn = get_nibble(word, DP_RN_START);
-    instr->i.dp.rd = get_nibble(word, DP_RD_START);
-    return decode_operand(instr->i.dp.I, word, &instr->i.dp.operand2);
+  instr->i.dp.padding = 0x0;
+  instr->i.dp.I = get_flag(word, I_FLAG);
+  instr->i.dp.opcode = get_nibble(word, OPCODE_START);
+  instr->i.dp.S = get_flag(word, S_FLAG);
+  instr->i.dp.rn = get_nibble(word, DP_RN_START);
+  instr->i.dp.rd = get_nibble(word, DP_RD_START);
+  return decode_operand(instr->i.dp.I, word, &instr->i.dp.operand2);
 
-  }
+}
 
 /**
  *  Decodes a Multiplication Instruction
  *
- *  @param instr: a pointer to the instruction
- *  @param word: the instruction word
- *  @return void: modifies the instruction pointed to by instr
+ *  @param instr: pointer to the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
-  int decode_mul(instruction_t *instr, word_t word) {
-    assert(instr != NULL);
+int decode_mul(instruction_t *instr, word_t word) {
+  assert(instr != NULL);
 
-    instr->i.mul.pad0 = 0x0;
-    instr->i.mul.A = get_flag(word, A_FLAG);
-    instr->i.mul.S = get_flag(word, S_FLAG);
-    instr->i.mul.rd = get_nibble(word, MUL_RD_START);
-    instr->i.mul.rn = get_nibble(word, MUL_RN_START);
-    instr->i.mul.rs = get_nibble(word, REG_S_START);
-    instr->i.mul.pad9 = 0x9;
-    instr->i.mul.rm = get_nibble(word, REG_M_START);
+  instr->i.mul.pad0 = 0x0;
+  instr->i.mul.A = get_flag(word, A_FLAG);
+  instr->i.mul.S = get_flag(word, S_FLAG);
+  instr->i.mul.rd = get_nibble(word, MUL_RD_START);
+  instr->i.mul.rn = get_nibble(word, MUL_RN_START);
+  instr->i.mul.rs = get_nibble(word, REG_S_START);
+  instr->i.mul.pad9 = 0x9;
+  instr->i.mul.rm = get_nibble(word, REG_M_START);
 
-    return EC_OK;
-  }
+  return EC_OK;
+}
 
 /**
  *  Decode a Single Data Transfer Instruction
  *
- *  @param instr: a pointer to the instruction
- *  @param word: the instruction word
- *  @return void: modifies the instruction pointed to by instr
+ *  @param instr: pointer to the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
-  int decode_sdt(instruction_t *instr, word_t word) {
-    assert(instr != NULL);
+int decode_sdt(instruction_t *instr, word_t word) {
+  assert(instr != NULL);
 
-    instr->i.sdt.pad1 = 0x1;
-    instr->i.sdt.I = get_flag(word, I_FLAG);
-    instr->i.sdt.P = get_flag(word, P_FLAG);
-    instr->i.sdt.U = get_flag(word, U_FLAG);
-    instr->i.sdt.pad0 = 0x0;
-    instr->i.sdt.L = get_flag(word, L_FLAG);
-    instr->i.sdt.rn = get_nibble(word, SDT_RN_START);
-    instr->i.sdt.rd = get_nibble(word, SDT_RD_START);
-    return decode_offset(instr->i.sdt.I, word, &instr->i.sdt.offset);
+  instr->i.sdt.pad1 = 0x1;
+  instr->i.sdt.I = get_flag(word, I_FLAG);
+  instr->i.sdt.P = get_flag(word, P_FLAG);
+  instr->i.sdt.U = get_flag(word, U_FLAG);
+  instr->i.sdt.pad0 = 0x0;
+  instr->i.sdt.L = get_flag(word, L_FLAG);
+  instr->i.sdt.rn = get_nibble(word, SDT_RN_START);
+  instr->i.sdt.rd = get_nibble(word, SDT_RD_START);
+  return decode_offset(instr->i.sdt.I, word, &instr->i.sdt.offset);
 
-  }
+}
 
 /**
  *  Decode a Branch Instruction
  *
- *  @param - instruction_t* instr is the pointer to the instruction
- *  @param - word_t word is the binary instruction
- *  @return - void, changes made to the instruction pointed to by i
+ *  @param instr: pointer to the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
 int decode_brn(instruction_t *instr, word_t word) {
   assert(instr != NULL);
@@ -158,14 +158,14 @@ int decode_brn(instruction_t *instr, word_t word) {
 /**
  *  Decode a Halt Instruction
  *
- *  @param instr: a pointer to the instruction
- *  @param word: the binary instruction
- *  @return void: modifies the instruction pointed to by instr
+ *  @param instr: pointer to the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
 int decode_halt(instruction_t *instr, word_t word) {
   assert(instr != NULL);
 
-  if(word != 0x0000){
+  if (word != 0x0000) {
     return EC_INVALID_PARAM;
   }
 
@@ -176,9 +176,9 @@ int decode_halt(instruction_t *instr, word_t word) {
 /**
  *  Decode Instruction Type
  *
- *  @param instr: is a pointer to the instruction_t
- *  @param word: is the binary instruction to decode
- *  @return void: modifies type field of the instruction pointed to by instr
+ *  @param instr: pointer to the instruction
+ *  @param word: instruction word to decode
+ *  @return: integer error code based on success of function
  */
 int decode_instruction_type(instruction_t *instr, word_t word) {
   assert(instr != NULL);
@@ -228,8 +228,9 @@ int decode_instruction_type(instruction_t *instr, word_t word) {
 /**
  *  Decode Word (entry point to file)
  *
- *  @param word: is the binary instruction to decode
- *  @return the decoded instruction.
+ *  @param instr: instruction to load with the data in the word
+ *  @param word: binary instruction to decode
+ *  @return: integer error code based on success of function
  */
 int decode_word(instruction_t *instr, word_t word) {
   instr->cond = get_nibble(word, COND_START);

@@ -5,14 +5,13 @@
 
 #include "execute.h"
 
-
 /**
  *  Check if the condition on the decoded instruction is met using the current
  *  state of the flags register (CPSR).
  *
- *  @param state: Pointer to the current VM state
- *  @param cond: The condition extracted from the instructionn
- *  @return 1 when condition is met, 0 if not.
+ *  @param state: pointer to the current VM state
+ *  @param cond: condition extracted from the instruction
+ *  @return: 1 when condition is met, 0 if not
  */
 int condition(emulate_state_t *state, byte_t cond) {
   byte_t flags = get_flags(state);
@@ -33,19 +32,18 @@ int condition(emulate_state_t *state, byte_t cond) {
       return 1;
     default:
       fprintf(stderr, "Invalid cond flag %x\n", cond);
-      //free_state();
       return 0;
   }
 }
 
 /**
- *  Evaluates the value of shifted reg and stores result.
+ *  Evaluate the value of shifted reg and stores result.
  *  Called from evaluateOperand or from evaluateOffset
  *
- *  @param - emulate_state_t *state is pointer to state of program
- *  @param - operand_t op operand/offset from evaluateOperand or evaluateOffset
- *  @param - shift_result_t *result is the pointer to the result,
- *           so that changes can be made directly to it.
+ *  @param state: pointer to state of program
+ *  @param op: operand/offset from evaluateOperand or evaluateOffset
+ *  @param result: pointer to the result,
+ *  so that changes can be made directly to it.
  */
 void evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *result) {
   word_t rm = get_register(state, op.reg.rm);
@@ -75,20 +73,20 @@ void evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *
 }
 
 /**
- * Evaluates the operand and returns the result
+ * Evaluate the operand and returns the result
  *
- * @param - emulate_state_t *state is pointer to the program_state state
- * @param - flag_t I is the flag that determines the meaning of operand
- * @param - operand_t op is the operand being evaluated
- * @return - the result of evaluating the operand
+ * @param state: pointer to state of program
+ * @param I: flag that determines the meaning of operand
+ * @param op: operand being evaluated
+ * @return: result of evaluating the operand
  */
-shift_result_t evaluate_operand(emulate_state_t *state, flag_t I, operand_t op){
+shift_result_t evaluate_operand(emulate_state_t *state, flag_t I,
+                                operand_t op) {
   shift_result_t result;
   if (I) {
 
     result.value = left_pad_zeros(op.imm.rotated.value);
     result = rotate_right_c(result.value, op.imm.rotated.rotate * 2);
-
 
   } else {
     evaluate_shifted_reg(state, op, &result);
@@ -97,14 +95,14 @@ shift_result_t evaluate_operand(emulate_state_t *state, flag_t I, operand_t op){
 }
 
 /**
- * Evaluates the offset and returns the result from
+ * Evaluate the offset and returns the result
  *
- * @param - emulate_state_t *state is pointer to the program_state state
- * @param - flag_t I is the flag that determines the meaning of offset
- * @param - operand_t op is the offset being evaluated
- * @return - the result of evaluating the offset
+  * @param state: pointer to state of program
+ * @param I: flag that determines the meaning of offset
+ * @param op: offset being evaluated
+ * @return: result of evaluating the offset
  */
-shift_result_t evaluate_offset(emulate_state_t *state, flag_t I, operand_t op){
+shift_result_t evaluate_offset(emulate_state_t *state, flag_t I, operand_t op) {
   shift_result_t result;
   if (I) {
     evaluate_shifted_reg(state, op, &result);
@@ -120,6 +118,7 @@ shift_result_t evaluate_offset(emulate_state_t *state, flag_t I, operand_t op){
  *
  *  @param state: pointer to the program_state state
  *  @param instr: the instruction to execute
+ *  @return: integer error code returned by a particular execute function
  */
 int execute(emulate_state_t *state) {
   instruction_t *decoded = state->pipeline.decoded;
@@ -140,7 +139,6 @@ int execute(emulate_state_t *state) {
                  return execute_brn(state, decoded->i.brn);
       default:fprintf(stderr, "Invalid type%x\n", decoded->type);
         return 2;
-        //free_state();
     }
   }
   return 0;
@@ -150,11 +148,12 @@ int execute(emulate_state_t *state) {
  *  Execute Data Processing instruction
  *
  *  @param state: pointer to the program_state state
- *  @param instr: the DP instruction to execute
+ *  @param instr: DP instruction to execute
+ *  @return: integer error code based on success of the function
  */
 int execute_dp(emulate_state_t *state, dp_instruction_t instr) {
   shift_result_t barrel = evaluate_operand(state, instr.I, instr.operand2);
-        word_t op2 = barrel.value;
+  word_t op2 = barrel.value;
   word_t result = 0;
   word_t rn = get_register(state, instr.rn);
   switch (instr.opcode) {
@@ -220,6 +219,7 @@ int execute_dp(emulate_state_t *state, dp_instruction_t instr) {
  *
  *  @param state: pointer to the program_state state
  *  @param instr: the MUL instruction to execute
+ *  @return: integer error code based on success of the function
  */
 int execute_mul(emulate_state_t *state, mul_instruction_t instr) {
   // Cast the operands to 64 bit since this is the max result of A * B
@@ -237,7 +237,7 @@ int execute_mul(emulate_state_t *state, mul_instruction_t instr) {
 
   // Mask to get only lower 32 bits of Rd, signed/unsigned does not affect these
   uint64_t mask = ~(UINT64_MAX - UINT32_MAX);
-  uint32_t Rd = (u_int32_t) (res & mask);
+  uint32_t Rd = (u_int32_t)(res & mask);
 
   // Set flag bits
   if (instr.S) {
@@ -266,13 +266,14 @@ int execute_mul(emulate_state_t *state, mul_instruction_t instr) {
  *  Execute a branch instruction
  *
  *  @param state: pointer to the program_state state
- *  @param instr: the BRN instruction to execute
+ *  @param instr: BRN instruction to execute
+ *  @return: integer error code based on success of the function
  */
 int execute_brn(emulate_state_t *state, brn_instruction_t instr) {
   word_t pc = get_pc(state);
 
   //Shift offset left by 2 bits
-     word_t shiftedOffset = l_shift_left(instr.offset, 0x2);
+  word_t shiftedOffset = l_shift_left(instr.offset, 0x2);
 
   //Sign extend offset to 32 bits
   shiftedOffset |= (shiftedOffset >> 23) ? OFFSET_BITMASK : 0x0;
@@ -293,7 +294,8 @@ int execute_brn(emulate_state_t *state, brn_instruction_t instr) {
  *  Execute Single Data Transfer instruction
  *
  *  @param state: pointer to the program_state state
- *  @param instr: the SDT instruction to execute
+ *  @param instr: SDT instruction to execute
+ *  @return: integer error code based on success of the function
  */
 int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
   shift_result_t barrel = evaluate_offset(state, instr.I, instr.offset);
@@ -310,15 +312,15 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
     } else {
       rn -= offset;
     }
-         if (instr.L) {
+    if (instr.L) {
       //Load from memory at address rn into reg rd.
       if (!get_mem_word(state, rn, &data)) {
         set_register(state, instr.rd, data);
       }
-           } else {
+    } else {
       //Store contents of reg rd in memory at address rn.
-             set_mem_word(state, rn, get_register(state, instr.rd));
-           }
+      set_mem_word(state, rn, get_register(state, instr.rd));
+    }
     return 0;
   } else {
     //Post-indexing
@@ -330,8 +332,8 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
 
     } else {
       //Store contents of reg rd in memory at address rn.
-             set_mem_word(state, rn, get_register(state, instr.rd));
-           }
+      set_mem_word(state, rn, get_register(state, instr.rd));
+    }
     if (instr.U) {
       rn += offset;
     } else {
@@ -339,7 +341,7 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
     }
 
     //Change contents of reg rn (the base register)
-         set_register(state, instr.rn, rn);
+    set_register(state, instr.rn, rn);
     return 0;
   }
 }
@@ -349,6 +351,7 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
  *
  *  @param state: pointer to the program_state state
  *  @param instr: the halt instruction to execute
+ *  @return: integer error code based on success of the function
  */
 int execute_halt(emulate_state_t *state) {
   print_state(state);
