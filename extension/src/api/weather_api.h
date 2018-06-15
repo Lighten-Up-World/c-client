@@ -7,7 +7,6 @@
 
 #include "../apimanager.h"
 
-
 #define WEATHER_HOST_2 "api.darksky.net"
 #define WEATHER_PATH_2 "forecast/bf050bc7f491ed6167290c1fe09c95d7/%f,%f"
 
@@ -21,6 +20,5 @@ int temp_get_pixel_for_xy(pixel_t *pixel);
 //WIND SPEED
 
 int windspeed_get_pixel_for_xy(pixel_t *pixel);
-
 
 #endif

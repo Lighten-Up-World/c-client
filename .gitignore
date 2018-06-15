@@ -31,6 +31,7 @@ src/build/*
 src/out
 *.gch
 build/*
+extension/src/build/*
 
 #ignore junk files from compiling Haskell code
 *.hi
@@ -42,9 +43,8 @@ build/*
 src/unit_tests/build/*
 
 #ignore extension layouts
-extension/src/build/*
-extension/layout/*.txt
-extension/layout/*.csv
+#extension/layout/*.txt
+#extension/layout/*.json
 
 #ignore other junk files
 *.backup
