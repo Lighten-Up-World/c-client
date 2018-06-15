@@ -25,6 +25,7 @@ int weather_get_val_for_xy(pixel_t *pixel, char *attr, char *object, double *val
 
   geolocation_t geoloc = grid_geolocation(pixel->grid.x, pixel->grid.y);
 
+  printf("%f \n", merc_y(70));
   printf("x: %d, y: %d, lat: %f, lon: %f \n",pixel->grid.x, pixel->grid.y, geoloc.latitude, geoloc.longitude);
 
 

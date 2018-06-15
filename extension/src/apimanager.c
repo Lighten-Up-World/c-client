@@ -112,7 +112,7 @@ int socket_connect(const char *host, in_port_t port) {
     exit(1);
   }
 
-  bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+  memcpy(&addr.sin_addr, hp->h_addr, hp->h_length);
   addr.sin_port = htons(port);
   addr.sin_family = AF_INET;
   sock = socket(AF_INET, SOCK_STREAM, 0);
