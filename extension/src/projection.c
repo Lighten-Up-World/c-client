@@ -70,6 +70,5 @@ grid_t geolocation2grid(double latitude, double longitude){
 }
 
 geolocation_t grid2geolocation(int x, int y){
-  printf("%f %f\n", gridx2m(x), gridy2m(y));
   return (geolocation_t){y2lat_m(gridy2m(y)), x2lon_m(gridx2m(x))};
 }
