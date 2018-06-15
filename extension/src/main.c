@@ -19,7 +19,7 @@
 #define MAX_Y_GRID 24
 #define NUM_PIXELS 471
 
-#define CONFIG_FILE "simulation/layout/CoordsToListPos.txt"
+#define CONFIG_FILE "layout/CoordsToListPos.txt"
 #define HOST_AND_PORT "127.0.0.1:7890"
 
 volatile int interrupted = 0;
