@@ -126,7 +126,6 @@ int execute(emulate_state_t *state) {
     return execute_halt(state);
   }
 
-
   if (condition(state, decoded->cond)) {
     switch (decoded->type) {
       case DP:
