@@ -1,3 +1,9 @@
+/*
+ * Contains function parse which, given the tokens for a program line, generates
+ * an instruction_t struct (defined in instructions.h), making it simpler
+ * to encode.
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

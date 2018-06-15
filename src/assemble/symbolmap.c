@@ -1,3 +1,8 @@
+/*
+ * Contains functions for a symbol map, which associates labels
+ * with memory addresses, used when parsing a branch instruction.
+ */
+
 #include "symbolmap.h"
 #include "../utils/error.h"
 

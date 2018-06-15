@@ -1,3 +1,8 @@
+/*
+ * Contains function encode which, given the instruction_t struct, produces the
+ * corresponding binary word instruction.
+ */
+
 #include <assert.h>
 #include <stdio.h>
 

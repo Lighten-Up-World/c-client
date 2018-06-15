@@ -1,3 +1,8 @@
+/*
+ * Contains function tokenize which takes in a program line and stores an array
+ * of substrings (tokens) such as ["mov', "r2" ,",", "\#1"] for parsing.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

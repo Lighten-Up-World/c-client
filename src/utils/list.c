@@ -1,3 +1,9 @@
+/*
+ * Supports an arbitrary linked list data structure, used for storing binary
+ * words that should be written at the end of the binary file, and for storing
+ * tokens in a program line.
+ */
+
 /* TODO: COMMENT YOUR CODE (DAN) */
 
 #include "list.h"

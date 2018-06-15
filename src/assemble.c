@@ -1,3 +1,9 @@
+/*
+ * Contains the main function which reads in the lines of the program. Then,
+ * each line is tokenized, parsed and encoded into binary words. The binary
+ * words are written to an out file.
+ */
+
 #include <stdlib.h>
 #include <assert.h>
 #include "utils/arm.h"

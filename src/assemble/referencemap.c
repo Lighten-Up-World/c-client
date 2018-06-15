@@ -1,3 +1,9 @@
+/*
+ * Contains structs and functions for a reference map, which associates a
+ * label to a list of addresses where the label is referenced, used when a
+ * label referenced before its declared.
+ */
+
 #include <stdio.h>
 #include <strings.h>
 #include <assert.h>
