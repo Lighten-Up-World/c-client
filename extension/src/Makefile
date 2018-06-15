@@ -1,6 +1,9 @@
 .PHONY: clean
 .PHONY: run
 .PHONY: mkdir
+PATHROOT = ../../
+PATHOPC = openpixelcontrol/
+PATHLAYOUT = extension/src/simulation/layout/
 
 PATHS = ./
 PATHJSON = parson/
@@ -17,15 +20,18 @@ COMPILE=gcc -c
 LINK=gcc
 
 DEBUG = -DDEBUG
-CFLAGS = -Wall -Werror -pedantic -g -O0 -std=c99 $(DEBUG)
+CFLAGS = -Wall -Werror -pedantic -g -O0 -std=gnu99 $(DEBUG)
 
 MODE = temp
 
-simulation: mkdir control $(PATHB)main.out
-	cd simulation; make
+simulation: mkdir server $(PATHB)main.out
 
-control:
-	cd ../../openpixelcontrol; make
+server: layout
+	cd $(PATHROOT)$(PATHOPC); make
+	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json
+
+layout:
+	cd simulation/layout; make
 
 run: mkdir $(PATHB)main.out
 	./build/main.out $(MODE)
