@@ -22,17 +22,23 @@
 #define CONFIG_FILE "simulation/layout/CoordsToListPos.txt"
 #define HOST_AND_PORT "127.0.0.1:7890"
 
+volatile int interrupted = 0;
+
+void handle_user_exit(int _) {
+  interrupted = 1;
+}
+
 
 int main(int argc, const char * argv[]) {
   assert(argc > 1);
   pixel pixels[NUM_PIXELS];
 
-  u8 channel = 0;
+  uint8_t channel = 0;
   opc_sink s;
   // Open connection
   s = opc_new_sink("127.0.0.1:7890");
 
-  u8 ret = opc_put_pixels(s, channel, NUM_PIXELS, pixels);
+  opc_put_pixels(s, channel, NUM_PIXELS, pixels);
 
   for(int p = 0; p < NUM_PIXELS; p++) {
     pixels[p] = (pixel){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
@@ -49,9 +55,11 @@ int main(int argc, const char * argv[]) {
   char buffer[100];
   int count = 0;
 
-  while (true){
+  signal(SIGINT, handle_user_exit);
+
+  while (!interrupted){
     fseek(file, 0, SEEK_SET);
-    while (fgets(buffer, (int) line_size, file) != NULL){
+    while (fgets(buffer, (int) line_size, file) != NULL && !interrupted){
 
       sleep(1);
       int x = atoi(strtok(buffer, " "));
@@ -80,6 +88,6 @@ int main(int argc, const char * argv[]) {
       count ++;
     }
   }
-
+  opc_close(s);
   return 0;
 }
