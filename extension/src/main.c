@@ -71,14 +71,10 @@ int main(int argc, const char * argv[]) {
       if (strncmp("temp", argv[1], strlen(argv[1])) == 0){
         if(temp_get_pixel_for_xy(&pix) < 0){
           printf("Failed \n");
-        }else{
-          printf("x: %d, y: %d, r: %d, g: %d, b: %d \n", pix.grid.x, pix.grid.y, pix.colour.red, pix.colour.green, pix.colour.blue);
         }
       }else if (strncmp("windspeed", argv[1], strlen(argv[1])) == 0){
         if(windspeed_get_pixel_for_xy(&pix) < 0){
           printf("Failed \n");
-        }else{
-          printf("x: %d, y: %d, r: %d, g: %d, b: %d \n", pix.grid.x, pix.grid.y, pix.colour.red, pix.colour.green, pix.colour.blue);
         }
       }
       location = atoi(strtok(NULL, " "));
