@@ -53,7 +53,7 @@ void evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *
   } else { //Shift by constant
     shiftAmount = op.reg.shift.constant.integer;
   }
-        switch (op.reg.type) {
+  switch (op.reg.type) {
     case LSL:
       *result = l_shift_left_c(rm, shiftAmount);
       break;
@@ -130,14 +130,15 @@ int execute(emulate_state_t *state) {
   if (condition(state, decoded->cond)) {
     switch (decoded->type) {
       case DP:
-                 return execute_dp(state, decoded->i.dp);
+        return execute_dp(state, decoded->i.dp);
       case MUL:
-                 return execute_mul(state, decoded->i.mul);
+        return execute_mul(state, decoded->i.mul);
       case SDT:
-                 return execute_sdt(state, decoded->i.sdt);
+        return execute_sdt(state, decoded->i.sdt);
       case BRN:
-                 return execute_brn(state, decoded->i.brn);
-      default:fprintf(stderr, "Invalid type%x\n", decoded->type);
+        return execute_brn(state, decoded->i.brn);
+      default:
+        fprintf(stderr, "Invalid type%x\n", decoded->type);
         return 2;
     }
   }
