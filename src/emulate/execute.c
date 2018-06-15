@@ -270,6 +270,7 @@ int execute_mul(emulate_state_t *state, mul_instruction_t instr) {
  *  @return: integer error code based on success of the function
  */
 int execute_brn(emulate_state_t *state, brn_instruction_t instr) {
+  int _status = EC_OK;
   word_t pc = get_pc(state);
 
   //Shift offset left by 2 bits
@@ -283,11 +284,11 @@ int execute_brn(emulate_state_t *state, brn_instruction_t instr) {
   set_pc(state, pc + (int32_t) shiftedOffset);
 
   // Fetch new word at PC
-  get_mem_word(state, get_pc(state), &state->pipeline.fetched);
-  *state->pipeline.decoded = decode_word(state->pipeline.fetched);
+  get_mem_word(state, get_pc(state), state->pipeline.fetched);
+  _status = decode_word(state->pipeline.decoded, *state->pipeline.fetched);
   increment_pc(state);
-  get_mem_word(state, get_pc(state), &state->pipeline.fetched);
-  return 1;
+  get_mem_word(state, get_pc(state), state->pipeline.fetched);
+  return _status;
 }
 
 /**

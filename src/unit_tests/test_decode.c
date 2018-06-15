@@ -114,7 +114,8 @@ void test_decodeDp_rotated_immediate(void) {
           }
       }
   };
-  instruction_t decoded = decode_word(dp_tst_op2rotatedI_w);
+  instruction_t decoded;
+  decode_word(&decoded, dp_tst_op2rotatedI_w);
   instruction_t expected = dp_tst_op2rotatedI_i;
   compareInstructions(expected, decoded);
 }
@@ -138,7 +139,8 @@ void test_decodeDp_shifted_register(void) {
           },
       }
   };
-  instruction_t decoded = decode_word(dp_ORR_op2shiftedR_w);
+  instruction_t decoded;
+  decode_word(&decoded, dp_ORR_op2shiftedR_w);
   instruction_t expected = dp_ORR_op2shiftedR_i;
   compareInstructions(expected, decoded);
 }
@@ -159,7 +161,8 @@ void test_decodeSDT_invalid_register(void) {
           .offset.imm.fixed = 0x0
       }
   };
-  instruction_t decoded = decode_word(sdt_and_invalidreg_w);
+  instruction_t decoded;
+  decode_word(&decoded, sdt_and_invalidreg_w);
   instruction_t expected = sdt_and_invalidreg_i;
   compareInstructions(expected, decoded);
 
@@ -180,7 +183,8 @@ void test_decodeMul(void) {
           .rm = 0x2
       }
   };
-  instruction_t decoded = decode_word(mul_w);
+  instruction_t decoded;
+  decode_word(&decoded, mul_w);
   instruction_t expected = mul_i;
   compareInstructions(expected, decoded);
 }
@@ -195,7 +199,8 @@ void test_decodeBrn(void) {
           .offset = 0x32
       }
   };
-  instruction_t decoded = decode_word(brn_w);
+  instruction_t decoded;
+  decode_word(&decoded, brn_w);
   instruction_t expected = brn_i;
   compareInstructions(expected, decoded);
 }
@@ -210,7 +215,8 @@ void test_decodeBrn2(void) {
           .offset = 0xFFFFFF
       }
   };
-  instruction_t decoded = decode_word(brn_w);
+  instruction_t decoded;
+  decode_word(&decoded, brn_w);
   instruction_t expected = brn_i;
   compareInstructions(expected, decoded);
 }
@@ -225,7 +231,8 @@ void test_decodeBrn3(void) {
           .offset = 0x800001
       }
   };
-  instruction_t decoded = decode_word(brn_w);
+  instruction_t decoded;
+  decode_word(&decoded, brn_w);
   instruction_t expected = brn_i;
   compareInstructions(expected, decoded);
 }
@@ -237,30 +244,8 @@ void test_decodeHal(void) {
       .cond = 0x0,
       .i.hal.pad0 = 0x0
   };
-  instruction_t decoded = decode_word(hal_w);
+  instruction_t decoded;
+  decode_word(&decoded, hal_w);
   instruction_t expected = hal_i;
   compareInstructions(expected, decoded);
 }
-
-// TODO: translate into unit_tests code?
-// main to unit_tests decodeBrn decode.c
-/*int main() {
-  instruction_t inst;
-  word_t w2 = 0b11111010111111111111111111111111;
-  word_t w3 = 0b00001010000000000000000000000000;
-
-  inst = decode_word(w2);
-  assert(inst.type == BRN);
-  assert(inst.cond == 0b1111);
-  assert(inst.i.brn.offset == 0b111111111111111111111111);
-  assert(inst.i.brn.pad5 == 0b101);
-  assert(inst.i.brn.pad0 == 0b0);
-
-  inst = decode_word(w3);
-  assert(inst.type == BRN);
-  assert(inst.cond == 0b0000);
-  assert(inst.i.brn.offset == 0b000000000000000000000000);
-  assert(inst.i.brn.pad5 == 0b101);
-  assert(inst.i.brn.pad0 == 0b0);
-
-}*/
