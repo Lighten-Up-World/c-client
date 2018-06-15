@@ -44,7 +44,7 @@ src/test/build/*
 
 #ignore extension layouts
 extension/layout/*.txt
-extension/layout/*.csv
+extension/layout/*.json
 
 #ignore other junk files
 *.backup
