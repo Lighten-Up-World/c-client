@@ -76,6 +76,7 @@ int get_pixel_location(uint8_t x, uint8_t y, const char *config_file) {
   }
 
   cleanup:
+  free(buffer);
   if (fclose(file)) {
     perror("File could not be closed");
     exit(EC_SYS);

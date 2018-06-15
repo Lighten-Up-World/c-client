@@ -26,6 +26,6 @@ double merc_lon (double x);
 double merc_lat (double y);
 
 grid_t geolocation_grid(double latitude, double longitude);
-geolocation_t grid_geolocation(double x, double y);
+geolocation_t grid_geolocation(int x, int y);
 
 #endif

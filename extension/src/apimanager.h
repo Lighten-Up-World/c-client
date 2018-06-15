@@ -30,12 +30,6 @@ typedef struct geolocation geolocation_t;
 
 #include "projection.h"
 
-typedef int (*get_pixel_func) (api_manager_t *self, pixel_t *pixel, void *obj);
-struct api_manager {
-    get_pixel_func get_pixel;
-};
-
-
 //GENERAL
 
 struct geolocation{
@@ -56,10 +50,8 @@ typedef struct http_request{
 }http_request_t;
 
 int socket_connect(const char *host, in_port_t port);
+int socket_close(int sockfd);
 
-api_manager_t *api_manager_new(void);
-int api_manager_delete(api_manager_t *self);
-
-int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path ,char *attr, double *val);
+int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path ,char *attr, char *object, double *val);
 
 #endif /* apimanager_h */

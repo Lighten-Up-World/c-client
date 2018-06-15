@@ -1,8 +1,8 @@
 #include <zconf.h>
 #include <printf.h>
 #include <unistd.h>
-#include "../opc.h"
-#include "../opc_client.c"
+#include "../opc/opc.h"
+#include "../opc/opc_client.c"
 #include "grid_to_opc.c"
 
 // Refresh rate

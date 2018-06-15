@@ -16,7 +16,7 @@ specific language governing permissions and limitations under the License.
 #include "opc_client.h"
 
 int opc_resolve(char  *s, struct sockaddr_in* address, u16 default_port) {
-  struct hostent* host;
+  //struct hostent* host;
   struct addrinfo* addr;
   struct addrinfo* ai;
   long port = 0;

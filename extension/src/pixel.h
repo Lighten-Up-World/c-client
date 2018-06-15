@@ -7,6 +7,8 @@
 #define GRID_WIDTH 52
 #define GRID_HEIGHT 24
 
+#define PIXEL_COLOUR_MAX 255.0
+
 typedef uint32_t intensity_t;
 
 typedef struct colour{

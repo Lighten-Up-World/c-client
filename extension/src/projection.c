@@ -39,6 +39,13 @@ double merc_lat (double y) {
         return rad_deg (phi);
 }
 
+double grid_merc_x(int x){
+  return (((double)x * 2 * MAX_X) / GRID_WIDTH) - MAX_X;
+}
+
+double grid_merc_y(int y){
+  return (((double)y * 2 * MAX_Y) / GRID_HEIGHT) - MAX_Y;
+}
 
 int grid_x(double lon){
   return (merc_x(lon) + MAX_X) / (2 * (double)MAX_X / (double)GRID_WIDTH);
@@ -52,6 +59,6 @@ grid_t geolocation_grid(double latitude, double longitude){
   return (grid_t){grid_x(longitude), grid_y(latitude)};
 }
 
-geolocation_t grid_geolocation(double x, double y){
-  return (geolocation_t){merc_lat(y * MAX_Y), merc_lon(x * MAX_X)};
+geolocation_t grid_geolocation(int x, int y){
+  return (geolocation_t){merc_lat(grid_merc_y(y)), merc_lon(grid_merc_x(x))};
 }
