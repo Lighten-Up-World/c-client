@@ -1,0 +1,67 @@
+.PHONY: clean
+.PHONY: run
+.PHONY: mkdir
+PATHROOT = ../../
+PATHOPC = openpixelcontrol/
+PATHLAYOUT = extension/src/simulation/layout/
+
+PATHS = ./
+PATHJSON = parson/
+PATHAPI = api/
+PATHB = build/
+PATHOBJ = build/objs/
+
+BUILD_PATHS = $(PATHB) $(PATHOBJ)
+
+SRCT = $(wildcard $(PATHT)*.c)
+SRCRUN = $(wildcard $(PATHRUN)*.c)
+
+COMPILE=gcc -c
+LINK=gcc
+
+DEBUG = -DDEBUG
+CFLAGS = -Wall -Werror -pedantic -g -O0 -std=gnu99 $(DEBUG)
+
+MODE = temp
+
+simulation: mkdir server $(PATHB)main.out
+
+server: layout
+	cd $(PATHROOT)$(PATHOPC); make
+	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json
+
+layout:
+	cd simulation/layout; make
+
+run: mkdir $(PATHB)main.out
+	./build/main.out $(MODE)
+
+$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o
+	$(LINK) -o $@ $^ -lm
+
+$(PATHB)%.out: $(PATHOBJ)%.o
+	$(LINK) -o $@ $^ -lm
+
+$(PATHOBJ)%.o: $(PATHS)%.c
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHOBJ)%.o: $(PATHAPI)%.c $(PATHAPI)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+mkdir: $(PATHB) $(PATHOBJ)
+
+$(PATHB):
+	mkdir -p $(PATHB)
+
+$(PATHOBJ):
+	mkdir -p $(PATHOBJ)
+
+clean:
+	rm -f $(PATHOBJ)*.o
+	rm -f $(PATHB)*.out
+
+.PRECIOUS: $(PATHB)test_%.out
+.PRECIOUS: $(PATHOBJ)%.o

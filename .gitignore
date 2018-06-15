@@ -30,6 +30,7 @@ doc/*.out
 src/build/*
 src/out
 *.gch
+build/*
 
 #ignore junk files from compiling Haskell code
 *.hi
@@ -39,6 +40,11 @@ src/out
 
 #Ignore test outputs
 src/unit_tests/build/*
+
+#ignore extension layouts
+extension/src/build/*
+extension/layout/*.txt
+extension/layout/*.csv
 
 #ignore other junk files
 *.backup
