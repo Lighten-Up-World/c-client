@@ -5,11 +5,9 @@ Written in C for Imperial College London's Summer term project.
 2. _Assembler:_ translates an ARM assembly source file into a
 binary file that can subsequently be executed by the emulator
 3. _LED:_ ARM assembly program that flashes an LED on a provided Raspberry Pi
-4. _Extension:_
+4. _Extension "Lighten up World":_ Our general-purpose data visualisation project. Designed to represent data from a variety of sources.
 
-## Organisation
-- (Google Sheets)[https://docs.google.com/spreadsheets/d/1BZWoV53lNt4TEUStpAOUYNjc-zwfWrU1gSXl8XtwFN0/edit#gid=0]
-## Source Code
+## Emulator/Assembler
 
 See `src` directory.
 
@@ -18,46 +16,32 @@ See `src` directory.
 
 You can compile emulate using `make emulate`, and assemble using `make assemble`.
 
+
 ## Tests
 
-See `test` directory.
+- See `test` directory for the ruby test suite.
+- See `src/unit_tests` directory for the unit tests.
 
-- TO DO: Setup make files for testing.
+Run `make` to compile emulate/assemble. Then this will run the unit_test and the ruby tests. Ensure submodules are imported using `git submodule init` and `git submodule update`
 
+## Extension
 
-# Project Title
+- See `extension` directory for the extension code.
 
-One Paragraph of project description goes here
+**Prerequistes:** If you're using Linux, first get the dependencies you need
+(Mac users skip to step 2):
 
-## Getting Started
+    apt-get install mesa-common-dev freeglut3-dev
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+Run `make` inside extension src folder to run the opengl viewer.
+Ensure submodules are imported using `git submodule init` and `git submodule update`
 
-### Prerequisites
-
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
+Fun commands to try:
+-  `make conway`
+-  `make raverplaid`
+-  `make lavalamp`
+-  `make simulation` for a heatmap of the world.
+-  `make simulation MODE=windspeed` for a windspeed data.
 
 ## Git
 [Git Branching Model](http://nvie.com/posts/a-successful-git-branching-model/)
