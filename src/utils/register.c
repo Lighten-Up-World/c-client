@@ -56,7 +56,7 @@ word_t get_register(emulate_state_t *state, reg_address_t reg) {
  *  @param state: non-null pointer to the machine state
  *  @param reg: register's address
  */
-void set_register(emulate_state_t *state, reg_address_t reg, word_t value) {
+int set_register(emulate_state_t *state, reg_address_t reg, word_t value) {
   if (!is_valid_register(reg)) {
     return EC_INVALID_PARAM;
   }
@@ -68,9 +68,11 @@ void set_register(emulate_state_t *state, reg_address_t reg, word_t value) {
   }
   if (reg == REG_N_PC) {
     state->registers.pc = value;
+    return EC_OK;
   }
   if (reg == REG_N_CPSR) {
     state->registers.cpsr = value;
+    return EC_OK;
   }
   return EC_INVALID_PARAM;
 }

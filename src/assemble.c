@@ -24,7 +24,7 @@
  * @return: pointer to the array containing input, with memory allocated but
  * not initialised
  */
-char **allocate_input(int lines, int lineLength) {
+static char **allocate_input(int lines, int lineLength) {
   char **in = malloc(lines * sizeof(char *));
   if (in == NULL) {
     return NULL;
@@ -48,7 +48,7 @@ char **allocate_input(int lines, int lineLength) {
  * @param program_state: desired program_state to remove from memory
  * @return: free will always succeed so returns EC_OK
  */
-int program_delete(assemble_state_t *program) {
+static int program_delete(assemble_state_t *program) {
   if (program) {
     free(program->out);
     // free input characters
@@ -73,7 +73,7 @@ int program_delete(assemble_state_t *program) {
  *
  * @return: pointer to an uninitialised program
  */
-assemble_state_t *program_new(void) {
+static assemble_state_t *program_new(void) {
   assemble_state_t *program;
   program = calloc(sizeof(assemble_state_t), 1);
   if (program == NULL) {
@@ -126,7 +126,7 @@ assemble_state_t *program_new(void) {
  * @param program: pointer to the program state
  * @return: integer error code to represent success or failure
  */
-int write_program(char *path, assemble_state_t *program) {
+static int write_program(char *path, assemble_state_t *program) {
   int no_bytes = program->mPC + program->additional_words->len * 4;
   program->out = realloc(program->out, sizeof(byte_t) * no_bytes);
   if (program->out == NULL) {

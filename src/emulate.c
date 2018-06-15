@@ -10,7 +10,7 @@
  *
  * @return: heap-allocated emulate_state_t struct
  */
-emulate_state_t *emulate_state_new() {
+static emulate_state_t *emulate_state_new() {
   emulate_state_t *state = calloc(1, sizeof(emulate_state_t));
   MEM_CHECK(state, NULL);
   state->pipeline.decoded = calloc(1, sizeof(instruction_t));
@@ -26,7 +26,7 @@ emulate_state_t *emulate_state_new() {
  *
  * @param state: pointer to the emulate_state_t to free
  */
-void emulate_state_free(emulate_state_t *state) {
+static void emulate_state_free(emulate_state_t *state) {
   if (state) {
     free(state->pipeline.decoded);
     free(state->pipeline.fetched);
