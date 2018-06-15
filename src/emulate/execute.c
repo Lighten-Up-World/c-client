@@ -45,15 +45,17 @@ int condition(emulate_state_t *state, byte_t cond) {
  *  @param result: pointer to the result,
  *  so that changes can be made directly to it.
  */
-void evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *result) {
+int evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *result) {
   word_t rm = get_register(state, op.reg.rm);
   byte_t shiftAmount = 0;
-     if (op.reg.shiftBy) { //Shift by register
+  if (op.reg.shiftBy) { //Shift by register
     shiftAmount = get_byte(get_register(state, op.reg.shift.shiftreg.rs), 7);
-  } else { //Shift by constant
+  }
+  //Shift by constant
+  else {
     shiftAmount = op.reg.shift.constant.integer;
   }
-        switch (op.reg.type) {
+  switch (op.reg.type) {
     case LSL:
       *result = l_shift_left_c(rm, shiftAmount);
       break;
@@ -67,9 +69,9 @@ void evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *
       *result = rotate_right_c(rm, shiftAmount);
       break;
     default:
-      //TODO: Add proper error handling code
-      exit(EXIT_FAILURE);
+      return EC_UNSUPPORTED_OP;
   }
+  return EC_OK;
 }
 
 /**
@@ -84,7 +86,6 @@ shift_result_t evaluate_operand(emulate_state_t *state, flag_t I,
                                 operand_t op) {
   shift_result_t result;
   if (I) {
-
     result.value = left_pad_zeros(op.imm.rotated.value);
     result = rotate_right_c(result.value, op.imm.rotated.rotate * 2);
 
@@ -106,7 +107,8 @@ shift_result_t evaluate_offset(emulate_state_t *state, flag_t I, operand_t op) {
   shift_result_t result;
   if (I) {
     evaluate_shifted_reg(state, op, &result);
-  } else {
+  }
+  else {
     result.carry = 0;
     result.value = op.imm.fixed;
   }
@@ -126,22 +128,22 @@ int execute(emulate_state_t *state) {
     return execute_halt(state);
   }
 
-
   if (condition(state, decoded->cond)) {
     switch (decoded->type) {
       case DP:
-                 return execute_dp(state, decoded->i.dp);
+        return execute_dp(state, decoded->i.dp);
       case MUL:
-                 return execute_mul(state, decoded->i.mul);
+        return execute_mul(state, decoded->i.mul);
       case SDT:
-                 return execute_sdt(state, decoded->i.sdt);
+        return execute_sdt(state, decoded->i.sdt);
       case BRN:
-                 return execute_brn(state, decoded->i.brn);
-      default:fprintf(stderr, "Invalid type%x\n", decoded->type);
-        return 2;
+        return execute_brn(state, decoded->i.brn);
+      default:
+        fprintf(stderr, "Invalid type%x\n", decoded->type);
+        return EC_UNSUPPORTED_OP;
     }
   }
-  return 0;
+  return EC_OK;
 }
 
 /**
@@ -211,7 +213,7 @@ int execute_dp(emulate_state_t *state, dp_instruction_t instr) {
   if (instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP) {
     set_register(state, instr.rd, result);
   }
-  return 0;
+  return EC_OK;
 }
 
 /**
@@ -259,7 +261,7 @@ int execute_mul(emulate_state_t *state, mul_instruction_t instr) {
 
   // Store result in Rd
   set_register(state, instr.rd, Rd);
-  return 0;
+  return EC_OK;
 }
 
 /**
@@ -288,7 +290,7 @@ int execute_brn(emulate_state_t *state, brn_instruction_t instr) {
   _status = decode_word(state->pipeline.decoded, *state->pipeline.fetched);
   increment_pc(state);
   get_mem_word(state, get_pc(state), state->pipeline.fetched);
-  return _status;
+  return _status == EC_OK ? EC_SKIP : _status;
 }
 
 /**
@@ -307,7 +309,6 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
 
   if (instr.P) {
     //Pre-indexing
-
     if (instr.U) {
       rn += offset;
     } else {
@@ -322,7 +323,7 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
       //Store contents of reg rd in memory at address rn.
       set_mem_word(state, rn, get_register(state, instr.rd));
     }
-    return 0;
+    return EC_OK;
   } else {
     //Post-indexing
     if (instr.L) {
@@ -343,7 +344,7 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
 
     //Change contents of reg rn (the base register)
     set_register(state, instr.rn, rn);
-    return 0;
+    return EC_OK;
   }
 }
 
@@ -356,5 +357,5 @@ int execute_sdt(emulate_state_t *state, sdt_instruction_t instr) {
  */
 int execute_halt(emulate_state_t *state) {
   print_state(state);
-  return 0;
+  return EC_OK;
 }
