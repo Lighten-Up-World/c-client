@@ -24,6 +24,41 @@ See `test` directory.
 
 - TO DO: Setup make files for testing.
 
+
+# Project Title
+
+One Paragraph of project description goes here
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+What things you need to install the software and how to install them
+
+```
+Give examples
+```
+
+### Installing
+
+A step by step series of examples that tell you how to get a development env running
+
+Say what the step will be
+
+```
+Give the example
+```
+
+And repeat
+
+```
+until finished
+```
+
+End with an example of getting some data out of the system or using it for a little demo
+
 ## Git
 [Git Branching Model](http://nvie.com/posts/a-successful-git-branching-model/)
 ### [Meaningful Messages](https://chris.beams.io/posts/git-commit/))
@@ -36,7 +71,7 @@ See `test` directory.
 7. Use the body to explain what and why vs. how
 
 ### Branching Checklist
-To create a new feature branch
+To create a new feature branchz
 1. `git status` - Make sure you are in develop branch and all pre-requisite features have been merged. `git checkou develop` if not.
 2. `git checkout -b myfeature develop`
 To incorporate finished feature on develop.
@@ -59,3 +94,16 @@ See `doc` directory.
 - `Report.tex` is the final report.
 
 ## Programs
+
+## Authors
+
+* **Tiger Cross**
+* **Daniel Hails**
+* **Will Burr**
+* **Mat**
+
+## Acknowledgments
+
+* Hat tip to anyone whose code was used
+* Inspiration
+* etc
