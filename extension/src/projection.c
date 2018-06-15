@@ -44,7 +44,7 @@ double grid_merc_x(int x){
 }
 
 double grid_merc_y(int y){
-  return (((double)y * 2 * MAX_Y) / GRID_HEIGHT) - MAX_Y;
+  return (((double)y * 2 * MAX_Y + 1000000) / GRID_HEIGHT) - MAX_Y;
 }
 
 int grid_x(double lon){
