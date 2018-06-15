@@ -4,6 +4,8 @@
 
 #include "weather_api.h"
 
+//// TEMPERATURE ////
+
 /***
  * WEATHER GET VAL FOR XY
  * Performs common processing for the get_pixel functions.
@@ -84,6 +86,8 @@ int temp_get_pixel_for_xy(pixel_t *pixel) {
 
   return 0;
 }
+
+//// WINDSPEED ////
 
 /***
  * WINDSPEED GET PIXEL FOR XY

@@ -43,8 +43,8 @@ extension/src/build/*
 src/test/build/*
 
 #ignore extension layouts
-extension/layout/*.txt
-extension/layout/*.json
+#extension/layout/*.txt
+#extension/layout/*.json
 
 #ignore other junk files
 *.backup
