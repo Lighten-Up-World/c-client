@@ -1,6 +1,10 @@
 .PHONY: clean
 .PHONY: run
 .PHONY: mkdir
+.PHONY: simulation
+.PHONY: server
+.PHONY: layout
+.PHONY: run
 PATHROOT = ../../
 PATHOPC = openpixelcontrol/
 PATHLAYOUT = extension/src/layout/
