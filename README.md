@@ -29,11 +29,11 @@ Run `make` to compile emulate/assemble. Then this will run the unit_test and the
 - See `extension` directory for the extension code.
 
 **Prerequistes:** If you're using Linux, first get the dependencies you need
-(Mac users skip to step 2):
+(Mac users skip this step):
 
     apt-get install mesa-common-dev freeglut3-dev
 
-Run `make` inside extension src folder to run the opengl viewer.
+Run `make server` inside extension/src folder to run the opengl viewer alone
 Ensure submodules are imported using `git submodule init` and `git submodule update`
 
 Fun commands to try:
@@ -42,6 +42,8 @@ Fun commands to try:
 -  `make lavalamp`
 -  `make simulation` for a heatmap of the world.
 -  `make simulation MODE=windspeed` for a windspeed data.
+
+To close the simulation close the window then ctrl-c the terminal.
 
 ## Git
 [Git Branching Model](http://nvie.com/posts/a-successful-git-branching-model/)
@@ -84,10 +86,9 @@ See `doc` directory.
 * **Tiger Cross**
 * **Daniel Hails**
 * **Will Burr**
-* **Mat**
+* **Matt Malarkey**
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+* Openpixelcontrol
+* Unity
