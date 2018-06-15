@@ -17,7 +17,7 @@ typedef enum {
   EC_UNSUPPORTED_OP,
   EC_SKIP,
   EC_IS_LABEL,
-  EC_SYS, // Mus be last
+  EC_SYS, // Must be last
 } error_code;
 
 typedef struct {
@@ -39,11 +39,11 @@ typedef struct {
 
 //DO-While allows macro to resemble single statement
 #define FAIL_PRED(pred, status) \
-  do {if (pred) {_status = status; goto fail;}} while(0)
+  do {if (pred) {return status;}} while(0)
 #define FAIL_SYS(pred) \
-  do {if (pred) {_status = EC_FROM_SYS_ERROR(errno); goto fail;}} while(0)
+  do {if (pred) {return EC_FROM_SYS_ERROR(errno);}} while(0)
 #define FAIL_FORWARD(expr) \
-  do {_status = expr; if (_status != EC_OK) goto fail;} while(0)
+  do {_status = expr; if (_status != EC_OK) return _status} while(0)
 
 #define MEM_CHECK_C(expr, ret, cleanup) \
   do { \

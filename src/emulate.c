@@ -61,7 +61,8 @@ int main(int argc, char **argv) {
   get_mem_word(state, 0x4, state->pipeline.fetched);
 
   while (state->pipeline.decoded->type != HAL) {
-    if (!execute(state)) {
+    _status = execute(state);
+    if (!_status) {
       _status = decode_word(state->pipeline.decoded, *state->pipeline.fetched);
       get_mem_word(state, get_pc(state), state->pipeline.fetched);
     }

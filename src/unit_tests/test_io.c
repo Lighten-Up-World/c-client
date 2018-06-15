@@ -27,5 +27,4 @@ void test_read_file(void){
   }
   printf("\n");
   printf("%s\n", path);
-  // printf("%u\n", num_of_lines);
 }
