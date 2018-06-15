@@ -49,7 +49,7 @@ int decode_operand(flag_t I, word_t word, operand_t *op) {
     op->imm = (op_immediate_t) {.rotated.rotate = get_nibble(word, OP_START),
         .rotated.value = get_byte(word, OP_IMM_START)};
   }
-  // Register
+    // Register
   else {
     return decode_shifted_reg(op, word);
   }
@@ -68,7 +68,7 @@ int decode_offset(flag_t I, word_t word, operand_t *op) {
   if (I) {
     return decode_shifted_reg(op, word);
   }
-  // Immediate
+    // Immediate
   else {
     op->imm.fixed = get_bits(word, OP_START, 0);
   }

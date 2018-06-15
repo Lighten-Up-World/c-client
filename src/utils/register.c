@@ -32,12 +32,14 @@ int is_valid_register(reg_address_t reg) {
  *  @return: word stored at that register
  */
 word_t get_register(emulate_state_t *state, reg_address_t reg) {
+  if (!is_valid_register(reg)) {
+    return EC_INVALID_PARAM;
+  }
   if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     return state->registers.r[reg];
   }
   if (reg == REG_N_SP || reg == REG_N_LR) {
-    //TODO: Unsupported Operation
-    return 0;
+    return EC_UNSUPPORTED_OP;
   }
   if (reg == REG_N_PC) {
     return state->registers.pc;
@@ -45,8 +47,7 @@ word_t get_register(emulate_state_t *state, reg_address_t reg) {
   if (reg == REG_N_CPSR) {
     return state->registers.cpsr;
   }
-  //TODO: Throw error for out of bounds register
-  return 0;
+  return EC_INVALID_PARAM;
 }
 
 /**
@@ -56,12 +57,14 @@ word_t get_register(emulate_state_t *state, reg_address_t reg) {
  *  @param reg: register's address
  */
 void set_register(emulate_state_t *state, reg_address_t reg, word_t value) {
+  if (!is_valid_register(reg)) {
+    return EC_INVALID_PARAM;
+  }
   if (reg >= 0 && reg < NUM_GENERAL_REGISTERS) {
     state->registers.r[reg] = value;
   }
   if (reg == REG_N_SP || reg == REG_N_LR) {
-    //TODO: Unsupported Operation
-    return;
+    return EC_UNSUPPORTED_OP;
   }
   if (reg == REG_N_PC) {
     state->registers.pc = value;
@@ -69,8 +72,7 @@ void set_register(emulate_state_t *state, reg_address_t reg, word_t value) {
   if (reg == REG_N_CPSR) {
     state->registers.cpsr = value;
   }
-  //TODO: Throw error for out of bounds register
-  return;
+  return EC_INVALID_PARAM;
 }
 
 /**

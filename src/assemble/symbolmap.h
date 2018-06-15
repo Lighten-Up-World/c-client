@@ -8,8 +8,8 @@
 #define MAX_S_MAP_CAPACITY 20
 
 typedef char *label_t;
-typedef void (*map_func_t) (const label_t label, const address_t val,
-                            const void *obj);
+typedef void (*map_func_t)(const label_t label, const address_t val,
+                           const void *obj);
 
 typedef struct {
   label_t label;

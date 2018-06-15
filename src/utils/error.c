@@ -7,16 +7,16 @@
 #include "error.h"
 
 /**
- * TODO: add comment here (DAN)
+ * Convert an error code into an error message
  *
- * @param out
- * @param status
- * @param file
- * @param line
- * @param func
+ * @param out: file stream to print error out to
+ * @param status: error code that occurs
+ * @param file: file name that error occurs in
+ * @param line: line number error code occurs in
+ * @param func: function to print that error occurs in
  */
 void ec_strerror(FILE *out, const int status, char *file, int line,
-                 const char* func) {
+                 const char *func) {
   const error_str error_strs[] = {
       {EC_OK, "No error encountered."},
       {EC_NULL_POINTER, "Passed a null pointer."},

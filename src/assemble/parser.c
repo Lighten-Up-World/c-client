@@ -15,8 +15,6 @@
 #include "../utils/bitops.h"
 #include "../utils/instructions.h"
 
-// TODO: remove magic nums
-
 const suffix_to_num brn_suffixes[NUM_BRN_SUFFIXES] = {
     {"eq", 0x0},
     {"ne", 0x1},
@@ -25,7 +23,7 @@ const suffix_to_num brn_suffixes[NUM_BRN_SUFFIXES] = {
     {"gt", 0xC},
     {"le", 0xD},
     {"al", 0xE},
-    {"",   0xE}
+    {"", 0xE}
 };
 
 const suffix_to_num shifts[NUM_SHIFT_SUFFIXES] = {
@@ -53,7 +51,7 @@ const opcode_to_parser oplist[NUM_NON_BRANCH_OPS] = {
     {"ldr", MOV, &parse_sdt},   // ...
     {"str", MOV, &parse_sdt},   // ...
 
-    {"lsl", MOV,   &parse_lsl},   // ...
+    {"lsl", MOV, &parse_lsl},   // ...
     {"andeq", MOV, &parse_halt} // ...
 };
 
@@ -132,37 +130,42 @@ int make_rotation(op_rotate_immediate_t *op_rot_imm, word_t value) {
 }
 
 /**
- * TODO: comment this function (DAN)
+ * Parse an operand or offset as a shifted register
  *
  * Case 1: <Operand2> := <register>
  * Case 2a: <Operand2> := <register>, <shiftname> <register>
  * Case 2b: <Operand2> := <register>, <shiftname> <#expression>
  * Case 3: <Operand2> := <register>, Rn
+ *
+ * @param tklst: list of tokens to parse
+ * @param op: operand to parse information into
+ * @param start: starting index of offset/operand
+ * @return: integer error code based on success of function
  */
 int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
-     int operand_size = tklst->len - start;
+  int operand_size = tklst->len - start;
 
   // Case 1: <Operand2> := <register>
-  if(operand_size == 1){
-         op->reg.rm = parse_register(tklst, start);
+  if (operand_size == 1) {
+    op->reg.rm = parse_register(tklst, start);
     op->reg.type = LSL;
     op->reg.shiftBy = 0;
     op->reg.shift.constant.integer = 0;
     return EC_OK;
   }
   // Case 3: <Operand2> := <register>, Rn
-  if(operand_size == 2){
-      op->reg.rm = parse_register(tklst, start);
-      op->reg.type = LSL;
-             op->reg.shift.shiftreg.rs = parse_register(tklst, start + 1);
-      op->reg.shift.shiftreg.zeroPad = 0;
-      op->reg.shiftBy = 0;
-      return EC_OK;
+  if (operand_size == 2) {
+    op->reg.rm = parse_register(tklst, start);
+    op->reg.type = LSL;
+    op->reg.shift.shiftreg.rs = parse_register(tklst, start + 1);
+    op->reg.shift.shiftreg.zeroPad = 0;
+    op->reg.shiftBy = 0;
+    return EC_OK;
   }
   //Case 2: <register>, <shiftname> <register>
   //      | <register>, <shiftname> <#expression>
-  if(operand_size >= 4){
-         char *shiftname = token_list_get_str(tklst, start+2);
+  if (operand_size >= 4) {
+    char *shiftname = token_list_get_str(tklst, start + 2);
     for (int i = 0; i < NUM_SHIFT_SUFFIXES; i++) {
       if (strcmp(shifts[i].suffix, shiftname) == 0) {
         op->reg.type = shifts[i].num;
@@ -171,27 +174,32 @@ int parse_shifted_reg(list_t *tklst, operand_t *op, int start) {
     op->reg.rm = parse_register(tklst, start);
 
     // Case 2a: <Operand2> := <register>, <shiftname> <register>
-    if(token_list_get_type(tklst, start + 3) == T_REGISTER){
-             op->reg.shiftBy = 1;
+    if (token_list_get_type(tklst, start + 3) == T_REGISTER) {
+      op->reg.shiftBy = 1;
       op->reg.shift.shiftreg.rs = parse_register(tklst, start + 3);
       op->reg.shift.shiftreg.zeroPad = 0;
       return EC_OK;
     }
 
     // Case 2b: <Operand2> := <register>, <shiftname> <#expression>
-    if(token_list_get_type(tklst, start + 3) == T_HASH_EXPR){
-             op->reg.shiftBy = 0;
+    if (token_list_get_type(tklst, start + 3) == T_HASH_EXPR) {
+      op->reg.shiftBy = 0;
       op->reg.shift.constant.integer
-        = parse_expression(tklst, start + 3);
-        return EC_OK;
+          = parse_expression(tklst, start + 3);
+      return EC_OK;
     }
   }
 
-     return EC_UNSUPPORTED_OP;
+  return EC_UNSUPPORTED_OP;
 }
 
 /**
- * TODO: comment this function (DAN)
+ * Parse the operand in a DP instruction
+ *
+ * @param tklst: list of tokens to parse
+ * @param op: operand to parse information into
+ * @param start: starting index of offset/operand
+ * @return: integer error code based on success of function
  */
 int parse_operand(list_t *tklst, instruction_t *instr, int start) {
   operand_t *op = &instr->i.dp.operand2;
@@ -230,7 +238,7 @@ int parse_operand(list_t *tklst, instruction_t *instr, int start) {
 }
 
 /**
- * TODO: comment this function (DAN)
+ * Parse the offset of a DP or SDT instruction
  *
  * Case 1: <=expression>          {4}
  * Case 2: [Rn]                   {6}
@@ -238,6 +246,10 @@ int parse_operand(list_t *tklst, instruction_t *instr, int start) {
  * Case 4: [Rn],<#expression>     {8}
  * Case 5: [Rn, {+/-}Rm{,<shift>}]
  * Case 6: [Rn],{+/-}Rm{,<shift>
+ *
+ * @param prog: pointer to the program state
+ * @param inst: pointer to the Instruction to store information in
+ * @param start: starting index of offset/operand
  */
 int parse_offset(assemble_state_t *prog, instruction_t *instr, int start) {
 

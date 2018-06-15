@@ -45,7 +45,8 @@ int condition(emulate_state_t *state, byte_t cond) {
  *  @param result: pointer to the result,
  *  so that changes can be made directly to it.
  */
-int evaluate_shifted_reg(emulate_state_t *state, operand_t op, shift_result_t *result) {
+int evaluate_shifted_reg(emulate_state_t *state, operand_t op,
+                         shift_result_t *result) {
   word_t rm = get_register(state, op.reg.rm);
   byte_t shiftAmount = 0;
   if (op.reg.shiftBy) { //Shift by register
@@ -107,8 +108,7 @@ shift_result_t evaluate_offset(emulate_state_t *state, flag_t I, operand_t op) {
   shift_result_t result;
   if (I) {
     evaluate_shifted_reg(state, op, &result);
-  }
-  else {
+  } else {
     result.carry = 0;
     result.value = op.imm.fixed;
   }
@@ -207,8 +207,8 @@ int execute_dp(emulate_state_t *state, dp_instruction_t instr) {
     }
     flags |= (N * is_negative(result));
     flags |= (Z * (result == 0));
-         set_flags(state, flags);
-       }
+    set_flags(state, flags);
+  }
 
   if (instr.opcode != TST && instr.opcode != TEQ && instr.opcode != CMP) {
     set_register(state, instr.rd, result);

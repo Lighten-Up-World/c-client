@@ -94,7 +94,7 @@ int smap_delete(symbol_map_t *map) {
  * @return: error code (see error.h)
  */
 int smap_get_address(const symbol_map_t *map, const label_t label,
-                     address_t *out){
+                     address_t *out) {
   if (map == NULL) {
     return EC_INVALID_PARAM;
   }
@@ -146,7 +146,7 @@ int smap_exists(const symbol_map_t *map, const label_t label) {
  * @return: error code (see error.h)
  */
 int smap_put(const symbol_map_t *map, const label_t label,
-             const address_t address){
+             const address_t address) {
   if (map == NULL) {
     return EC_INVALID_PARAM;
   }
@@ -223,7 +223,8 @@ int smap_enum(symbol_map_t *map, map_func_t func, const void *obj) {
 /**
  * Simple map function that takes a pointer to a size_t object and increments it
  */
-void smap_count_func(const label_t label, const address_t val, const void *obj){
+void smap_count_func(const label_t label, const address_t val,
+                     const void *obj) {
   size_t *cnt = (size_t *) obj;
   *cnt += 1;
 }
