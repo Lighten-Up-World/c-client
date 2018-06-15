@@ -1,64 +1,75 @@
 #include "projection.h"
 
-static double deg_rad (double ang) {
-        return ang * (M_PI / 180.0);
+static double deg2rad (double ang) {
+  return ang * (M_PI / 180.0);
 }
 
-double merc_x (double lon) {
-        return R_MAJOR * deg_rad (lon);
+static double rad2deg (double ang) {
+  return ang * (180.0 / M_PI);
 }
 
-double merc_y (double lat) {
-        lat = fmin (89.5, fmax (lat, -89.5));
-        double phi = deg_rad(lat);
-        double sinphi = sin(phi);
-        double con = ECCENT * sinphi;
-        con = pow((1.0 - con) / (1.0 + con), COM);
-        double ts = tan(0.5 * (M_PI * 0.5 - phi)) / con;
-        return 0 - R_MAJOR * log(ts);
+// METER BASED FUNCTIONS
+double lon2x_m (double lon) {
+  return deg2rad(lon) * EARTH_RADIUS;
 }
 
-static double rad_deg (double ang) {
-        return ang * (180.0 / M_PI);
+double lat2y_m (double lat) {
+  return log(tan( deg2rad(lat) / 2 + M_PI/4 )) * EARTH_RADIUS;
 }
 
-double merc_lon (double x) {
-        return rad_deg(x) / R_MAJOR;
+double x2lon_m(double x) {
+  return rad2deg(x/EARTH_RADIUS);
 }
 
-double merc_lat (double y) {
-        double ts = exp ( -y / R_MAJOR);
-        double phi = (M_PI / 2) - 2 * atan(ts);
-        double dphi = 1.0;
-        int i;
-        for (i = 0; fabs(dphi) > 0.000000001 && i < 15; i++) {
-                double con = ECCENT * sin (phi);
-                dphi = (M_PI / 2) - 2 * atan (ts * pow((1.0 - con) / (1.0 + con), COM)) - phi;
-                phi += dphi;
-        }
-        return rad_deg (phi);
+double y2lat_m(double y) {
+  return rad2deg(2 * atan(exp( y/EARTH_RADIUS)) - M_PI/2);
 }
 
-double grid_merc_x(int x){
-  return (((double)x * 2 * MAX_X) / GRID_WIDTH) - MAX_X;
+
+// GRID REFERENCE BASED FUNCTIONS
+
+// 'Constant' functions
+double max_x_m(void){
+  return lon2x_m(180);
 }
 
-double grid_merc_y(int y){
-  return (((double)y * 2 * MAX_Y + 1000000) / GRID_HEIGHT) - MAX_Y;
+double max_y_m(void){
+  return lat2y_m(90);
 }
 
-int grid_x(double lon){
-  return (merc_x(lon) + MAX_X) / (2 * (double)MAX_X / (double)GRID_WIDTH);
+double offset_x_m(void){
+  return lon2x_m(-180);
 }
 
-int grid_y(double lat){
-  return (merc_y(lat) + MAX_Y) / (2 * (double)MAX_Y / (double)GRID_HEIGHT);
+double offset_y_m(void){
+  return lat2y_m(-90);
 }
 
-grid_t geolocation_grid(double latitude, double longitude){
-  return (grid_t){grid_x(longitude), grid_y(latitude)};
+double gridx2m(int x){
+  double max_x = max_x_m();
+  return (((double)x * 2 * max_x) / GRID_WIDTH) - max_x;
 }
 
-geolocation_t grid_geolocation(int x, int y){
-  return (geolocation_t){merc_lat(grid_merc_y(y)), merc_lon(grid_merc_x(x))};
+double gridy2m(int y){
+  double max_y = max_y_m();
+  return (((double)y * 2 * max_y) / GRID_HEIGHT) - max_y;
+}
+
+int lon2gridx(double lon){
+  double max_x = max_x_m();
+  return (lon2x_m(lon) + max_x) / (2 * max_x / (double)GRID_WIDTH);
+}
+
+int lat2gridy(double lat){
+  double max_y = max_y_m();
+  return (lat2y_m(lat) + max_y) / (2 * max_y / (double)GRID_HEIGHT);
+}
+
+grid_t geolocation2grid(double latitude, double longitude){
+  return (grid_t){lon2gridx(longitude), lat2gridy(latitude)};
+}
+
+geolocation_t grid2geolocation(int x, int y){
+  printf("%f %f\n", gridx2m(x), gridy2m(y));
+  return (geolocation_t){y2lat_m(gridy2m(y)), x2lon_m(gridx2m(x))};
 }

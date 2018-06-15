@@ -7,14 +7,16 @@ of the License at: http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied.  See the License for the
-specific language governing permissions and limitations under the License. */
+specific language governing permissions and limitations under the License.
+
+  Modified by arm11_22 team
+*/
 
 // Open Pixel Control, a protocol for controlling arrays of RGB lights.
 #ifndef OPC_H
 #define OPC_H
 
-#include "types.h"
-
+#include <stdint.h>
 #define OPC_DEFAULT_PORT 7890
 
 /* OPC broadcast channel */
@@ -30,10 +32,18 @@ specific language governing permissions and limitations under the License. */
 /* Maximum number of pixels in one message */
 #define OPC_MAX_PIXELS_PER_MESSAGE ((1 << 16) / 3)
 
-// OPC client functions ----------------------------------------------------
+/* Defines an rgb pixel for use in opc simulations */
+typedef struct {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} pixel;
 
 /* Handle for an OPC sink created by opc_new_sink. */
-typedef s8 opc_sink;
+typedef int8_t opc_sink;
+
+
+// OPC client functions ----------------------------------------------------
 
 /* Creates a new OPC sink.  hostport should be in "host" or "host:port" form. */
 /* No TCP connection is attempted yet; the connection will be automatically */
@@ -43,27 +53,28 @@ opc_sink opc_new_sink(char* hostport);
 /* Sends RGB data for 'count' pixels to channel 'channel'.  Makes one attempt */
 /* to connect the sink if needed; if the connection could not be opened, the */
 /* the data is not sent.  Returns 1 if the data was sent, 0 otherwise. */
-u8 opc_put_pixels(opc_sink sink, u8 channel, u16 count, pixel* pixels);
+uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel* pixels);
+
 
 // OPC server functions ----------------------------------------------------
 
 /* Handle for an OPC source created by opc_new_source. */
-typedef s8 opc_source;
+typedef int8_t opc_source;
 
 /* Handler called by opc_receive when pixel data is received. */
-typedef void opc_handler(u8 channel, u16 count, pixel* pixels);
+typedef void opc_handler(uint8_t channel, uint16_t count, pixel* pixels);
 
 /* Creates a new OPC source by listening on the specified TCP port.  At most */
 /* one incoming connection is accepted at a time; if the connection closes, */
 /* the next call to opc_receive will begin listening for another connection. */
-opc_source opc_new_source(u16 port);
+opc_source opc_new_source(uint16_t port);
 
 /* Handles the next I/O event for a given OPC source; if incoming data is */
 /* received that completes a pixel data packet, calls the handler with the */
 /* pixel data.  Returns 1 if there was any I/O, 0 if the timeout expired. */
-u8 opc_receive(opc_source source, opc_handler* handler, u32 timeout_ms);
+uint8_t opc_receive(opc_source source, opc_handler* handler, uint32_t timeout_ms);
 
 /* Resets an OPC source to its initial state by closing the connection. */
 void opc_reset_source(opc_source source);
 
-#endif  /* OPC_H */
+#endif
