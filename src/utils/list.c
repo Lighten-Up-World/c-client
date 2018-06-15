@@ -4,14 +4,14 @@
  * tokens in a program line.
  */
 
-/* TODO: COMMENT YOUR CODE (DAN) */
 
 #include "list.h"
 
 /**
+ * Create a new linked list element.
  *
- * @param value:
- * @return:
+ * @param value: value for the element
+ * @return: pointer to the element
  */
 list_elem_t *list_elem_new(any_t value) {
   list_elem_t *self;
@@ -25,6 +25,7 @@ list_elem_t *list_elem_new(any_t value) {
 }
 
 /**
+ * Create a new linked list.
  *
  * @param v_free:
  * @return:
@@ -62,7 +63,7 @@ void list_delete(list_t *self) {
 }
 
 //// List utility functions ////
-// (documentation not required as function names show the purpose) //
+
 int list_add(list_t *self, any_t value) {
   if (!value) {
     return EC_LIST_NULL;
@@ -80,6 +81,7 @@ int list_add(list_t *self, any_t value) {
   ++self->len;
   return EC_LIST_OK;
 }
+
 list_elem_t *list_get_elem(list_t *self, int idx) {
   assert(self != NULL);
   assert(idx >= 0);
