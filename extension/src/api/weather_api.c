@@ -114,6 +114,7 @@ int windspeed_get_pixel_for_xy(pixel_t *pixel){
     return -1;
   }
 
+  printf("Windspeed: %f \n", val);
   pixel->colour.blue = PIXEL_COLOUR_MAX;
 
   int rg = (PIXEL_COLOUR_MAX / 10.0) * (val);
