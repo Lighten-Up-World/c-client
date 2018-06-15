@@ -9,14 +9,12 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations under the License.
 
- Modified by arm11_22 team
-
+  Modified by arm11_22 team
  */
 
 #include "opc_client.h"
 
-int opc_resolve(char  *s, struct sockaddr_in* address, u16 default_port) {
-  //struct hostent* host;
+int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   struct addrinfo* addr;
   struct addrinfo* ai;
   long port = 0;
@@ -52,7 +50,7 @@ opc_sink opc_new_sink(char* hostport) {
   info = &opc_sinks[opc_next_sink];
 
   /* Resolve the server address. */
-  info->sock = -1;
+  info->sockid = -1;
   if (!opc_resolve(hostport, &(info->address), OPC_DEFAULT_PORT)) {
     fprintf(stderr, "OPC: Host not found: %s\n", hostport);
     return -1;
@@ -67,7 +65,7 @@ opc_sink opc_new_sink(char* hostport) {
 
 /* Makes one attempt to open the connection for a sink if needed, timing out */
 /* after timeout_ms.  Returns 1 if connected, 0 if the timeout expired. */
-static u8 opc_connect(opc_sink sink, u32 timeout_ms) {
+static uint8_t opc_connect(opc_sink sink, uint32_t timeout_ms) {
   int sock;
   struct timeval timeout;
   opc_sink_info* info = &opc_sinks[sink];
@@ -79,7 +77,7 @@ static u8 opc_connect(opc_sink sink, u32 timeout_ms) {
     fprintf(stderr, "OPC: Sink %d does not exist\n", sink);
     return 0;
   }
-  if (info->sock >= 0) {  /* already connected */
+  if (info->sockid >= 0) {  /* already connected */
     return 1;
   }
 
@@ -105,7 +103,7 @@ static u8 opc_connect(opc_sink sink, u32 timeout_ms) {
     getsockopt(sock, SOL_SOCKET, SO_ERROR, &opt_errno, &len);
     if (opt_errno == 0) {
       fprintf(stderr, "OPC: Connected to %s\n", info->address_string);
-      info->sock = sock;
+      info->sockid = sock;
       return 1;
     } else {
       fprintf(stderr, "OPC: Failed to connect to %s: %s\n",
@@ -130,9 +128,9 @@ static void opc_close(opc_sink sink) {
     fprintf(stderr, "OPC: Sink %d does not exist\n", sink);
     return;
   }
-  if (info->sock >= 0) {
-    close(info->sock);
-    info->sock = -1;
+  if (info->sockid >= 0) {
+    close(info->sockid);
+    info->sockid = -1;
     fprintf(stderr, "OPC: Closed connection to %s\n", info->address_string);
   }
 }
@@ -140,7 +138,7 @@ static void opc_close(opc_sink sink) {
 /* Sends data to a sink, making at most one attempt to open the connection */
 /* if needed and waiting at most timeout_ms for each I/O operation.  Returns */
 /* 1 if all the data was sent, 0 otherwise. */
-static u8 opc_send(opc_sink sink, const u8* data, ssize_t len, u32 timeout_ms) {
+static uint8_t opc_send(opc_sink sink, const uint8_t* data, ssize_t len, uint32_t timeout_ms) {
   opc_sink_info* info = &opc_sinks[sink];
   struct timeval timeout;
   ssize_t total_sent = 0;
@@ -156,10 +154,10 @@ static u8 opc_send(opc_sink sink, const u8* data, ssize_t len, u32 timeout_ms) {
   }
   timeout.tv_sec = timeout_ms/1000;
   timeout.tv_usec = timeout_ms % 1000;
-  setsockopt(info->sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+  setsockopt(info->sockid, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
   while (total_sent < len) {
     pipe_sig = signal(SIGPIPE, SIG_IGN);
-    sent = send(info->sock, data + total_sent, len - total_sent, 0);
+    sent = send(info->sockid, data + total_sent, len - total_sent, 0);
     signal(SIGPIPE, pipe_sig);
     if (sent <= 0) {
       perror("OPC: Error sending data");
@@ -171,8 +169,8 @@ static u8 opc_send(opc_sink sink, const u8* data, ssize_t len, u32 timeout_ms) {
   return 1;
 }
 
-u8 opc_put_pixels(opc_sink sink, u8 channel, u16 count, pixel* pixels) {
-  u8 header[4];
+uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel* pixels) {
+  uint8_t header[4];
   ssize_t len;
 
   if (count > 0xffff / 3) {
@@ -186,5 +184,5 @@ u8 opc_put_pixels(opc_sink sink, u8 channel, u16 count, pixel* pixels) {
   header[2] = len >> 8;
   header[3] = len & 0xff;
   return opc_send(sink, header, 4, OPC_SEND_TIMEOUT_MS) &&
-      opc_send(sink, (u8*) pixels, len, OPC_SEND_TIMEOUT_MS);
+      opc_send(sink, (uint8_t*) pixels, len, OPC_SEND_TIMEOUT_MS);
 }

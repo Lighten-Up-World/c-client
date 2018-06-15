@@ -16,16 +16,9 @@
 #include <unistd.h>
 #include "opc.h"
 
-// TCP connection data in here
 typedef struct {
   int sockid;
 } opc_connection_t;
-
-typedef struct {
-  int r;
-  int g;
-  int b;
-} opc_pixel;
 
 /* Wait at most 0.5 second for a connection or a write. */
 #define OPC_SEND_TIMEOUT_MS 1000
@@ -33,7 +26,7 @@ typedef struct {
 /* Internal structure for a sink.  sock >= 0 iff the connection is open. */
 typedef struct {
   struct sockaddr_in address;
-  int sock;
+  int sockid;
   char address_string[64];
 } opc_sink_info;
 
