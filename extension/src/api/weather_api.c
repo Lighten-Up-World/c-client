@@ -58,7 +58,7 @@ int temp_get_pixel_for_xy(pixel_t *pixel) {
   }
   val -= 273.0;
 
-  printf("Temperature: %f", val);
+  printf("Temperature: %f \n", val);
 
   int red = 0;
   int blue = 0;
