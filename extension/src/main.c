@@ -11,8 +11,8 @@
 #include "apimanager.h"
 #include "api/weather_api.h"
 #include "projection.h"
-#include "opc.h"
-#include "opc_client.c"
+#include "opc/opc.h"
+#include "opc/opc_client.c"
 #include "simulation/grid_to_opc.c"
 
 // Grid size
@@ -25,33 +25,51 @@
 
 
 int main(int argc, const char * argv[]) {
-  u8 channel = 0;
+  assert(argc > 1);
   pixel pixels[NUM_PIXELS];
-  int pos;
+
+  u8 channel = 0;
+  opc_sink s;
+
+  for(int p = 0; p < NUM_PIXELS; p++) {
+    pixels[p] = (pixel){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
+  }
+
+  // Open connection
+  s = opc_new_sink("127.0.0.1:7890");
+  u8 ret = opc_put_pixels(s, channel, NUM_PIXELS, pixels);
+
+  int count = 0;
+  
   for (int x = 0; x < MAX_X_GRID ; ++x) {
     for (int y = 0; y < MAX_Y_GRID; ++y) {
-      if (x + y > 10){
-        break;
-      }
       sleep(1);
       pixel_t pix;
       pix.grid = (grid_t){.x = x, .y = y};
-      if(temp_get_pixel_for_xy(&pix) < 0){
-        printf("Failed \n");
-      }else{
-        printf("x: %d, y: %d, r: %d, g: %d, b: %d \n", pix.grid.x, pix.grid.y, pix.colour.red, pix.colour.green, pix.colour.blue);
+      if (strncmp("temp", argv[1], strlen(argv[1])) == 0){
+        if(temp_get_pixel_for_xy(&pix) < 0){
+          printf("Failed \n");
+        }else{
+          printf("x: %d, y: %d, r: %d, g: %d, b: %d \n", pix.grid.x, pix.grid.y, pix.colour.red, pix.colour.green, pix.colour.blue);
+        }
+      }else if (strncmp("windspeed", argv[1], strlen(argv[1])) == 0){
+        if(windspeed_get_pixel_for_xy(&pix) < 0){
+          printf("Failed \n");
+        }else{
+          printf("x: %d, y: %d, r: %d, g: %d, b: %d \n", pix.grid.x, pix.grid.y, pix.colour.red, pix.colour.green, pix.colour.blue);
+        }
       }
       pixel p = {.r = pix.colour.red, .b = pix.colour.blue, .g = pix.colour.green};
-      pos = get_pixel_location(x, y, CONFIG_FILE);
-      if (pos != -1) {
-        pixels[pos] = p;
-      }
+      //pos = get_pixel_location(x, y, CONFIG_FILE);
+      //if (pos != -1) {
+      pixels[count] = p;
+      //}
+      opc_put_pixels(s, channel, NUM_PIXELS, pixels);
+      count++;
     }
   }
-  // Open connection
-  opc_sink sink = opc_new_sink(HOST_AND_PORT);
-  // Update the display
-  opc_put_pixels(sink, channel, NUM_PIXELS, pixels);
+
+  printf("pixels sent code (1 if all data sent): %d\n", ret);
 
   return 0;
 }

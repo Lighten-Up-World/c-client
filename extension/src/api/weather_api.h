@@ -16,7 +16,6 @@
 
 //TEMP
 
-
 int temp_get_pixel_for_xy(pixel_t *pixel);
 
 //WIND SPEED

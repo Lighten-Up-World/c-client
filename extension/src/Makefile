@@ -19,6 +19,8 @@ LINK=gcc
 DEBUG = -DDEBUG
 CFLAGS = -Wall -Werror -pedantic -g -O0 -std=c99 $(DEBUG)
 
+MODE = temp
+
 simulation: mkdir control $(PATHB)main.out
 	cd simulation; make
 
@@ -26,7 +28,7 @@ control:
 	cd ../../openpixelcontrol; make
 
 run: mkdir $(PATHB)main.out
-	./build/main.out
+	./build/main.out $(MODE)
 
 $(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o
 	$(LINK) -o $@ $^ -lm

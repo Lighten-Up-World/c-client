@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License. */
 #include <stdlib.h>
 #include <zconf.h>
 #include "../../src/utils/error.h"
-#include "opc.h"
-#include "opc_client.c"
+#include "opc/opc.h"
+#include "opc/opc_client.c"
 
 #define MAX_PIXELS (65535/3)
 #define MAX_INPUT_LENGTH (MAX_PIXELS*8)
