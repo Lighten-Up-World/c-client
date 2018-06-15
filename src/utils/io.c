@@ -46,17 +46,17 @@ void print_gpio_access(word_t byteAddr) {
  * @param addr: address accessed
  * @return: 1 iff the memory address is invalid
  */
-int check_address_valid(word_t addr) {
+bool check_address_invalid(word_t addr) {
   //GPIO extension
   if (is_gpio_addr(addr)) {
-    return 0;
+    return false;
   }
 
   if (addr > MEM_SIZE) {
     printf("Error: Out of bounds memory access at address 0x%08x\n", addr);
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /**
@@ -86,7 +86,7 @@ int get_word(byte_t *buff, word_t byteAddr, word_t *word) {
   for (size_t i = 0; i < 4; i++) {
     *word |= ((word_t) buff[byteAddr + i]) << (i * 8);
   }
-  return 0;
+  return EC_OK;
 }
 
 /**
@@ -99,18 +99,18 @@ int get_word(byte_t *buff, word_t byteAddr, word_t *word) {
  */
 int get_mem_word(emulate_state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
-  if (check_address_valid(byteAddr)) {
-    return 1;
+  if (check_address_invalid(byteAddr)) {
+    return EC_INVALID_PARAM;
   }
 
   // GPIO extension
   if (is_gpio_addr(byteAddr)) {
     print_gpio_access(byteAddr);
     *dest = byteAddr;
-    return 0;
+    return EC_OK;
   }
   get_word(state->memory, byteAddr, dest);
-  return 0;
+  return EC_OK;
 }
 
 /**
@@ -125,22 +125,22 @@ int
 get_mem_word_big_end(emulate_state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
   word_t word = 0;
-  if (check_address_valid(byteAddr)) {
-    return 1;
+  if (check_address_invalid(byteAddr)) {
+    return EC_INVALID_PARAM;
   }
 
   // GPIO extension
   if (is_gpio_addr(byteAddr)) {
     print_gpio_access(byteAddr);
     *dest = byteAddr;
-    return 0;
+    return EC_OK;
   }
 
   for (size_t i = 0; i < 4; i++) {
     word |= ((word_t) state->memory[byteAddr + 3 - i]) << (i * 8);
   }
   *dest = word;
-  return 0;
+  return EC_OK;
 }
 
 /**
@@ -176,7 +176,7 @@ int set_word(byte_t *buff, word_t byteAddr, word_t word) {
  */
 int set_mem_word(emulate_state_t *state, word_t byteAddr, word_t word) {
   assert(state != NULL);
-  if (check_address_valid(byteAddr)) { return EC_INVALID_PARAM; }
+  if (check_address_invalid(byteAddr)) { return EC_INVALID_PARAM; }
   return set_word(state->memory, byteAddr, word);
 }
 
@@ -248,24 +248,19 @@ void print_state(emulate_state_t *state) {
  *  @return: status code denoting the result
  */
 int write_file(const char *path, byte_t *buffer, int no_bytes) {
-  assert(path != NULL);
   assert(buffer != NULL);
 
+  FAIL_PRED(path == NULL, EC_INVALID_PARAM);
+
   FILE *fp = NULL;
-  if (!(fp = fopen(path, "wb"))) {
-    perror("fopen failed at path");
-    return 1;
-  }
-  const int read = fwrite(buffer, sizeof(byte_t), no_bytes, fp);
-  if (read != sizeof(byte_t) * no_bytes || ferror(fp)) {
-    perror("Couldn't write file to completion");
-    return 3;
-  }
-  if (fclose(fp) != 0) {
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
+  fp = fopen(path, "wb");
+  FAIL_SYS(fp == NULL);
+
+  fwrite(buffer, sizeof(byte_t), no_bytes, fp);
+  FAIL_SYS(ferror(fp));
+  FAIL_SYS(fclose(fp));
+
+  return EC_OK;
 }
 
 /**
@@ -277,31 +272,22 @@ int write_file(const char *path, byte_t *buffer, int no_bytes) {
 *  @return: status code denoting the result
 */
 int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
-  assert(path != NULL);
   assert(buffer != NULL);
 
-  long file_size = 0;
-  FILE *fp = NULL;
+  FAIL_PRED(path == NULL, EC_INVALID_PARAM);
 
-  if (!(fp = fopen(path, "rb"))) {
-    perror("fopen failed at path");
-    return 1;
-  }
-  file_size = ftell(fp);
-  if (file_size == -1) {
-    perror("Couldn't determine file size");
-    return 2;
-  }
-  const int read = fread(buffer, buffer_size, 1, fp);
-  if (read != file_size && ferror(fp)) {
-    perror("Couldn't read file to completion");
-    return 3;
-  }
-  if (fclose(fp) != 0) {
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
+  FILE *fp = NULL;
+  fp = fopen(path, "rb");
+  FAIL_SYS(fp == NULL);
+
+  long file_size = ftell(fp);
+  FAIL_PRED(file_size == -1, EC_SYS);
+
+  fread(buffer, buffer_size, 1, fp);
+  FAIL_SYS(ferror(fp));
+  FAIL_SYS(fclose(fp));
+
+  return EC_OK;
 }
 
 /**
@@ -312,26 +298,20 @@ int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
 *  @return: status code denoting the result
 */
 int read_char_file(const char *path, char **buffer) {
-  FILE *file = fopen(path, "r");
-  if (file == NULL) {
-    perror("File could not be opened");
-    exit(EC_SYS);
-  }
+  assert(buffer != NULL);
+
+  FAIL_PRED(path == NULL, EC_INVALID_PARAM);
+
+  FILE *fp = NULL;
+  fp = fopen(path, "r");
+  FAIL_SYS(fp == NULL);
 
   int line = 0;
-  while (fgets(buffer[line], LINE_SIZE - 1, file) != NULL) {
+  while (fgets(buffer[line], LINE_SIZE - 1, fp) != NULL) {
     line++;
   }
-
-  if (ferror(file)) {
-    perror("Failed to read from file");
-    exit(EC_SYS);
-  }
-
-  if (fclose(file)) {
-    perror("File could not be closed");
-    exit(EC_SYS);
-  }
+  FAIL_SYS(ferror(fp));
+  FAIL_SYS(fclose(fp));
 
   return line;
 }
