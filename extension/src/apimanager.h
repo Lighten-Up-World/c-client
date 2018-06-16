@@ -68,6 +68,6 @@ int api_manager_init(api_manager_t *self, api_t *api, list_t *pixel_info);
 int socket_connect(const char *host, in_port_t port);
 int socket_close(int sockfd);
 
-int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path ,char *attr, char *object, double *val);
-
+int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host,
+  char *path, char *key, char *attr, char *object, double *val);
 #endif /* apimanager_h */

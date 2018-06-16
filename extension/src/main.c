@@ -32,6 +32,17 @@
 
 volatile int interrupted = 0;
 
+typedef struct {
+  char *str;
+  api_t *(*new)(void);
+} string_to_constructor;
+
+const string_to_constructor apis[] = {
+    {"temp", &get_temp_api},
+    {"wind", &get_windspeed_api}
+};
+
+
 void handle_user_exit(int _) {
   interrupted = 1;
 }
@@ -84,7 +95,7 @@ int init_geo(list_t* list){
 
 int main(int argc, const char * argv[]) {
   assert(argc > 1);
-  pixel pixels[NUM_PIXELS];
+  pixel_t pixels[NUM_PIXELS];
 
   signal(SIGINT, handle_user_exit);
 
@@ -97,7 +108,7 @@ int main(int argc, const char * argv[]) {
 
   //Clear Pixels
   for(int p = 0; p < NUM_PIXELS; p++) {
-    pixels[p] = (pixel){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
+    pixels[p] = (pixel_t){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
   }
 
   // Setup pixel_info
@@ -107,7 +118,14 @@ int main(int argc, const char * argv[]) {
 
   // API Call
   api_manager_t *api_manager= api_manager_new();
-  api_t *api = get_temp_api();
+  api_t *api = NULL;
+
+  for (int i = 0; i < sizeof(apis)/sizeof(string_to_constructor); i++) {
+    if(strcmp(apis[i].str, argv[1]) == 0){
+      api = apis[i].new();
+    }
+  }
+
   // Initialise api
   api_manager_init(api_manager, api, pixel_info);
 
@@ -122,22 +140,7 @@ int main(int argc, const char * argv[]) {
         break;
       }
       nanosleep(&delay, NULL);
-
-      geolocation_t geo = ((pixel_info_t *)list_get(pixel_info, i))->geo;
-      pixel_t pix;
-      pix.grid = ((pixel_info_t *)list_get(pixel_info, i))->grid;
-
-      if (strncmp("temp", argv[1], strlen(argv[1])) == 0){
-        if(temp_get_pixel_for_xy(&pix, geo) < 0){
-          printf("Failed \n");
-        }
-      }else if (strncmp("windspeed", argv[1], strlen(argv[1])) == 0){
-        if(windspeed_get_pixel_for_xy(&pix, geo) < 0){
-          printf("Failed \n");
-        }
-      }
-      pixel p = {.r = pix.colour.red, .b = pix.colour.blue, .g = pix.colour.green};
-      pixels[i] = p;
+      api_manager->api->get_pixel(api_manager, i, pixels+i, NULL);
       opc_put_pixels(s, channel, NUM_PIXELS, pixels);
     }
   }

@@ -31,9 +31,9 @@ int weather_get_val_for_xy(pixel_t *pixel, geolocation_t geoloc, char *attr, cha
   //geoloc.latitude = rand() % 90;
   //geoloc.longitude = rand() % 90;
 
-  printf("Latitude: %f , Longitude: %f ,", geoloc.latitude, geoloc.longitude);
+  printf("Latitude: %f, Longitude: %f,", geoloc.latitude, geoloc.longitude);
 
-  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, attr, object, val) < 0){
+  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, attr, object, val) < 0){
     return -1;
   }
 
@@ -41,12 +41,6 @@ int weather_get_val_for_xy(pixel_t *pixel, geolocation_t geoloc, char *attr, cha
 
   return 0;
 }
-
-
-  int temp_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj){
-    return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
-  }
-
 
 /***
  * TEMP GET PIXEL FOR XY
@@ -75,7 +69,7 @@ int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc) {
     red = (PIXEL_COLOUR_MAX / 20.0) * (val - 10.0);
     red = red > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : red;
   }else{
-    pixel->colour.red = 0;
+    pixel->r = 0;
   }
 
   if (val > 20){
@@ -96,11 +90,15 @@ int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc) {
     blue = PIXEL_COLOUR_MAX;
   }
 
-  pixel->colour.blue = blue;
-  pixel->colour.green = green;
-  pixel->colour.red = red;
+  pixel->b = blue;
+  pixel->g = green;
+  pixel->r = red;
 
   return 0;
+}
+
+int temp_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj){
+  return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
 api_t *get_temp_api(void){
@@ -132,12 +130,26 @@ int windspeed_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc){
   }
 
   printf("Windspeed: %f \n", val);
-  pixel->colour.blue = PIXEL_COLOUR_MAX;
+  pixel->b = PIXEL_COLOUR_MAX;
 
   int rg = (PIXEL_COLOUR_MAX / 10.0) * (val);
   rg = rg > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : rg;
-  pixel->colour.green = rg;
-  pixel->colour.red = rg;
+  pixel->g = rg;
+  pixel->r = rg;
 
   return 0;
+}
+
+int windspeed_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj){
+  return windspeed_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
+}
+
+api_t *get_windspeed_api(void){
+  api_t *api = malloc(sizeof(api_t));
+  if(api == NULL){
+    return NULL;
+  }
+  api->name = "windspeed";
+  api->get_pixel = &temp_get_pixel;
+  return api;
 }

@@ -96,7 +96,7 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
  * @return
  */
 
-int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *attr, char *object,
+int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *key, char *attr, char *object,
                               double *val) {
   assert(loc != NULL);
   assert(host != NULL);
@@ -108,7 +108,7 @@ int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *
   request.host = host;
   request.method = GET;
 
-  asprintf(&(request.path), path, loc->latitude, loc->longitude);
+  asprintf(&(request.path), path, loc->latitude, loc->longitude, key);
 
   char buff[600];
   if (send_get_request(sockfd, request, buff, sizeof(buff)) < 0) {

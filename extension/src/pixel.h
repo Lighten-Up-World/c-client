@@ -21,10 +21,17 @@ typedef struct grid{
     int y;
 } grid_t;
 
-typedef struct pixel{
-  grid_t      grid;
-  colour_t    colour;
+/* Defines an rgb pixel for use in opc simulations */
+typedef struct {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
 } pixel_t;
+
+// typedef struct pixel{
+//   grid_t      grid;
+//   colour_t    colour;
+// } pixel_t;
 
 typedef struct geolocation{
   double latitude;

@@ -169,7 +169,7 @@ static uint8_t opc_send(opc_sink sink, const uint8_t* data, ssize_t len, uint32_
   return 1;
 }
 
-uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel* pixels) {
+uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel_t* pixels) {
   uint8_t header[4];
   ssize_t len;
 

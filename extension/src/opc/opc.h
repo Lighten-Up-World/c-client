@@ -17,6 +17,8 @@ specific language governing permissions and limitations under the License.
 #define OPC_H
 
 #include <stdint.h>
+#include "../pixel.h"
+
 #define OPC_DEFAULT_PORT 7890
 
 /* OPC broadcast channel */
@@ -32,13 +34,6 @@ specific language governing permissions and limitations under the License.
 /* Maximum number of pixels in one message */
 #define OPC_MAX_PIXELS_PER_MESSAGE ((1 << 16) / 3)
 
-/* Defines an rgb pixel for use in opc simulations */
-typedef struct {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
-} pixel;
-
 /* Handle for an OPC sink created by opc_new_sink. */
 typedef int8_t opc_sink;
 
@@ -53,7 +48,7 @@ opc_sink opc_new_sink(char* hostport);
 /* Sends RGB data for 'count' pixels to channel 'channel'.  Makes one attempt */
 /* to connect the sink if needed; if the connection could not be opened, the */
 /* the data is not sent.  Returns 1 if the data was sent, 0 otherwise. */
-uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel* pixels);
+uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel_t* pixels);
 
 
 // OPC server functions ----------------------------------------------------
@@ -62,7 +57,7 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel* pi
 typedef int8_t opc_source;
 
 /* Handler called by opc_receive when pixel data is received. */
-typedef void opc_handler(uint8_t channel, uint16_t count, pixel* pixels);
+typedef void opc_handler(uint8_t channel, uint16_t count, pixel_t* pixels);
 
 /* Creates a new OPC source by listening on the specified TCP port.  At most */
 /* one incoming connection is accepted at a time; if the connection closes, */
