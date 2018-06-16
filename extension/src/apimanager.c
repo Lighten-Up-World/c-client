@@ -1,6 +1,23 @@
 #define _GNU_SOURCE
 
+#include "../../src/utils/error.h"
 #include "apimanager.h"
+
+api_manager_t *api_manager_new(void){
+  api_manager_t *api_manager = NULL;
+  api_manager = malloc(sizeof(api_manager_t));
+  if(api_manager == NULL){
+    perror("api_manager_new failed");
+    exit(EXIT_FAILURE);
+  }
+
+  return api_manager;
+}
+
+int api_manager_delete(api_manager_t *self){
+  free(self);
+  return EC_OK;
+}
 
 /**
  * SEND GET REQUEST
@@ -145,4 +162,3 @@ int socket_close(int sockfd) {
   }
   return 0;
 }
-
