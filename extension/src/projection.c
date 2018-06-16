@@ -9,6 +9,9 @@ static double rad2deg (double ang) {
 }
 
 // METER BASED FUNCTIONS
+/*
+ * I don't think these are right
+ */
 double lon2x_m (double lon) {
   return deg2rad(lon) * EARTH_RADIUS;
 }
@@ -29,6 +32,11 @@ double y2lat_m(double y) {
 // GRID REFERENCE BASED FUNCTIONS
 
 // 'Constant' functions
+
+/*
+ * Think these should be changed somewhat too since our map loses 30 degrees
+ * of latitude at the bottom for antarctica.
+ */
 double max_x_m(void){
   return lon2x_m(180);
 }
