@@ -8,7 +8,7 @@
 #define PIXELS 471
 #define WHITE_PIXEL (pixel) {255, 255, 255}
 #define CONFIG_FILE "../layout/CoordsToListPos.txt"
-#define MILLI_TO_NANO 100000000
+#define MILLI_TO_NANO 100000
 #define HOST_AND_PORT "127.0.0.1:7890"
 
 typedef struct {
