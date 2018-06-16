@@ -2,11 +2,15 @@
  *  This file defines the bit ranges for specific bit groups in instructions.
  */
 
-#ifndef ARM11_22_DECODE_H
-#define ARM11_22_DECODE_H
+#ifndef DECODE_H
+#define DECODE_H
 
+#include <assert.h>
+#include <stdio.h>
 #include "../utils/arm.h"
 #include "../utils/instructions.h"
+#include "../utils/bitops.h"
+#include "../utils/error.h"
 
 // GENERAL INSTRUCTION DEFINITIONS
 #define COND_START 31
@@ -55,6 +59,6 @@
 
 #define SDT_RD_START 15
 
-instruction_t decode_word(word_t word);
+int decode_word(instruction_t *instr, word_t word);
 
 #endif

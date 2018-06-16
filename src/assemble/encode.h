@@ -38,12 +38,10 @@
 #define BRN_OFFSET_SIZE 24;
 
 int encode(instruction_t *instr, word_t *w);
-// int encodeCond(instruction_t *instr, word_t *word);
 int encode_dp(instruction_t *instr, word_t *w);
 int encode_mul(instruction_t *instr, word_t *w);
 int encode_sdt(instruction_t *instr, word_t *w);
 int encode_brn(instruction_t *instr, word_t *w);
 int encode_hal(instruction_t *instr, word_t *w);
-
 
 #endif

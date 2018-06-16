@@ -9,17 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef DEBUG
-  #define DEBUG_PRINT(fmt, ...) \
-        do { fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, \
-                                __LINE__, __func__, __VA_ARGS__); } while (0)
-  #define DEBUG_CMD(cmd) \
-        do { cmd; } while (0)
-#else
-  #define DEBUG_PRINT(fmt, ...)
-  #define DEBUG_CMD(cmd)
-#endif
-
 #define NUM_GENERAL_REGISTERS 13
 #define MEM_SIZE 65536
 
@@ -65,23 +54,5 @@ typedef enum {
 } opcode_t;
 
 #include "instructions.h"
-
-typedef struct {
-  word_t fetched;
-  instruction_t *decoded;
-} pipeline_t;
-
-typedef struct {
-  word_t r[NUM_GENERAL_REGISTERS];
-  word_t pc;
-  word_t cpsr;
-} registers_t;
-
-typedef struct {
-  registers_t registers;
-  byte_t memory[MEM_SIZE];
-  pipeline_t pipeline;
-} state_t;
-
 
 #endif

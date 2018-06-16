@@ -40,7 +40,7 @@ extension/src/build/*
 *.class
 
 #Ignore test outputs
-src/test/build/*
+src/unit_tests/build/*
 
 #ignore extension layouts
 #extension/layout/*.txt

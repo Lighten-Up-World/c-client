@@ -5,11 +5,9 @@ Written in C for Imperial College London's Summer term project.
 2. _Assembler:_ translates an ARM assembly source file into a
 binary file that can subsequently be executed by the emulator
 3. _LED:_ ARM assembly program that flashes an LED on a provided Raspberry Pi
-4. _Extension:_
+4. _Extension "Lighten up World":_ Our general-purpose data visualisation project. Designed to represent data from a variety of sources.
 
-## Organisation
-- (Google Sheets)[https://docs.google.com/spreadsheets/d/1BZWoV53lNt4TEUStpAOUYNjc-zwfWrU1gSXl8XtwFN0/edit#gid=0]
-## Source Code
+## Emulator/Assembler
 
 See `src` directory.
 
@@ -18,11 +16,34 @@ See `src` directory.
 
 You can compile emulate using `make emulate`, and assemble using `make assemble`.
 
+
 ## Tests
 
-See `test` directory.
+- See `test` directory for the ruby test suite.
+- See `src/unit_tests` directory for the unit tests.
 
-- TO DO: Setup make files for testing.
+Run `make` to compile emulate/assemble. Then this will run the unit_test and the ruby tests. Ensure submodules are imported using `git submodule init` and `git submodule update`
+
+## Extension
+
+- See `extension` directory for the extension code.
+
+**Prerequistes:** If you're using Linux, first get the dependencies you need
+(Mac users skip this step):
+
+    apt-get install mesa-common-dev freeglut3-dev
+
+Run `make server` inside extension/src folder to run the opengl viewer alone
+Ensure submodules are imported using `git submodule init` and `git submodule update`
+
+Fun commands to try:
+-  `make conway`
+-  `make raverplaid`
+-  `make lavalamp`
+-  `make simulation` for a heatmap of the world.
+-  `make simulation MODE=windspeed` for a windspeed data.
+
+To close the simulation close the window then ctrl-c the terminal.
 
 ## Git
 [Git Branching Model](http://nvie.com/posts/a-successful-git-branching-model/)
@@ -36,7 +57,7 @@ See `test` directory.
 7. Use the body to explain what and why vs. how
 
 ### Branching Checklist
-To create a new feature branch
+To create a new feature branchz
 1. `git status` - Make sure you are in develop branch and all pre-requisite features have been merged. `git checkou develop` if not.
 2. `git checkout -b myfeature develop`
 To incorporate finished feature on develop.
@@ -59,3 +80,15 @@ See `doc` directory.
 - `Report.tex` is the final report.
 
 ## Programs
+
+## Authors
+
+* **Tiger Cross**
+* **Daniel Hails**
+* **Will Burr**
+* **Matt Malarkey**
+
+## Acknowledgments
+
+* Openpixelcontrol
+* Unity

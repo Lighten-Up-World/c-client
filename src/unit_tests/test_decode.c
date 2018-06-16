@@ -1,10 +1,6 @@
-#include "unity/unity.h"
-#include "../assemble/symbolmap.h"
-#include "../assemble/referencemap.h"
-#include "../utils/bitops.h"
-#include "../assemble/parser.h"
-
-assemble_state_t *prog = NULL;
+#include "../../unity/src/unity.h"
+#include "../emulate/decode.h"
+#include "../utils/bitops.c"
 
 void compareInstructions(instruction_t e, instruction_t d){
   TEST_ASSERT_EQUAL_MESSAGE(e.type, d.type, "Instr Type");
@@ -100,121 +96,59 @@ void compareInstructions(instruction_t e, instruction_t d){
   }
 }
 
-
-void test_parse_hal(void){
-  instruction_t hal_i = {
-          .type = HAL,
-          .cond = 0x0,
-          .i.hal.pad0 = 0x0
-  };
-  list_t *tklst = token_list_new();
-  token_list_add_pair(tklst, T_OPCODE, "andeq");
-  token_list_add_pair(tklst, T_REGISTER, "r0");
-  token_list_add_pair(tklst, T_REGISTER, "r0");
-  token_list_add_pair(tklst, T_REGISTER, "r0");
-
-  instruction_t result;
-  if (parse(prog, tklst, &result)){
-    TEST_ASSERT_MESSAGE(false, "False Error");
-  }
-  token_list_delete(tklst);
-  compareInstructions(hal_i, result);
-}
-
-void test_parse_mul(void){
-  instruction_t mul_i = {
-          .type = MUL,
-          .cond = 0xE,
-          .i.mul = {
-                  .pad0 = 0x0,
-                  .A = 0,
-                  .S = 0,
-                  .rd = 0xC,
-                  .rn = 0xA,
-                  .rs = 0x1,
-                  .pad9 = 0x9,
-                  .rm = 0x2
+void test_decodeDp_rotated_immediate(void) {
+  word_t dp_tst_op2rotatedI_w = 0x03100208;//0b0000 00 1 1000 1 0000 0000 0010 00001000;
+  instruction_t dp_tst_op2rotatedI_i = {
+      .type = DP,
+      .cond = 0x0,
+      .i.dp = {
+          .padding = 0x0,
+          .I = 1,
+          .opcode = TST,
+          .S = 1,
+          .rn = 0x0,
+          .rd = 0x0,
+          .operand2.imm.rotated = {
+              .rotate = 0x2,
+              .value = 0x8
           }
+      }
   };
-  list_t *tklst = token_list_new();
-  token_list_add_pair(tklst, T_OPCODE, "mul");
-  token_list_add_pair(tklst, T_REGISTER, "r12");
-  token_list_add_pair(tklst, T_REGISTER, "r2");
-  token_list_add_pair(tklst, T_REGISTER, "r1");
-
-  instruction_t result;
-  if (parse(prog, tklst, &result)){
-    TEST_ASSERT_MESSAGE(false, "False Error");
-  }
-  token_list_delete(tklst);
-  compareInstructions(mul_i, result);
+  instruction_t decoded;
+  decode_word(&decoded, dp_tst_op2rotatedI_w);
+  instruction_t expected = dp_tst_op2rotatedI_i;
+  compareInstructions(expected, decoded);
 }
-
-void test_parse_mla(void){
-  instruction_t mla_i = {
-          .type = MUL,
-          .cond = 0xE,
-          .i.mul = {
-                  .pad0 = 0x0,
-                  .A = 1,
-                  .S = 0,
-                  .rd = 0xC,
-                  .rn = 0xA,
-                  .rs = 0x1,
-                  .pad9 = 0x9,
-                  .rm = 0x2
-          }
+void test_decodeDp_shifted_register(void) {
+  word_t dp_ORR_op2shiftedR_w = 0xF1900260;
+  instruction_t dp_ORR_op2shiftedR_i = {
+      .type = DP,
+      .cond = 0xF,
+      .i.dp = {
+          .padding = 0x0,
+          .I = 0,
+          .opcode = ORR,
+          .S = 1,
+          .rn = 0x0,
+          .rd = 0x0,
+          .operand2.reg = {
+              .shift.constant.integer = 0x4,
+              .type = ROR,
+              .shiftBy = 0,
+              .rm = 0x0
+          },
+      }
   };
-  list_t *tklst = token_list_new();
-  token_list_add_pair(tklst, T_OPCODE, "mla");
-  token_list_add_pair(tklst, T_REGISTER, "r12");
-  token_list_add_pair(tklst, T_REGISTER, "r2");
-  token_list_add_pair(tklst, T_REGISTER, "r1");
-
-  token_list_add_pair(tklst, T_REGISTER, "r10");
-
-  instruction_t result;
-  if (parse(prog, tklst, &result)){
-    TEST_ASSERT_MESSAGE(false, "False Error");
-  }
-  token_list_delete(tklst);
-  compareInstructions(mla_i, result);
+  instruction_t decoded;
+  decode_word(&decoded, dp_ORR_op2shiftedR_w);
+  instruction_t expected = dp_ORR_op2shiftedR_i;
+  compareInstructions(expected, decoded);
 }
-
-void test_parse_dp(void){
-
-  instruction_t mov_i = {
-          .type = DP,
-          .cond = 0xE,
-          .i.dp = {
-                  .opcode = MOV,
-                  .rd = 1,
-                  .operand2 = {
-                          .imm.rotated.value = 56,
-                          .imm.rotated.rotate = 0
-                  }
-          }
-  };
-
-  list_t *tklst = token_list_new();
-  token_list_add_pair(tklst, T_OPCODE, "mov");
-  token_list_add_pair(tklst, T_REGISTER, "r1");
-  token_list_add_pair(tklst, T_REGISTER, "#56");
-
-
-  instruction_t result;
-  if (parse(prog, tklst, &result)){
-  TEST_ASSERT_MESSAGE(false, "False Error");
-  }
-  token_list_delete(tklst);
-  compareInstructions(mov_i, result);
-}
-
-void test_parse_sdt_imm(void) {
-
-  instruction_t sdt_i = {
+void test_decodeSDT_invalid_register(void) {
+  word_t sdt_and_invalidreg_w = 0xC59EF000;
+  instruction_t sdt_and_invalidreg_i = {
       .type = SDT,
-      .cond = 0xE,
+      .cond = 0xC,
       .i.sdt = {
           .pad1 = 0x1,
           .I = 0,
@@ -222,20 +156,96 @@ void test_parse_sdt_imm(void) {
           .U = 1,
           .pad0 = 0x0,
           .L = 1,
-          .rn = 15,
-          .rd = 0,
-          .offset.imm.fixed = 0x555
+          .rn = 0xE,
+          .rd = 0xF,
+          .offset.imm.fixed = 0x0
       }
   };
-  list_t *tklst = token_list_new();
-  token_list_add_pair(tklst, T_OPCODE, "ldr");
-  token_list_add_pair(tklst, T_REGISTER, "r0");
-  token_list_add_pair(tklst, T_EQ_EXPR, "=0x555");
+  instruction_t decoded;
+  decode_word(&decoded, sdt_and_invalidreg_w);
+  instruction_t expected = sdt_and_invalidreg_i;
+  compareInstructions(expected, decoded);
 
-  instruction_t result;
-  if (parse(prog, tklst, &result)){
-    TEST_ASSERT_MESSAGE(false, "False Error");
-  }
-  token_list_delete(tklst);
-  compareInstructions(sdt_i, result);
+}
+void test_decodeMul(void) {
+  word_t mul_w = 0xD03CA192;
+  instruction_t mul_i = {
+      .type = MUL,
+      .cond = 0xD,
+      .i.mul = {
+          .pad0 = 0x0,
+          .A = 1,
+          .S = 1,
+          .rd = 0xC,
+          .rn = 0xA,
+          .rs = 0x1,
+          .pad9 = 0x9,
+          .rm = 0x2
+      }
+  };
+  instruction_t decoded;
+  decode_word(&decoded, mul_w);
+  instruction_t expected = mul_i;
+  compareInstructions(expected, decoded);
+}
+
+void test_decodeBrn(void) {
+  word_t brn_w = 0xAA000032;
+  instruction_t brn_i = {
+      .type = BRN,
+      .cond = 0xA,
+      .i.brn = {
+          .padA = 0xA,
+          .offset = 0x32
+      }
+  };
+  instruction_t decoded;
+  decode_word(&decoded, brn_w);
+  instruction_t expected = brn_i;
+  compareInstructions(expected, decoded);
+}
+
+void test_decodeBrn2(void) {
+  word_t brn_w = 0xAAFFFFFF;
+  instruction_t brn_i = {
+      .type = BRN,
+      .cond = 0xA,
+      .i.brn = {
+          .padA = 0xA,
+          .offset = 0xFFFFFF
+      }
+  };
+  instruction_t decoded;
+  decode_word(&decoded, brn_w);
+  instruction_t expected = brn_i;
+  compareInstructions(expected, decoded);
+}
+
+void test_decodeBrn3(void) {
+  word_t brn_w = 0x3A800001;
+  instruction_t brn_i = {
+      .type = BRN,
+      .cond = 0x3,
+      .i.brn = {
+          .padA = 0xA,
+          .offset = 0x800001
+      }
+  };
+  instruction_t decoded;
+  decode_word(&decoded, brn_w);
+  instruction_t expected = brn_i;
+  compareInstructions(expected, decoded);
+}
+
+void test_decodeHal(void) {
+  word_t hal_w = 0x00000000;
+  instruction_t hal_i = {
+      .type = HAL,
+      .cond = 0x0,
+      .i.hal.pad0 = 0x0
+  };
+  instruction_t decoded;
+  decode_word(&decoded, hal_w);
+  instruction_t expected = hal_i;
+  compareInstructions(expected, decoded);
 }

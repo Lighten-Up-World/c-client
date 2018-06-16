@@ -31,6 +31,15 @@ MODE = temp
 simulation: mkdir $(PATHB)main.out server
 	$(PATHB)main.out $(MODE)
 
+conway: mkdir server
+	python $(PATHROOT)$(PATHOPC)python/conway.py
+
+raverplaid: mkdir server
+	python $(PATHROOT)$(PATHOPC)python/raver_plaid.py
+
+lavalamp: mkdir server
+	python $(PATHROOT)$(PATHOPC)python/lava_lamp.py --layout $(PATHROOT)$(PATHLAYOUT)WorldMap.json
+
 server: layout
 	cd $(PATHROOT)$(PATHOPC); make
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &

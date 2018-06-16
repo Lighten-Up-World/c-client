@@ -1,20 +1,14 @@
 /*
 *  Contains IO related operations, operating on either the ARM machine state or local disk.
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include "../assemble.h"
+
 #include "io.h"
-#include "bitops.h"
-#include "register.h"
-#include "arm.h"
-#include "error.h"
+
 /**
  * Determine whether an address is a gpio key memory location
  *
- * @param addr: the address to check
- * @return true iff the address is a valid gpio address
+ * @param addr: address to check
+ * @return: true iff the address is a valid gpio address
  */
 bool is_gpio_addr(word_t addr) {
   if (addr >= GPIO_SETUP_0_9 && addr <= GPIO_SETUP_20_29) {
@@ -30,7 +24,7 @@ bool is_gpio_addr(word_t addr) {
 /**
  * Print out the correct string for a GPIO memory access
  *
- * @param byteAddr: the address accessed
+ * @param byteAddr: address accessed
  */
 void print_gpio_access(word_t byteAddr) {
   if (byteAddr == GPIO_SETUP_0_9) {
@@ -46,32 +40,44 @@ void print_gpio_access(word_t byteAddr) {
   }
 }
 
-int check_address_valid(word_t addr) {
+/**
+ * Check for valid memory addresses
+ *
+ * @param addr: address accessed
+ * @return: 1 iff the memory address is invalid
+ */
+bool check_address_invalid(word_t addr) {
   //GPIO extension
   if (is_gpio_addr(addr)) {
-    return 0;
+    return false;
   }
 
   if (addr > MEM_SIZE) {
     printf("Error: Out of bounds memory access at address 0x%08x\n", addr);
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
-char *num_to_str(int num){
+/**
+ * Convert an int to a string
+ *
+ * @param num: int to convert
+ * @return: string conversion
+ */
+char *num_to_str(int num) {
   char *res = calloc(8, sizeof(int));
   sprintf(res, "%d", num);
   return res;
 }
 
 /**
- *  Read a 32 bit word from memory
+ *  Read a 32 bit word from a byte_t buffer
  *
- *  @param state: a non-null pointer to the machine state
- *  @param byteAddr: the byte address to read from
- *  @param dest: a non-null pointer to destination of loaded word
- *  @return an int indicating success or failure
+ *  @param state: non-null pointer to an array of bytes
+ *  @param byteAddr: byte address to read from
+ *  @param dest: non-null pointer to destination of loaded word
+ *  @return: int error code indicating success or failure
  */
 int get_word(byte_t *buff, word_t byteAddr, word_t *word) {
   assert(buff != NULL);
@@ -80,63 +86,72 @@ int get_word(byte_t *buff, word_t byteAddr, word_t *word) {
   for (size_t i = 0; i < 4; i++) {
     *word |= ((word_t) buff[byteAddr + i]) << (i * 8);
   }
-  return 0;
+  return EC_OK;
 }
 
 /**
- *  Read a 32 bit word from memory
+ *  Read a 32 bit word from the emulator memory
  *
- *  @param state: a non-null pointer to the machine state
- *  @param byteAddr: the byte address to read from
- *  @param dest: a non-null pointer to destination of loaded word
- *  @return an int indicating success or failure
+ *  @param state: non-null pointer to the machine state
+ *  @param byteAddr: byte address to read from
+ *  @param dest: non-null pointer to destination of loaded word
+ *  @return: int error code indicating success or failure
  */
-int get_mem_word(state_t *state, word_t byteAddr, word_t *dest) {
+int get_mem_word(emulate_state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
-  if (check_address_valid(byteAddr)) {
-    return 1;
+  if (check_address_invalid(byteAddr)) {
+    return EC_INVALID_PARAM;
   }
 
   // GPIO extension
   if (is_gpio_addr(byteAddr)) {
     print_gpio_access(byteAddr);
     *dest = byteAddr;
-    return 0;
+    return EC_OK;
   }
   get_word(state->memory, byteAddr, dest);
-  return 0;
+  return EC_OK;
 }
 
 /**
- * Read the 32 bit word from memory and return it
+ * Read the 32 bit word from emulator memory in big endian format
  *
- * @param state - a non-null pointer to the machine state
- * @param byteAddr - byte address to read from.
- * @param dest: a non-null pointer to destination of loaded word
- * @return an int indicating success or failure
+ * @param state: non-null pointer to the machine state
+ * @param byteAddr: byte address to read from.
+ * @param dest: non-null pointer to destination of loaded word
+ *  @return: int error code indicating success or failure
  */
-int get_mem_word_big_end(state_t *state, word_t byteAddr, word_t *dest) {
+int
+get_mem_word_big_end(emulate_state_t *state, word_t byteAddr, word_t *dest) {
   assert(state != NULL);
   word_t word = 0;
-  if (check_address_valid(byteAddr)) {
-    return 1;
+  if (check_address_invalid(byteAddr)) {
+    return EC_INVALID_PARAM;
   }
 
   // GPIO extension
   if (is_gpio_addr(byteAddr)) {
     print_gpio_access(byteAddr);
     *dest = byteAddr;
-    return 0;
+    return EC_OK;
   }
 
   for (size_t i = 0; i < 4; i++) {
     word |= ((word_t) state->memory[byteAddr + 3 - i]) << (i * 8);
   }
   *dest = word;
-  return 0;
+  return EC_OK;
 }
 
-int set_word(byte_t *buff, word_t byteAddr, word_t word){
+/**
+ * Set a given word at a given address in a byte_t buffer
+ *
+ * @param buff: non-null pointer top an array of bytes
+ * @param byteAddr: byte address to set word at in buffer
+ * @param word: word to set
+ * @return: integer error code based on success of teh function
+ */
+int set_word(byte_t *buff, word_t byteAddr, word_t word) {
   assert(buff != NULL);
 
   // GPIO extension
@@ -154,25 +169,43 @@ int set_word(byte_t *buff, word_t byteAddr, word_t word){
 /**
  * Write a word at a specified byte address in memory
  *
- *  @param state: a non-null pointer to the machine state
- *  @param byteAddr: the byte address to be written into
- *  @param word: the word to write into memory
+ *  @param state: non-null pointer to the machine state
+ *  @param byteAddr: byte address to be written into
+ *  @param word: word to write into memory
  *  @return: return 0 iff success
  */
-int set_mem_word(state_t *state, word_t byteAddr, word_t word) {
+int set_mem_word(emulate_state_t *state, word_t byteAddr, word_t word) {
   assert(state != NULL);
-  if (check_address_valid(byteAddr)) { return EC_INVALID_PARAM; }
+  if (check_address_invalid(byteAddr)) { return EC_INVALID_PARAM; }
   return set_word(state->memory, byteAddr, word);
+}
+
+/**
+ *  Print the values stored in memory
+ *  Continue until the word value is 0 or we run out of memory
+ *
+ *  @param state: non-null pointer to the machine state
+ */
+void print_mem(emulate_state_t *state) {
+  assert(state != NULL);
+  word_t memWord;
+
+  for (int addr = 0; addr < MEM_SIZE; addr += 4) {
+    get_mem_word_big_end(state, addr, &memWord);
+    if (memWord == 0) { // halt when memory instr is 0.
+      continue;
+    }
+    printf("0x%08x: 0x%08x\n", addr, memWord);
+  }
 }
 
 /**
  *  Print the values stored in a specified register
  *
- *  @param state: a non-null pointer to the machine state
- *  @param reg: the address of the register to print
- *  @return void
+ *  @param state: non-null pointer to the machine state
+ *  @param reg: address of the register to print
  */
-void print_reg(state_t *state, reg_address_t reg) {
+void print_reg(emulate_state_t *state, reg_address_t reg) {
   assert(reg >= 0 && reg < REG_N);
   assert(state != NULL);
   if (reg == REG_N_LR || reg == REG_N_SP) {
@@ -190,32 +223,11 @@ void print_reg(state_t *state, reg_address_t reg) {
 }
 
 /**
- *  Print the values stored in memory
- *  Continue until the word value is 0 or we run out of memory
- *
- *  @param state: a non-null pointer to the machine state
- *  @return void
- */
-void print_mem(state_t *state) {
-  assert(state != NULL);
-  word_t memWord;
-
-  for (int addr = 0; addr < MEM_SIZE; addr += 4) {
-    get_mem_word_big_end(state, addr, &memWord);
-    if (memWord == 0) { // halt when memory instr is 0.
-      continue;
-    }
-    printf("0x%08x: 0x%08x\n", addr, memWord);
-  }
-}
-
-/**
  *  Print all data stored in registers and memory
  *
- *  @param state - a pointer to the state of the ARM machine
- *  @return void
+ *  @param state - pointer to the state of the emulator
  */
-void print_state(state_t *state) {
+void print_state(emulate_state_t *state) {
   assert(state != NULL);
 
   printf("Registers:\n");
@@ -230,97 +242,76 @@ void print_state(state_t *state) {
 /**
  *  Write a file from a buffer to disk
  *
- *  @param path: the path of the binary file to write to
- *  @param buffer: a pointer to an allocated array in which the file will be written from
- *  @param buffer_size: the size of the buffer allocated
- *  @return a status code denoting the result
+ *  @param path: path of the binary file to write to
+ *  @param buffer: pointer to an allocated array in which the file will be written from
+ *  @param no_bytes: size of the buffer allocated
+ *  @return: status code denoting the result
  */
 int write_file(const char *path, byte_t *buffer, int no_bytes) {
-  assert(path != NULL);
   assert(buffer != NULL);
 
+  FAIL_PRED(path == NULL, EC_INVALID_PARAM);
+
   FILE *fp = NULL;
-  if (!(fp = fopen(path, "wb"))) {
-    perror("fopen failed at path");
-    return 1;
-  }
-  const int read = fwrite(buffer, sizeof(byte_t), no_bytes, fp);
-  if (read != sizeof(byte_t)*no_bytes || ferror(fp)) {
-    perror("Couldn't write file to completion");
-    return 3;
-  }
-  if (fclose(fp) != 0) {
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
+  fp = fopen(path, "wb");
+  FAIL_SYS(fp == NULL);
+
+  fwrite(buffer, sizeof(byte_t), no_bytes, fp);
+  FAIL_SYS(ferror(fp));
+  FAIL_SYS(fclose(fp));
+
+  return EC_OK;
 }
 
 /**
-*  Loads a file from disk into a buffer
+*  Load a file from disk into a buffer
 *
-*  @param path: the path of the binary file to read from
-*  @param buffer: a pointer to an allocated array which the file will be read to
-*  @param buffer_size: the size of the buffer allocated
-*  @return a status code denoting the result
+*  @param path: path of the binary file to read from
+*  @param buffer: pointer to an allocated array which the file will be read to
+*  @param buffer_size: size of the buffer allocated
+*  @return: status code denoting the result
 */
 int read_file(const char *path, byte_t *buffer, size_t buffer_size) {
-  assert(path != NULL);
   assert(buffer != NULL);
 
-  long file_size = 0;
-  FILE *fp = NULL;
+  FAIL_PRED(path == NULL, EC_INVALID_PARAM);
 
-  if (!(fp = fopen(path, "rb"))) {
-    perror("fopen failed at path");
-    return 1;
-  }
-  file_size = ftell(fp);
-  if (file_size == -1) {
-    perror("Couldn't determine file size");
-    return 2;
-  }
-  const int read = fread(buffer, buffer_size, 1, fp);
-  if (read != file_size && ferror(fp)) {
-    perror("Couldn't read file to completion");
-    return 3;
-  }
-  if (fclose(fp) != 0) {
-    perror("Couldn't close file");
-    return 4;
-  }
-  return 0;
+  FILE *fp = NULL;
+  fp = fopen(path, "rb");
+  FAIL_SYS(fp == NULL);
+
+  long file_size = ftell(fp);
+  FAIL_PRED(file_size == -1, EC_SYS);
+
+  fread(buffer, buffer_size, 1, fp);
+  FAIL_SYS(ferror(fp));
+  FAIL_SYS(fclose(fp));
+
+  return EC_OK;
 }
 
 /**
-*  Loads a file from disk as list of strings
+*  Load a file from disk as list of strings
 *
-*  @param path: the path of the ASCII file to read from
-*  @param buffer: a pointer to an allocated array which the file will be read to
-*  @param num_of_lines: pointer to an int denoting the number of lines found in file
-*  @return a status code denoting the result
+*  @param path: path of the ASCII file to read from
+*  @param buffer: pointer to an allocated array which the file will be read to
+*  @return: status code denoting the result
 */
 int read_char_file(const char *path, char **buffer) {
-  FILE *file = fopen(path, "r");
-  if (file == NULL) {
-    perror("File could not be opened");
-    exit(EC_SYS);
-  }
+  assert(buffer != NULL);
+
+  FAIL_PRED(path == NULL, EC_INVALID_PARAM);
+
+  FILE *fp = NULL;
+  fp = fopen(path, "r");
+  FAIL_SYS(fp == NULL);
 
   int line = 0;
-  while (fgets(buffer[line], LINE_SIZE-1, file) != NULL) {
+  while (fgets(buffer[line], LINE_SIZE - 1, fp) != NULL) {
     line++;
   }
-
-  if (ferror(file)) {
-    perror("Failed to read from file");
-    exit(EC_SYS);
-  }
-
-  if (fclose(file)) {
-    perror("File could not be closed");
-    exit(EC_SYS);
-  }
+  FAIL_SYS(ferror(fp));
+  FAIL_SYS(fclose(fp));
 
   return line;
 }

@@ -49,6 +49,7 @@ typedef struct http_request{
     char *path;
 }http_request_t;
 
+
 int socket_connect(const char *host, in_port_t port);
 int socket_close(int sockfd);
 
