@@ -11,6 +11,7 @@ static double rad2deg (double ang) {
 // METER BASED FUNCTIONS
 /*
  * I don't think these are right
+ * see link: https://knowledge.safe.com/articles/725/calculating-accurate-length-in-meters-for-lat-long.html
  */
 double lon2x_m (double lon) {
   return deg2rad(lon) * EARTH_RADIUS;
