@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
 
 #include "apimanager.h"
 #include "api/weather_api.h"
@@ -96,15 +98,25 @@ int main(int argc, const char * argv[]) {
 
   opc_put_pixels(s, channel, NUM_PIXELS, pixels);
 
+  //Clear Pixels
   for(int p = 0; p < NUM_PIXELS; p++) {
     pixels[p] = (pixel){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
   }
 
+  // Setup pixel_info
   list_t *pixel_info = list_new(&free);
   init_grid(pixel_info);
   init_geo(pixel_info);
 
+  // API Call
+  // api_manager_t *api_manager= api_manager_new();
+
+  struct timespec delay, curr;
+  delay.tv_sec = 1;
+  delay.tv_nsec = 0;
+
   for (int i = 0; i < NUM_PIXELS; i++) {
+    nanosleep(&delay, &curr);
     geolocation_t geo = ((pixel_info_t *)list_get(pixel_info, i))->geo;
     pixel_t pix;
     pix.grid = ((pixel_info_t *)list_get(pixel_info, i))->grid;
@@ -122,6 +134,8 @@ int main(int argc, const char * argv[]) {
     pixels[i] = p;
     opc_put_pixels(s, channel, NUM_PIXELS, pixels);
   }
+
+  // Close it all up
   opc_close(s);
   return 0;
 }

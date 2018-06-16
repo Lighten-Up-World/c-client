@@ -14,6 +14,15 @@ api_manager_t *api_manager_new(void){
   return api_manager;
 }
 
+int api_manager_init(api_manager_t *self, api_t *api, list_t *pixel_info){
+  if(self == NULL){
+    return EC_INVALID_PARAM;
+  }
+  self->api = api;
+  self->pixel_info = pixel_info;
+  return EC_OK;
+}
+
 int api_manager_delete(api_manager_t *self){
   free(self);
   return EC_OK;
