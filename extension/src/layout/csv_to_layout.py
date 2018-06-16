@@ -13,15 +13,17 @@ with open('WorldMap.csv', 'rb') as csvfile:
     count = 0
     for row in list(reader):
         x = 0
+
         for cell in list(row):
 
             if not cell:
+                x += 1
                 #ie. no pixel in this cell
                 continue
             pixels.append('\t{"point": [%.2f, %.2f, %.2f]}' %
                           ((width - x + x_offset) * spacing, 0, (height - y + y_offset) * spacing))
             mappings.append('%d %d %d' % (x, y, count))
-            count += 1
+            count+=1
             x += 1
         y += 1
     with open('CoordsToListPos.txt', 'w') as ci:
