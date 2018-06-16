@@ -1,4 +1,4 @@
-#include "unity/unity.h"
+#include "../../unity/src/unity.h"
 #include "../utils/bitops.h"
 
 word_t minus42 = -42;

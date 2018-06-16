@@ -25,7 +25,14 @@ int weather_get_val_for_xy(pixel_t *pixel, char *attr, char *object, double *val
 
   int sockfd = socket_connect(WEATHER_HOST, 80);
 
+  //Currently this function does not work
   geolocation_t geoloc = grid2geolocation(pixel->grid.x, pixel->grid.y);
+
+  //So generate random latitudes and longitudes to retrieve the data from
+  geoloc.latitude = rand() % 90;
+  geoloc.longitude = rand() % 90;
+
+  printf("Latitude: %f , Longitude: %f ,", geoloc.latitude, geoloc.longitude);
 
   if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, attr, object, val) < 0){
     return -1;
@@ -50,6 +57,8 @@ int temp_get_pixel_for_xy(pixel_t *pixel) {
     return -1;
   }
   val -= 273.0;
+
+  printf("Temperature: %f \n", val);
 
   int red = 0;
   int blue = 0;
@@ -105,6 +114,7 @@ int windspeed_get_pixel_for_xy(pixel_t *pixel){
     return -1;
   }
 
+  printf("Windspeed: %f \n", val);
   pixel->colour.blue = PIXEL_COLOUR_MAX;
 
   int rg = (PIXEL_COLOUR_MAX / 10.0) * (val);

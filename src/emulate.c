@@ -2,56 +2,74 @@
  * Initialises the memory and registers and loops through the instructions,
  * executing them until the halt instruction or end of memory is reached.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include "utils/arm.h"
-#include "utils/instructions.h"
+
 #include "emulate.h"
 
-#include "utils/io.h"
-#include "emulate/execute.h"
-#include "emulate/decode.h"
-#include "utils/register.h"
-
-
-int main(int argc, char **argv) {
-  assert(argc > 1);
-
-  state_t *state = calloc(1, sizeof(state_t));
-  assert(state != NULL);
+/**
+ * Allocate space on the heap for the emulator state
+ *
+ * @return: heap-allocated emulate_state_t struct
+ */
+static emulate_state_t *emulate_state_new() {
+  emulate_state_t *state = calloc(1, sizeof(emulate_state_t));
+  MEM_CHECK(state, NULL);
   state->pipeline.decoded = calloc(1, sizeof(instruction_t));
-  assert(state->pipeline.decoded != NULL);
-  read_file(argv[1], state->memory, MEM_SIZE);
-  DEBUG_PRINT("\n=========\nEmulating: %s\n=========\n", argv[1]);
+  MEM_CHECK(state->pipeline.decoded, NULL);
+  state->pipeline.fetched = calloc(1, sizeof(word_t));
+  MEM_CHECK(state->pipeline.fetched, NULL);
+
+  return state;
+}
+
+/**
+ * Free space on heap of an emulate_state_t
+ *
+ * @param state: pointer to the emulate_state_t to free
+ */
+static void emulate_state_free(emulate_state_t *state) {
+  if (state) {
+    free(state->pipeline.decoded);
+    free(state->pipeline.fetched);
+  }
+  free(state);
+}
+
+/**
+ * Main Emulator Loop
+ *
+ * Takes as argument the name of the binary file to emulate
+ */
+int main(int argc, char **argv) {
+  int _status = EC_OK;
+  if (argc <= 1) {
+    fprintf(stderr, "%s <path_to_binary_file>", argv[0]);
+    return EC_INVALID_PARAM;
+  }
+
+  emulate_state_t *state = emulate_state_new();
+  MEM_CHECK_C(state, EC_NULL_POINTER, emulate_state_free(state));
+
+  _status = read_file(argv[1], state->memory, MEM_SIZE);
+  CHECK_STATUS(_status, emulate_state_free(state));
 
   //Setup Pipeline
   set_pc(state, 0x8);
-  get_mem_word(state, 0, &state->pipeline.fetched);
-  *state->pipeline.decoded = decode_word(state->pipeline.fetched);
-  get_mem_word(state, 0x4, &state->pipeline.fetched);
+  _status = get_mem_word(state, 0, state->pipeline.fetched);
+  CHECK_STATUS(_status, emulate_state_free(state));
 
-  DEBUG_PRINT("Initial Pipeline setup:\n\tPC (0x%08x)\n\tFetched (0x%08x)\n",
-              get_pc(state), state->pipeline.fetched);
+  _status = decode_word(state->pipeline.decoded, *state->pipeline.fetched);
+  get_mem_word(state, 0x4, state->pipeline.fetched);
 
   while (state->pipeline.decoded->type != HAL) {
-    DEBUG_PRINT("\n---------(PC=%04x PC@%04x)---------\n", get_pc(state), get_pc(state) - 0x8);
-    DEBUG_CMD(print_state(state));
-    DEBUG_PRINT("Executing: %01x Instruction:\n\t", state->pipeline.decoded->type);
-
-    if (!execute(state)) {
-      *state->pipeline.decoded = decode_word(state->pipeline.fetched);
-      DEBUG_PRINT("\nDecoded: %08x\n", state->pipeline.fetched);
-      get_mem_word(state, get_pc(state), &state->pipeline.fetched);
-      DEBUG_PRINT("\nFetching@%04x: %08x\n", get_pc(state), state->pipeline.fetched);
+    _status = execute(state);
+    if (!_status) {
+      _status = decode_word(state->pipeline.decoded, *state->pipeline.fetched);
+      get_mem_word(state, get_pc(state), state->pipeline.fetched);
     }
     increment_pc(state);
-    DEBUG_PRINT("\n---------(PC=%04x)---------\n\n", get_pc(state));
   }
 
-  // Execute HAL instruction
-  execute(state);
-  free(state->pipeline.decoded);
-  free(state);
-  return EXIT_SUCCESS;
+  _status = execute(state);
+  emulate_state_free(state);
+  return _status;
 }

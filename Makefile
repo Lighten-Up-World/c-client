@@ -39,7 +39,7 @@ debug:
 	xxd -c 4 test/test_cases/$(RUN)
 
 unit_test:
-	cd src/test; make
+	cd src/unit_tests; make
 
 clean:
 	cd src; make clean

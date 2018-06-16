@@ -3,7 +3,7 @@
 
 #include "../utils/list.h"
 
-typedef enum{
+typedef enum {
   T_OPCODE,
   T_REGISTER,
   T_HASH_EXPR,

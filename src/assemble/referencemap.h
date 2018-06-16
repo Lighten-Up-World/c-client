@@ -7,8 +7,9 @@
 
 #define MAX_R_MAP_CAPACITY 30
 
-typedef char * label_t;
-typedef void (*map_func_t) (const label_t label, const address_t val, const void *obj);
+typedef char *label_t;
+typedef void (*map_func_t)(const label_t label, const address_t val,
+                           const void *obj);
 
 typedef struct {
   address_t *address;
@@ -33,13 +34,13 @@ typedef struct {
 unsigned long rmap_hash(const label_t label);
 
 reference_map_t *rmap_new(size_t capacity);
-
 int rmap_delete(reference_map_t *map);
 
 int rmap_get_references(const reference_map_t *map, const label_t label,
-                      address_t *out, size_t out_size);
+                        address_t *out, size_t out_size);
 int rmap_exists(const reference_map_t *map, const label_t label);
-int rmap_put(const reference_map_t *map, const label_t label, const address_t address);
+int rmap_put(const reference_map_t *map, const label_t label,
+             const address_t address);
 
 int rmap_get_count(reference_map_t *map);
 
