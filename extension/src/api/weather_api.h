@@ -15,10 +15,10 @@
 
 //TEMP
 
-int temp_get_pixel_for_xy(pixel_t *pixel);
+int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc);
 
 //WIND SPEED
 
-int windspeed_get_pixel_for_xy(pixel_t *pixel);
+int windspeed_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc);
 
 #endif

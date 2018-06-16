@@ -20,6 +20,8 @@
 #define NUM_PIXELS 471
 
 #define CONFIG_FILE "layout/CoordsToListPos.txt"
+#define GEOLOC_FILE "layout/ListPosToGeoLoc.txt"
+
 #define HOST_AND_PORT "127.0.0.1:7890"
 
 volatile int interrupted = 0;
@@ -50,18 +52,32 @@ int main(int argc, const char * argv[]) {
     return -1;
   }
 
+  FILE *loc_file = fopen(GEOLOC_FILE, "r");
+  if (loc_file == NULL) {
+    perror("File could not be opened");
+    return -1;
+  }
+
   int location;
-  size_t line_size = 100;
-  char buffer[100];
+  size_t line_size = 50;
+  char buffer[line_size];
+  char loc_buffer[line_size];
   int count = 0;
 
   signal(SIGINT, handle_user_exit);
 
   while (!interrupted){
     fseek(file, 0, SEEK_SET);
+    fseek(loc_file, 0, SEEK_SET);
     while (fgets(buffer, (int) line_size, file) != NULL && !interrupted){
 
+      printf("\n");
+      fgets(loc_buffer, (int) line_size, loc_file);
       sleep(1);
+
+      double lat = atof(strtok(loc_buffer, " "));
+      double lon = atof(strtok(NULL, " "));
+      geolocation_t geoloc = (geolocation_t){.latitude = lat, .longitude = lon};
       int x = atoi(strtok(buffer, " "));
       int y = atoi(strtok(NULL, " "));
 
@@ -69,11 +85,11 @@ int main(int argc, const char * argv[]) {
       pix.grid = (grid_t){.x = x, .y = y};
 
       if (strncmp("temp", argv[1], strlen(argv[1])) == 0){
-        if(temp_get_pixel_for_xy(&pix) < 0){
+        if(temp_get_pixel_for_xy(&pix, geoloc) < 0){
           printf("Failed \n");
         }
       }else if (strncmp("windspeed", argv[1], strlen(argv[1])) == 0){
-        if(windspeed_get_pixel_for_xy(&pix) < 0){
+        if(windspeed_get_pixel_for_xy(&pix, geoloc) < 0){
           printf("Failed \n");
         }
       }
@@ -83,6 +99,7 @@ int main(int argc, const char * argv[]) {
       opc_put_pixels(s, channel, NUM_PIXELS, pixels);
       count ++;
     }
+    //interrupted = 1;
   }
   opc_close(s);
   return 0;

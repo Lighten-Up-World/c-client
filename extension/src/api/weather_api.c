@@ -18,7 +18,7 @@
  * @return 0 for success; -1 for failure
  */
 
-int weather_get_val_for_xy(pixel_t *pixel, char *attr, char *object, double *val){
+int weather_get_val_for_xy(pixel_t *pixel, geolocation_t geoloc, char *attr, char *object, double *val){
   assert(pixel != NULL);
   assert(attr != NULL);
   assert(object != NULL);
@@ -26,17 +26,19 @@ int weather_get_val_for_xy(pixel_t *pixel, char *attr, char *object, double *val
   int sockfd = socket_connect(WEATHER_HOST, 80);
 
   //Currently this function does not work
-  geolocation_t geoloc = grid2geolocation(pixel->grid.x, pixel->grid.y);
+  //geolocation_t geoloc = grid2geolocation(pixel->grid.x, pixel->grid.y);
 
   //So generate random latitudes and longitudes to retrieve the data from
-  geoloc.latitude = rand() % 90;
-  geoloc.longitude = rand() % 90;
+  //geoloc.latitude = rand() % 90;
+  //geoloc.longitude = rand() % 90;
 
   printf("Latitude: %f , Longitude: %f ,", geoloc.latitude, geoloc.longitude);
 
   if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, attr, object, val) < 0){
     return -1;
   }
+
+  socket_close(sockfd);
 
   return 0;
 }
@@ -49,11 +51,11 @@ int weather_get_val_for_xy(pixel_t *pixel, char *attr, char *object, double *val
  * @return 0 for success; -1 for failure
  */
 
-int temp_get_pixel_for_xy(pixel_t *pixel) {
+int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc) {
   assert(pixel != NULL);
 
   double val;
-  if (weather_get_val_for_xy(pixel, "temp", "main", &val) < 0){
+  if (weather_get_val_for_xy(pixel, geoloc, "temp", "main", &val) < 0){
     return -1;
   }
   val -= 273.0;
@@ -65,7 +67,7 @@ int temp_get_pixel_for_xy(pixel_t *pixel) {
   int green = 0;
 
   if(val > 10){
-    red = (PIXEL_COLOUR_MAX / 10.0) * (val - 10.0);
+    red = (PIXEL_COLOUR_MAX / 20.0) * (val - 10.0);
     red = red > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : red;
   }else{
     pixel->colour.red = 0;
@@ -106,11 +108,11 @@ int temp_get_pixel_for_xy(pixel_t *pixel) {
  * @return 0 for success; -1 for failure
  */
 
-int windspeed_get_pixel_for_xy(pixel_t *pixel){
+int windspeed_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc){
   assert(pixel != NULL);
 
   double val;
-  if (weather_get_val_for_xy(pixel, "speed", "wind", &val) < 0){
+  if (weather_get_val_for_xy(pixel, geoloc, "speed", "wind", &val) < 0){
     return -1;
   }
 

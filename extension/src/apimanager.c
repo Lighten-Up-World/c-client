@@ -139,7 +139,7 @@ int socket_connect(const char *host, in_port_t port) {
  */
 
 int socket_close(int sockfd) {
-  if (shutdown(sockfd, 2) == -1) {
+  if (close(sockfd) == -1) {
     perror("socket_close");
     return -1;
   }
