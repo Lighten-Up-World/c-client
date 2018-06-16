@@ -30,11 +30,6 @@
 
 #define HOST_AND_PORT "127.0.0.1:7890"
 
-typedef struct {
-  grid_t grid;
-  geolocation_t geo;
-} pixel_info_t;
-
 volatile int interrupted = 0;
 
 void handle_user_exit(int _) {
@@ -111,17 +106,23 @@ int main(int argc, const char * argv[]) {
   init_geo(pixel_info);
 
   // API Call
-  // api_manager_t *api_manager= api_manager_new();
+  api_manager_t *api_manager= api_manager_new();
+  api_t *api = get_temp_api();
+  // Initialise api
+  api_manager_init(api_manager, api, pixel_info);
 
-  struct timespec delay, curr;
+  // Setup time delay
+  struct timespec delay;
   delay.tv_sec = 1;
   delay.tv_nsec = 0;
+
   while(!interrupted){
     for (int i = 0; i < NUM_PIXELS; i++) {
       if(interrupted){
         break;
       }
-      nanosleep(&delay, &curr);
+      nanosleep(&delay, NULL);
+
       geolocation_t geo = ((pixel_info_t *)list_get(pixel_info, i))->geo;
       pixel_t pix;
       pix.grid = ((pixel_info_t *)list_get(pixel_info, i))->grid;
@@ -140,8 +141,10 @@ int main(int argc, const char * argv[]) {
       opc_put_pixels(s, channel, NUM_PIXELS, pixels);
     }
   }
-  list_delete(pixel_info);
+
   // Close it all up
+  api_manager_delete(api_manager);
+  list_delete(pixel_info);
   opc_close(s);
   return 0;
 }

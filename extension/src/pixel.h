@@ -2,7 +2,6 @@
 #define PIXEL_H
 
 #include <stdint.h>
-#include "apimanager.h"
 
 #define GRID_WIDTH 52
 #define GRID_HEIGHT 24
@@ -25,8 +24,17 @@ typedef struct grid{
 typedef struct pixel{
   grid_t      grid;
   colour_t    colour;
-  intensity_t intensity;
 } pixel_t;
+
+typedef struct geolocation{
+  double latitude;
+  double longitude;
+} geolocation_t;
+
+typedef struct {
+  grid_t grid;
+  geolocation_t geo;
+} pixel_info_t;
 
 // Node Functions
 pixel_t *pixel_new(grid_t grid, colour_t colour, intensity_t intensity);

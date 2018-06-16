@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../../src/utils/error.h"
 #include <string.h>
-#include "../opc/opc.h"
-#include <stdio.h>
 #include <unistd.h>
-#include "../opc/opc.h"
+#include <time.h>
+#include "../../../src/utils/error.h"
 #include "../opc/opc_client.c"
 #include "scroll_buffer.h"
 

@@ -1,7 +1,6 @@
 //
 // Created by User on 14/06/2018.
 //
-
 #include "weather_api.h"
 
 //// TEMPERATURE ////
@@ -42,6 +41,12 @@ int weather_get_val_for_xy(pixel_t *pixel, geolocation_t geoloc, char *attr, cha
 
   return 0;
 }
+
+
+  int temp_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj){
+    return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
+  }
+
 
 /***
  * TEMP GET PIXEL FOR XY
@@ -96,6 +101,16 @@ int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc) {
   pixel->colour.red = red;
 
   return 0;
+}
+
+api_t *get_temp_api(void){
+  api_t *api = malloc(sizeof(api_t));
+  if(api == NULL){
+    return NULL;
+  }
+  api->name = "temp";
+  api->get_pixel = &temp_get_pixel;
+  return api;
 }
 
 //// WINDSPEED ////

@@ -15,7 +15,9 @@
 
 #define DANIEL_OPENWEATHERMAP_API_KEY b9442812ef8ec5f8f52d4cca809b36b9
 //TEMPERATURE
+int temp_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj);
 int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc);
+api_t *get_temp_api(void);
 
 //WIND SPEED
 int windspeed_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc);
