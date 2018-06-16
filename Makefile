@@ -4,7 +4,7 @@
 
 all: compile unit_test test
 
-mac: compile unit_test test_mac
+mac: compile test_mac
 
 RUN = factorial
 RESO = low
