@@ -142,6 +142,7 @@ void read_grid_to_list(pixel *pixel_list, pixel **pixel_grid) {
 }
 
 void handle_user_exit(int _) {
+  printf("\n");
   interrupted = 1;
 }
 
@@ -151,9 +152,17 @@ void handle_user_exit(int _) {
  * Scroll a buffer across the map continuously
  *
  * @param buff: a buffer containing the data to scroll across the map
- * @param rate: the delay between each frame of scrolling, in milliseconds
+ * @param rate: the delay between each frame of scrolling, in microseconds
  */
 void run(buffer *buff, double rate) {
+  // Copy buffer into new pointer
+  // Not sure why we have to do this but we do
+  buffer *buff_copy = buffer_new(buff->width);
+  for (uint8_t x = 0; x < buff->width; x++) {
+    for (uint8_t y = 0; y < ROWS; y++) {
+      buff_copy->grid[x][y] = buff->grid[x][y];
+    }
+  }
 
   pixel pixels[PIXELS];
   pixel **pixel_grid = pixel_grid_new();
@@ -185,10 +194,11 @@ void run(buffer *buff, double rate) {
     nanosleep(&t1, &t2);
 
     // Scroll along 1
-    shift_columns(pixel_grid, buff);
+    shift_columns(pixel_grid, buff_copy);
   }
 
   // Cleanup code
   grid_free(pixel_grid);
+  buffer_free(buff_copy);
   opc_close(s);
 }

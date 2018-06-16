@@ -10,7 +10,7 @@ int main() {
     buff->grid[0][y] = (pixel) {0, 0, 255};
   }
 
-  run(buff, 1);
+  run(buff, 200);
 
   buffer_free(buff);
 
