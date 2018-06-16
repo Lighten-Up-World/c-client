@@ -49,6 +49,19 @@ typedef struct http_request{
     char *path;
 }http_request_t;
 
+typedef int (*get_pixel_func) (api_manager_t *self, pixel_t *pixel, void *obj);
+typedef int (*api_manager_func)(api_manager_t *self);
+
+struct api_manager{
+  get_pixel_func get_pixel;
+  api_manager_func construct;
+  api_manager_func destruct;
+  void *obj;
+};
+
+api_manager_t *api_manager_new(void);
+int api_manager_delete(api_manager_t *self);
+
 
 int socket_connect(const char *host, in_port_t port);
 int socket_close(int sockfd);

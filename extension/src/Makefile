@@ -11,6 +11,7 @@ PATHLAYOUT = extension/src/layout/
 
 PATHS = ./
 PATHJSON = parson/
+PATHUTIL = utils/
 PATHAPI = api/
 PATHB = build/
 PATHOBJ = build/objs/
@@ -50,7 +51,7 @@ layout:
 run: mkdir $(PATHB)main.out
 	./build/main.out $(MODE)
 
-$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o
+$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o $(PATHOBJ)csv.o $(PATHOBJ)list.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
@@ -63,6 +64,9 @@ $(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHOBJ)%.o: $(PATHAPI)%.c $(PATHAPI)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHOBJ)%.o: $(PATHUTIL)%.c $(PATHUTIL)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)
