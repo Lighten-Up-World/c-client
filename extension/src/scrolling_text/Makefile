@@ -6,7 +6,7 @@ main:
 	./main.out
 
 debug:
-	$(CC) $(CFLAGS) scroll_buffer.c main.c -o main -g
+	$(CC) $(CFLAGS) scroll_buffer.c main.c -o main.out -g
 
 clean:
 	rm -f *.o

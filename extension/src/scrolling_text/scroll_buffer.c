@@ -42,16 +42,19 @@ int get_pixel_location(uint8_t x, uint8_t y, const char *config_file) {
   }
 
   if (ferror(file)) {
+    free(buffer);
     perror("Failed to read from file");
     exit(EC_SYS);
   }
 
   cleanup:
   if (fclose(file)) {
+    free(buffer);
     perror("File could not be closed");
     exit(EC_SYS);
   }
 
+  free(buffer);
   return location;
 }
 
@@ -121,9 +124,6 @@ void shift_columns(pixel **pixel_grid, buffer *buff) {
   }
 
   // Update rightmost column from buffer then update the buffer
-
-  printf("width of buff: %d\n", buff->width);
-
   for (uint8_t y = 0; y < ROWS; y++) {
     pixel_grid[COLS - 1][y] = buff->grid[0][y];
     buff->grid[buff->width - 1][y] = left_col[y];
