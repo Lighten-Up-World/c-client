@@ -91,6 +91,8 @@ int main(int argc, const char * argv[]) {
   assert(argc > 1);
   pixel pixels[NUM_PIXELS];
 
+  signal(SIGINT, handle_user_exit);
+
   uint8_t channel = 0;
   opc_sink s;
   // Open connection
@@ -114,27 +116,31 @@ int main(int argc, const char * argv[]) {
   struct timespec delay, curr;
   delay.tv_sec = 1;
   delay.tv_nsec = 0;
-
-  for (int i = 0; i < NUM_PIXELS; i++) {
-    nanosleep(&delay, &curr);
-    geolocation_t geo = ((pixel_info_t *)list_get(pixel_info, i))->geo;
-    pixel_t pix;
-    pix.grid = ((pixel_info_t *)list_get(pixel_info, i))->grid;
-
-    if (strncmp("temp", argv[1], strlen(argv[1])) == 0){
-      if(temp_get_pixel_for_xy(&pix, geo) < 0){
-        printf("Failed \n");
+  while(!interrupted){
+    for (int i = 0; i < NUM_PIXELS; i++) {
+      if(interrupted){
+        break;
       }
-    }else if (strncmp("windspeed", argv[1], strlen(argv[1])) == 0){
-      if(windspeed_get_pixel_for_xy(&pix, geo) < 0){
-        printf("Failed \n");
+      nanosleep(&delay, &curr);
+      geolocation_t geo = ((pixel_info_t *)list_get(pixel_info, i))->geo;
+      pixel_t pix;
+      pix.grid = ((pixel_info_t *)list_get(pixel_info, i))->grid;
+
+      if (strncmp("temp", argv[1], strlen(argv[1])) == 0){
+        if(temp_get_pixel_for_xy(&pix, geo) < 0){
+          printf("Failed \n");
+        }
+      }else if (strncmp("windspeed", argv[1], strlen(argv[1])) == 0){
+        if(windspeed_get_pixel_for_xy(&pix, geo) < 0){
+          printf("Failed \n");
+        }
       }
+      pixel p = {.r = pix.colour.red, .b = pix.colour.blue, .g = pix.colour.green};
+      pixels[i] = p;
+      opc_put_pixels(s, channel, NUM_PIXELS, pixels);
     }
-    pixel p = {.r = pix.colour.red, .b = pix.colour.blue, .g = pix.colour.green};
-    pixels[i] = p;
-    opc_put_pixels(s, channel, NUM_PIXELS, pixels);
   }
-
+  list_delete(pixel_info);
   // Close it all up
   opc_close(s);
   return 0;
