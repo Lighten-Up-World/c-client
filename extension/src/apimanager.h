@@ -23,9 +23,11 @@
 #include <netdb.h>
 #include "pixel.h"
 #include "parson/parson.h"
+#include "utils/list.h"
 
 //Forward Defs
 typedef struct api_manager api_manager_t;
+typedef struct api api_t;
 typedef struct geolocation geolocation_t;
 
 #include "projection.h"
@@ -52,8 +54,14 @@ typedef struct http_request{
 typedef int (*get_pixel_func) (api_manager_t *self, pixel_t *pixel, void *obj);
 typedef int (*api_manager_func)(api_manager_t *self);
 
-struct api_manager{
+struct api {
+  char *name;
   get_pixel_func get_pixel;
+};
+
+struct api_manager{
+  api_t *api;
+  list_t *pixel_info;
   api_manager_func construct;
   api_manager_func destruct;
   void *obj;

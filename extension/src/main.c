@@ -96,13 +96,19 @@ int main(int argc, const char * argv[]) {
 
   opc_put_pixels(s, channel, NUM_PIXELS, pixels);
 
+  //Clear Pixels
   for(int p = 0; p < NUM_PIXELS; p++) {
     pixels[p] = (pixel){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
   }
 
+  // Setup pixel_info
   list_t *pixel_info = list_new(&free);
   init_grid(pixel_info);
   init_geo(pixel_info);
+
+  // API Call
+  // api_manager_t *api_manager= api_manager_new();
+
 
   for (int i = 0; i < NUM_PIXELS; i++) {
     geolocation_t geo = ((pixel_info_t *)list_get(pixel_info, i))->geo;
@@ -122,6 +128,8 @@ int main(int argc, const char * argv[]) {
     pixels[i] = p;
     opc_put_pixels(s, channel, NUM_PIXELS, pixels);
   }
+
+  // Close it all up
   opc_close(s);
   return 0;
 }
