@@ -1,24 +1,24 @@
 #ifndef ARM11_22_SCROLL_BUFFER_H
 #define ARM11_22_SCROLL_BUFFER_H
 
+#include <stdlib.h>
 #include "../opc/opc.h"
+#include "../pixel.h"
 
-#define COLS 53
-#define ROWS 24
-#define PIXELS 471
-#define WHITE_PIXEL (pixel) {255, 255, 255}
+#define WHITE_PIXEL (pixel_t) {255, 255, 255}
 #define CONFIG_FILE "../layout/CoordsToListPos.txt"
 #define MILLI_TO_NANO 100000
 #define HOST_AND_PORT "127.0.0.1:7890"
 
 typedef struct {
-  pixel **grid;
+  pixel_t **grid;
+  int pos;
   int width;
-} buffer;
+} buffer_t;
 
-buffer *buffer_new(int cols);
-void buffer_free(buffer *buff);
-void clear_buffer(buffer *b);
-void run(buffer *buff, double rate);
+buffer_t *buffer_new(int cols);
+void buffer_free(buffer_t *buff);
+void clear_buffer(buffer_t *b);
+void run(buffer_t *buff, double rate);
 
 #endif

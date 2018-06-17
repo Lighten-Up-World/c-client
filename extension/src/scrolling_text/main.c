@@ -1,13 +1,18 @@
 #include "scroll_buffer.h"
 
 int main() {
+  srand(42);
   // Create a buffer pixel grid to contain data about to be displayed
-  buffer *buff = buffer_new(1);
+  int buff_width = 5;
+  buffer_t *buff = buffer_new(buff_width);
   clear_buffer(buff);
 
-  // Set a row of blue in buffer
-  for (uint8_t y = 0; y < ROWS; y++) {
-    buff->grid[0][y] = (pixel) {0, 0, 255};
+  // Set a shaded buffer
+  for (uint8_t x = 0; x < buff_width; x++){
+    for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
+      int c = x * (255/buff_width);
+        buff->grid[x][y] = (pixel_t) {c, c, c};
+    }
   }
 
   run(buff, 200);

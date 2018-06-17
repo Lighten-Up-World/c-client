@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 
-#define GRID_WIDTH 52
+#define GRID_WIDTH 53
 #define GRID_HEIGHT 24
+#define NUM_PIXELS 471
 
 #define PIXEL_COLOUR_MAX 255.0
 

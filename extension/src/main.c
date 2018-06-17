@@ -21,9 +21,6 @@
 #include "utils/list.h"
 
 // Grid size
-#define MAX_X_GRID 52
-#define MAX_Y_GRID 24
-#define NUM_PIXELS 471
 
 #define PIXEL_FILE "layout/CoordsToListPos.txt"
 #define GEOLOC_FILE "layout/GeoLocToListPos.txt"
@@ -103,8 +100,9 @@ int main(int argc, const char * argv[]) {
   opc_sink s;
   // Open connection
   s = opc_new_sink(HOST_AND_PORT);
-
-  opc_put_pixels(s, channel, NUM_PIXELS, pixels);
+  if(s == -1){
+    exit(EXIT_FAILURE);
+  }
 
   //Clear Pixels
   for(int p = 0; p < NUM_PIXELS; p++) {
@@ -141,7 +139,10 @@ int main(int argc, const char * argv[]) {
       }
       nanosleep(&delay, NULL);
       api_manager->api->get_pixel(api_manager, i, pixels+i, NULL);
-      opc_put_pixels(s, channel, NUM_PIXELS, pixels);
+      if(!opc_put_pixels(s, channel, NUM_PIXELS, pixels)){
+        interrupted = 1;
+        break;
+      }
     }
   }
 

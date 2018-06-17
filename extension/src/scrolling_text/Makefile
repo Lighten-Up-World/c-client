@@ -1,12 +1,15 @@
 CC = gcc
 CFLAGS = -Wall -Werror -pedantic
 
-main:
-	$(CC) $(CFLAGS) scroll_buffer.c main.c -o main.out
-	./main.out
+main: dirs
+	$(CC) $(CFLAGS) scroll_buffer.c main.c -o ../build/scrolling/main.out
+	../build/scrolling/main.out
 
 debug:
-	$(CC) $(CFLAGS) scroll_buffer.c main.c -o main.out -g
+	$(CC) $(CFLAGS) scroll_buffer.c main.c -o ../build/scrolling/main.out -g
+
+dirs:
+	mkdir -p ../build/scrolling
 
 clean:
 	rm -f *.o
