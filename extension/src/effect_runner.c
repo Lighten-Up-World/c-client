@@ -1,15 +1,4 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-
-#include "api/weather_api.h"
-#include "opc/opc_client.c"
-#include "utils/csv.h"
-#include "extension.h"
-
-#define PIXEL_FILE "layout/CoordsToListPos.txt"
-#define GEOLOC_FILE "layout/GeoLocToListPos.txt"
+#include "effect_runner.h"
 
 volatile int interrupted = 0;
 
@@ -112,8 +101,8 @@ int main(int argc, const char * argv[]) {
 
   // Setup time delay
   struct timespec delay;
-  delay.tv_sec = 1;
-  delay.tv_nsec = 0;
+  delay.tv_sec = 0;
+  delay.tv_nsec = 50 * MILLI_TO_NANO;
 
   while(!interrupted){
     for (int i = 0; i < NUM_PIXELS; i++) {

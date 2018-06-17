@@ -29,8 +29,8 @@ CFLAGS = -Wall -Werror -pedantic -g -O0 -std=gnu99 $(DEBUG)
 
 MODE = temp
 
-simulation: mkdir $(PATHB)main.out server
-	$(PATHB)main.out $(MODE)
+simulation: mkdir server $(PATHB)effect_runner.out
+	$(PATHB)effect_runner.out $(MODE)
 
 conway: mkdir server
 	python $(PATHROOT)$(PATHOPC)python/conway.py
@@ -48,10 +48,10 @@ server: layout
 layout:
 	cd layout; make
 
-run: mkdir $(PATHB)main.out
-	./build/main.out $(MODE)
+run: mkdir $(PATHB)effect_runner.out
+	./build/effect_runner.out $(MODE)
 
-$(PATHB)main.out: $(PATHOBJ)main.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o $(PATHOBJ)csv.o $(PATHOBJ)list.o
+$(PATHB)effect_runner.out: $(PATHOBJ)effect_runner.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o $(PATHOBJ)csv.o $(PATHOBJ)list.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
