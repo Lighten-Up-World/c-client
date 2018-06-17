@@ -22,6 +22,13 @@ typedef struct {
   uint8_t b;
 } opc_pixel_t;
 
+typedef struct {
+  opc_pixel_t **grid;
+  int width;
+  int height;
+  double time;
+} frame_t;
+
 typedef struct grid {
   int x;
   int y;

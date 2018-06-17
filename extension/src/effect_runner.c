@@ -4,12 +4,12 @@ volatile int interrupted = 0;
 
 typedef struct {
   char *str;
-  api_t *(*new)(void);
+  effect_t *(*new)(void);
 } string_to_constructor;
 
-const string_to_constructor apis[] = {
-    {"temp", &get_temp_api},
-    {"wind", &get_windspeed_api}
+const string_to_constructor effects[] = {
+    {"temp", &get_temp_effect},
+    {"windspeed", &get_windspeed_effect}
 };
 
 void handle_user_exit(int _) {
@@ -83,34 +83,44 @@ int main(int argc, const char * argv[]) {
 
   // Setup pixel_info
   list_t *pixel_info = list_new(&free);
+  if(pixel_info == NULL){
+    opc_close(s);
+    exit(EXIT_FAILURE);
+  }
   init_grid(pixel_info);
   init_geo(pixel_info);
 
-  // API Call
-  api_manager_t *api_manager= api_manager_new();
-  api_t *api = NULL;
-
-  for (int i = 0; i < sizeof(apis)/sizeof(string_to_constructor); i++) {
-    if(strcmp(apis[i].str, argv[1]) == 0){
-      api = apis[i].new();
+  // Find effect from argument
+  effect_t *effect = NULL;
+  for (int i = 0; i < sizeof(effects)/sizeof(string_to_constructor); i++) {
+    if(strcmp(effects[i].str, argv[1]) == 0){
+      effect = effects[i].new();
     }
   }
+  if(effect == NULL){
+    fprintf(stderr, "Failed to construct effect using argument %s\n", argv[1]);
+    opc_close(s);
+    list_delete(pixel_info);
+    exit(EXIT_FAILURE);
+  }
 
-  // Initialise api
-  api_manager_init(api_manager, api, pixel_info);
-
-  // Setup time delay
-  struct timespec delay;
-  delay.tv_sec = 0;
-  delay.tv_nsec = 50 * MILLI_TO_NANO;
+  // Initialise api manager
+  api_manager_t *api_manager = api_manager_init(NULL, effect, pixel_info);
+  if(api_manager == NULL){
+    fprintf(stderr, "Api_manager failed to initialise with effect %s\n", argv[1]);
+    free(effect);
+    opc_close(s);
+    list_delete(pixel_info);
+    exit(EXIT_FAILURE);
+  }
 
   while(!interrupted){
     for (int i = 0; i < NUM_PIXELS; i++) {
       if(interrupted){
         break;
       }
-      nanosleep(&delay, NULL);
-      api_manager->api->get_pixel(api_manager, i, pixels+i, NULL);
+      nanosleep(&api_manager->effect->time_delta, NULL);
+      api_manager->effect->get_pixel(api_manager, i, pixels+i);
       if(!opc_put_pixels(s, channel, NUM_PIXELS, pixels)) {
         interrupted = 1;
         break;
@@ -120,7 +130,6 @@ int main(int argc, const char * argv[]) {
 
   // Close it all up
   api_manager_delete(api_manager);
-  list_delete(pixel_info);
   opc_close(s);
-  return 0;
+  return EXIT_SUCCESS;
 }

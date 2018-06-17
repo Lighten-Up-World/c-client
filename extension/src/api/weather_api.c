@@ -3,6 +3,7 @@
 //
 #include "weather_api.h"
 
+#define API_DELAY 50
 //// TEMPERATURE ////
 
 /***
@@ -24,14 +25,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
 
   int sockfd = socket_connect(WEATHER_HOST, 80);
 
-  //Currently this function does not work
-  //geolocation_t geoloc = grid2geolocation(pixel->grid.x, pixel->grid.y);
-
-  //So generate random latitudes and longitudes to retrieve the data from
-  //geoloc.latitude = rand() % 90;
-  //geoloc.longitude = rand() % 90;
-
-  printf("Latitude: %f, Longitude: %f,", geoloc.latitude, geoloc.longitude);
+  printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
   if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, attr, object, val) < 0){
     return -1;
@@ -97,18 +91,18 @@ int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
   return 0;
 }
 
-int temp_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel, void *obj){
+int temp_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel){
   return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
-api_t *get_temp_api(void){
-  api_t *api = malloc(sizeof(api_t));
-  if(api == NULL){
+effect_t *get_temp_effect(void){
+  effect_t *effect = calloc(1, sizeof(effect_t));
+  if(effect == NULL){
     return NULL;
   }
-  api->name = "temp";
-  api->get_pixel = &temp_get_pixel;
-  return api;
+  effect->get_pixel = &temp_get_pixel;
+  effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
+  return effect;
 }
 
 //// WINDSPEED ////
@@ -140,16 +134,16 @@ int windspeed_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc){
   return 0;
 }
 
-int windspeed_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel, void *obj){
+int windspeed_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel){
   return windspeed_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
-api_t *get_windspeed_api(void){
-  api_t *api = malloc(sizeof(api_t));
-  if(api == NULL){
+effect_t *get_windspeed_effect(void){
+  effect_t *effect = calloc(1, sizeof(effect_t));
+  if(effect == NULL){
     return NULL;
   }
-  api->name = "windspeed";
-  api->get_pixel = &temp_get_pixel;
-  return api;
+  effect->get_pixel = &temp_get_pixel;
+  effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
+  return effect;
 }

@@ -11,23 +11,30 @@ api_manager_t *api_manager_new(void){
   api_manager = malloc(sizeof(api_manager_t));
   if (api_manager == NULL){
     perror("api_manager_new failed");
-    exit(EXIT_FAILURE);
+    return NULL;
   }
+  api_manager->effect = NULL;
+  api_manager->pixel_info = NULL;
 
   return api_manager;
 }
 
-int api_manager_init(api_manager_t *self, api_t *api, list_t *pixel_info){
+api_manager_t *api_manager_init(api_manager_t *self, effect_t *effect, list_t *pixel_info){
   if(self == NULL) {
-    return EC_INVALID_PARAM;
+    self = api_manager_new();
   }
-  self->api = api;
-  self->pixel_info = pixel_info;
-  return EC_OK;
+  if(self != NULL){
+    self->effect = effect;
+    self->pixel_info = pixel_info;
+  }
+  return self;
 }
 
 int api_manager_delete(api_manager_t *self) {
   free(self);
+  if(self != NULL){
+    list_delete(self->pixel_info);
+  }
   return EC_OK;
 }
 
@@ -41,7 +48,6 @@ int api_manager_delete(api_manager_t *self) {
  * @param buf_size - size of storage for retrieved json
  * @return - 0 for success, -1 for failure.
  */
-
 int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_size) {
   assert(buf != NULL);
   assert(request.method == GET);

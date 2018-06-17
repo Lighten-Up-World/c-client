@@ -24,8 +24,8 @@ SRCRUN = $(wildcard $(PATHRUN)*.c)
 COMPILE = gcc -c
 LINK = gcc
 
-DEBUG = -DDEBUG
-CFLAGS = -Wall -Werror -pedantic -g -O0 -std=gnu99 $(DEBUG)
+DEBUG = -DDEBUG -g
+CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
 
 MODE = temp
 
