@@ -11,7 +11,9 @@
 #define NUM_PIXELS 471
 
 #define PIXEL_COLOUR_MAX 255
+#define PIXEL_COLOUR_MIN 255
 #define WHITE_PIXEL (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX}
+#define BLACK_PIXEL (opc_pixel_t) {PIXEL_COLOUR_MIN, PIXEL_COLOUR_MIN, PIXEL_COLOUR_MIN}
 
 /* Defines an rgb pixel for use in opc simulations */
 typedef struct {
