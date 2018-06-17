@@ -11,7 +11,7 @@ int main() {
   for (uint8_t x = 0; x < buff_width; x++){
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
       int c = x * (255/buff_width);
-        buff->grid[x][y] = (opc_pixel_t) {c, c, c};
+      buff->grid[x][y] = (opc_pixel_t) {c, c, c};
     }
   }
 

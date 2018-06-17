@@ -2,7 +2,7 @@
 #define ARM11_22_SCROLL_BUFFER_H
 
 #include "../pixel.h"
-
+#include "../extension.h"
 #define PIXEL_FILE "../layout/CoordsToListPos.txt"
 
 typedef struct {
