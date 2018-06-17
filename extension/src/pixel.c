@@ -1,4 +1,5 @@
 #include "pixel.h"
+#include "extension.h"
 
 opc_pixel_t **grid_new(int cols, int rows) {
   opc_pixel_t **matrix;
@@ -28,12 +29,25 @@ void grid_free(opc_pixel_t **pixel_grid) {
   free(pixel_grid);
 }
 
-int get_pos(int x, int y, list_t *pixel_info){
-  for (int i = 0; i < NUM_PIXELS; i++) {
-    pixel_info_t *pi = list_get(pixel_info, i);
-    if(pi->grid.x == x && pi->grid.y == y){
-      return i;
-    }
+typedef struct {
+  int ret;
+  int cnt;
+  pixel_info_t key;
+} search_pair_t;
+
+void get_pos_enum(void *value, void *obj){
+  pixel_info_t *pi = value;
+  search_pair_t *sp = obj;
+  if(pi->grid.x == sp->key.grid.x && pi->grid.y == sp->key.grid.y){
+    sp->ret = sp->cnt;
   }
-  return -1;
+  else{
+    sp->cnt++;
+  }
+}
+
+int get_pos(int x, int y, list_t *pixel_info){
+  search_pair_t sp = {-1, 0, {{x, y},{-1, -1}}};
+  list_enum(pixel_info, &get_pos_enum, &sp);
+  return sp.ret;
 }
