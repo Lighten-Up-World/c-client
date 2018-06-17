@@ -8,9 +8,9 @@
 #include "../../../src/utils/error.h"
 #include "../opc/opc_client.c"
 #include "scroll_buffer.h"
+#include "../extension.h"
 
 volatile int interrupted = 0;
-
 
 buffer_t* buffer_new(int cols) {
   buffer_t* b = (buffer_t* ) malloc(sizeof(buffer_t));
@@ -26,7 +26,7 @@ buffer_t* buffer_new(int cols) {
 void clear_buffer(buffer_t* b) {
   for (uint8_t x = 0; x < b->width; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      b->grid[0][y] = (pixel_t) {255, 255, 255};
+      b->grid[0][y] = (opc_pixel_t) {255, 255, 255};
     }
   }
 }
@@ -36,9 +36,9 @@ void buffer_free(buffer_t* b) {
   free(b);
 }
 
-void shift_columns(pixel_t **pixel_grid, buffer_t* buff) {
+void shift_columns(opc_pixel_t **pixel_grid, buffer_t* buff) {
   // Store leftmost column temporarily
-  pixel_t left_col[GRID_HEIGHT];
+  opc_pixel_t left_col[GRID_HEIGHT];
   for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
     left_col[y] = pixel_grid[0][y];
   }
@@ -69,8 +69,8 @@ void shift_columns(pixel_t **pixel_grid, buffer_t* buff) {
   }
 }
 
-// Updates pixel_t list based on grid - more efficient to do this backwards iterating over the pixel_t list
-void read_grid_to_list(pixel_t *pixel_list, pixel_t **pixel_grid, list_t *pixel_info) {
+// Updates opc_pixel_t list based on grid - more efficient to do this backwards iterating over the opc_pixel_t list
+void read_grid_to_list(opc_pixel_t *pixel_list, opc_pixel_t **pixel_grid, list_t *pixel_info) {
   int pos;
   for (uint8_t x = 0; x < GRID_WIDTH; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
@@ -130,10 +130,10 @@ void run(buffer_t* buff, double rate) {
   list_t *pixel_info = list_new(&free);
   init_grid(pixel_info);
 
-  pixel_t pixels[NUM_PIXELS];
-  pixel_t **pixel_grid = pixel_grid_new();
+  opc_pixel_t pixels[NUM_PIXELS];
+  opc_pixel_t **pixel_grid = pixel_grid_new();
 
-  // Set pixel_t grid to all white
+  // Set opc_pixel_t grid to all white
   for (uint8_t x = 0; x < GRID_WIDTH; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
       pixel_grid[x][y] = WHITE_PIXEL;
@@ -152,7 +152,7 @@ void run(buffer_t* buff, double rate) {
   signal(SIGINT, handle_user_exit);
 
   while (!interrupted) {
-    // Update the pixel_t list
+    // Update the opc_pixel_t list
     read_grid_to_list(pixels, pixel_grid, pixel_info);
 
     // Write the pixels to the display

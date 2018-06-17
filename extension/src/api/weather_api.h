@@ -17,11 +17,11 @@
 #define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=%s"
 
 //TEMPERATURE
-int temp_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj);
+int temp_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel, void *obj);
 api_t *get_temp_api(void);
 
 //WIND SPEED
-int windspeed_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj);
+int windspeed_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel, void *obj);
 api_t *get_windspeed_api(void);
 
 #endif

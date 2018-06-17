@@ -1,14 +1,13 @@
 #include "pixel.h"
 
-
-pixel_t **grid_new(int cols, int rows) {
-  pixel_t **matrix;
-  matrix = (pixel_t **) malloc(cols * sizeof(pixel_t *));
+opc_pixel_t **grid_new(int cols, int rows) {
+  opc_pixel_t **matrix;
+  matrix = (opc_pixel_t **) malloc(cols * sizeof(opc_pixel_t *));
   if (!matrix) {
     return NULL;
   }
 
-  matrix[0] = (pixel_t *) malloc(rows * cols * sizeof(pixel_t));
+  matrix[0] = (opc_pixel_t *) malloc(rows * cols * sizeof(opc_pixel_t));
   if (!matrix[0]) {
     free(matrix);
     return NULL;
@@ -20,11 +19,11 @@ pixel_t **grid_new(int cols, int rows) {
   return matrix;
 }
 
-pixel_t **pixel_grid_new(void) {
+opc_pixel_t **pixel_grid_new(void) {
   return grid_new(GRID_WIDTH, GRID_HEIGHT);
 }
 
-void grid_free(pixel_t **pixel_grid) {
+void grid_free(opc_pixel_t **pixel_grid) {
   free(pixel_grid[0]);
   free(pixel_grid);
 }

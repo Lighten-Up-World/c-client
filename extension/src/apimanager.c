@@ -1,12 +1,15 @@
 #define _GNU_SOURCE
 
+#include <string.h>
 #include "../../src/utils/error.h"
 #include "apimanager.h"
+#include "utils/list.h"
+#include "extension.h"
 
 api_manager_t *api_manager_new(void){
   api_manager_t *api_manager = NULL;
   api_manager = malloc(sizeof(api_manager_t));
-  if(api_manager == NULL){
+  if (api_manager == NULL){
     perror("api_manager_new failed");
     exit(EXIT_FAILURE);
   }
@@ -15,7 +18,7 @@ api_manager_t *api_manager_new(void){
 }
 
 int api_manager_init(api_manager_t *self, api_t *api, list_t *pixel_info){
-  if(self == NULL){
+  if(self == NULL) {
     return EC_INVALID_PARAM;
   }
   self->api = api;
@@ -23,7 +26,7 @@ int api_manager_init(api_manager_t *self, api_t *api, list_t *pixel_info){
   return EC_OK;
 }
 
-int api_manager_delete(api_manager_t *self){
+int api_manager_delete(api_manager_t *self) {
   free(self);
   return EC_OK;
 }
@@ -62,7 +65,6 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
  * @param val - pointer to the double where the result is stored
  * @return - 0 for success, -1 for failure
  */
-
 int get_double_from_json(char *buf, char *name, char *object, double *val) {
   assert(buf != NULL);
   assert(name != NULL);
@@ -95,7 +97,6 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
  * @param val - pointer to the double where the value is stored.
  * @return
  */
-
 int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *key, char *attr, char *object,
                               double *val) {
   assert(loc != NULL);
@@ -118,7 +119,7 @@ int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *
   return get_double_from_json(buff, attr, object, val);
 }
 
-/***
+/**
  * SOCKET CONNECT
  * Connects a socket using the hostname and port.
  *
@@ -126,7 +127,6 @@ int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *
  * @param port : port to connect with
  * @return : socket number
  */
-
 int socket_connect(const char *host, in_port_t port) {
   assert(host != NULL);
   struct hostent *hp;
@@ -156,14 +156,13 @@ int socket_connect(const char *host, in_port_t port) {
   return sock;
 }
 
-/***
+/**
  * SOCKET CLOSE
  * Closes a socket.
  *
  * @param sockfd - socket to close
  * @return 0 for success, -1 for failure.
  */
-
 int socket_close(int sockfd) {
   if (close(sockfd) == -1) {
     perror("socket_close");

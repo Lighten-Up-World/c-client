@@ -66,12 +66,12 @@ double gridy2m(int y){
 
 int lon2gridx(double lon){
   double max_x = max_x_m();
-  return (lon2x_m(lon) + max_x) / (2 * max_x / (double)GRID_WIDTH);
+  return (int) ((lon2x_m(lon) + max_x) / (2 * max_x / (double)GRID_WIDTH));
 }
 
 int lat2gridy(double lat){
   double max_y = max_y_m();
-  return (lat2y_m(lat) + max_y) / (2 * max_y / (double)GRID_HEIGHT);
+  return (int) ((lat2y_m(lat) + max_y) / (2 * max_y / (double)GRID_HEIGHT));
 }
 
 grid_t geolocation2grid(double latitude, double longitude){

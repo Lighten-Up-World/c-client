@@ -1,31 +1,15 @@
-//
-//  main.c
-//  LightenUpWorld
-//
-//  Created by User on 13/06/2018.
-//  Copyright © 2018 User. All rights reserved.
-//
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
-#include <time.h>
 
-#include "apimanager.h"
 #include "api/weather_api.h"
-#include "projection.h"
-#include "opc/opc.h"
 #include "opc/opc_client.c"
 #include "utils/csv.h"
-#include "utils/list.h"
-
-// Grid size
+#include "extension.h"
 
 #define PIXEL_FILE "layout/CoordsToListPos.txt"
 #define GEOLOC_FILE "layout/GeoLocToListPos.txt"
-
-#define HOST_AND_PORT "127.0.0.1:7890"
 
 volatile int interrupted = 0;
 
@@ -38,7 +22,6 @@ const string_to_constructor apis[] = {
     {"temp", &get_temp_api},
     {"wind", &get_windspeed_api}
 };
-
 
 void handle_user_exit(int _) {
   interrupted = 1;
@@ -92,7 +75,7 @@ int init_geo(list_t* list){
 
 int main(int argc, const char * argv[]) {
   assert(argc > 1);
-  pixel_t pixels[NUM_PIXELS];
+  opc_pixel_t pixels[NUM_PIXELS];
 
   signal(SIGINT, handle_user_exit);
 
@@ -100,13 +83,13 @@ int main(int argc, const char * argv[]) {
   opc_sink s;
   // Open connection
   s = opc_new_sink(HOST_AND_PORT);
-  if(s == -1){
+  if(s == -1) {
     exit(EXIT_FAILURE);
   }
 
   //Clear Pixels
   for(int p = 0; p < NUM_PIXELS; p++) {
-    pixels[p] = (pixel_t){PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
+    pixels[p] = (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
   }
 
   // Setup pixel_info
@@ -139,7 +122,7 @@ int main(int argc, const char * argv[]) {
       }
       nanosleep(&delay, NULL);
       api_manager->api->get_pixel(api_manager, i, pixels+i, NULL);
-      if(!opc_put_pixels(s, channel, NUM_PIXELS, pixels)){
+      if(!opc_put_pixels(s, channel, NUM_PIXELS, pixels)) {
         interrupted = 1;
         break;
       }

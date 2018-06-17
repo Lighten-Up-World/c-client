@@ -48,7 +48,7 @@ opc_sink opc_new_sink(char* hostport);
 /* Sends RGB data for 'count' pixels to channel 'channel'.  Makes one attempt */
 /* to connect the sink if needed; if the connection could not be opened, the */
 /* the data is not sent.  Returns 1 if the data was sent, 0 otherwise. */
-uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel_t* pixels);
+uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel_t* pixels);
 
 
 // OPC server functions ----------------------------------------------------
@@ -57,7 +57,7 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, pixel_t* 
 typedef int8_t opc_source;
 
 /* Handler called by opc_receive when pixel data is received. */
-typedef void opc_handler(uint8_t channel, uint16_t count, pixel_t* pixels);
+typedef void opc_handler(uint8_t channel, uint16_t count, opc_pixel_t* pixels);
 
 /* Creates a new OPC source by listening on the specified TCP port.  At most */
 /* one incoming connection is accepted at a time; if the connection closes, */

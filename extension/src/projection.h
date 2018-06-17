@@ -2,14 +2,12 @@
 #define PROJECTION_H
 
 #include <math.h>
-#include "apimanager.h"
 #include "pixel.h"
 
 #define EARTH_RADIUS 6378137
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
-
 
 double merc_x (double lon);
 double merc_y (double lat);

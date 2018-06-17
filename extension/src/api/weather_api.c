@@ -17,7 +17,7 @@
  * @return 0 for success; -1 for failure
  */
 
-int weather_get_val_for_xy(pixel_t *pixel, geolocation_t geoloc, char *attr, char *object, double *val){
+int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr, char *object, double *val){
   assert(pixel != NULL);
   assert(attr != NULL);
   assert(object != NULL);
@@ -50,7 +50,7 @@ int weather_get_val_for_xy(pixel_t *pixel, geolocation_t geoloc, char *attr, cha
  * @return 0 for success; -1 for failure
  */
 
-int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc) {
+int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
   assert(pixel != NULL);
 
   double val;
@@ -97,7 +97,7 @@ int temp_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc) {
   return 0;
 }
 
-int temp_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj){
+int temp_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel, void *obj){
   return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
@@ -121,7 +121,7 @@ api_t *get_temp_api(void){
  * @return 0 for success; -1 for failure
  */
 
-int windspeed_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc){
+int windspeed_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc){
   assert(pixel != NULL);
 
   double val;
@@ -140,7 +140,7 @@ int windspeed_get_pixel_for_xy(pixel_t *pixel, geolocation_t geoloc){
   return 0;
 }
 
-int windspeed_get_pixel(api_manager_t *self, int pos, pixel_t *pixel, void *obj){
+int windspeed_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel, void *obj){
   return windspeed_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
