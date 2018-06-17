@@ -2,11 +2,11 @@ CC = gcc
 CFLAGS = -Wall -Werror -pedantic
 
 main: dirs
-	$(CC) $(CFLAGS) scroll_buffer.c main.c -o ../build/scrolling/main.out
+	$(CC) $(CFLAGS) scroll_buffer.c main.c ../utils/list.c ../utils/csv.c  ../pixel.c -o ../build/scrolling/main.out
 	../build/scrolling/main.out
 
 debug:
-	$(CC) $(CFLAGS) scroll_buffer.c main.c -o ../build/scrolling/main.out -g
+	$(CC) $(CFLAGS) scroll_buffer.c main.c ../utils/list.c ../utils/csv.c ../pixel.c  -o ../build/scrolling/main.out -g
 
 dirs:
 	mkdir -p ../build/scrolling

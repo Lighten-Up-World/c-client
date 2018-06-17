@@ -3,81 +3,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include "../utils/csv.h"
+#include "../utils/list.h"
 #include "../../../src/utils/error.h"
 #include "../opc/opc_client.c"
 #include "scroll_buffer.h"
 
 volatile int interrupted = 0;
 
-/**
- * Get the pixel_t number from an x, y coordinate, according to the configuration file
- * Configuration file should be of format: x y #\n
- *
- * @param x: x location of pixel_t on map
- * @param y: y location of pixel_t on map
- * @param config_file: the file with configuration data
- * @return: the pixel_t number
- */
-int get_pixel_location(uint8_t x, uint8_t y, const char *config_file) {
-  FILE *file = fopen(config_file, "r");
-  if (file == NULL) {
-    perror("File could not be opened");
-    exit(EC_SYS);
-  }
-
-  int location = -1;
-  size_t line_size = 100 * sizeof(char); //shouldn't be larger than this, should calculate and move to global constant
-  char *buffer =  (char *) malloc(line_size);
-  while (fgets(buffer, (int) line_size, file) != NULL) {
-    // Get x, y coordinate
-    // If this is the coordinate searched for, return the pixel_t number
-    if (atoi(strtok(buffer, " ")) == x) {
-      if (atoi(strtok(NULL, " ")) == y) {
-        location = atoi(strtok(NULL, " "));
-        goto cleanup;
-      }
-    }
-  }
-
-  if (ferror(file)) {
-    free(buffer);
-    perror("Failed to read from file");
-    exit(EC_SYS);
-  }
-
-  cleanup:
-  if (fclose(file)) {
-    free(buffer);
-    perror("File could not be closed");
-    exit(EC_SYS);
-  }
-
-  free(buffer);
-  return location;
-}
-
-pixel_t **grid_new(int cols, int rows) {
-  pixel_t **matrix;
-  matrix = (pixel_t **) malloc(cols * sizeof(pixel_t *));
-  if (!matrix) {
-    return NULL;
-  }
-
-  matrix[0] = (pixel_t *) malloc(rows * cols * sizeof(pixel_t));
-  if (!matrix[0]) {
-    free(matrix);
-    return NULL;
-  }
-
-  for (uint8_t i = 1; i < cols; i++) {
-    matrix[i] = matrix[0] + i*rows;
-  }
-  return matrix;
-}
-
-pixel_t **pixel_grid_new() {
-  return grid_new(GRID_WIDTH, GRID_HEIGHT);
-}
 
 buffer_t* buffer_new(int cols) {
   buffer_t* b = (buffer_t* ) malloc(sizeof(buffer_t));
@@ -96,11 +29,6 @@ void clear_buffer(buffer_t* b) {
       b->grid[0][y] = (pixel_t) {255, 255, 255};
     }
   }
-}
-
-void grid_free(pixel_t **pixel_grid) {
-  free(pixel_grid[0]);
-  free(pixel_grid);
 }
 
 void buffer_free(buffer_t* b) {
@@ -142,19 +70,42 @@ void shift_columns(pixel_t **pixel_grid, buffer_t* buff) {
 }
 
 // Updates pixel_t list based on grid - more efficient to do this backwards iterating over the pixel_t list
-void read_grid_to_list(pixel_t *pixel_list, pixel_t **pixel_grid) {
+void read_grid_to_list(pixel_t *pixel_list, pixel_t **pixel_grid, list_t *pixel_info) {
   int pos;
   for (uint8_t x = 0; x < GRID_WIDTH; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      pos = get_pixel_location(x, y, CONFIG_FILE);
+      pos = get_pos(x, y, pixel_info);
       pixel_list[pos] = pixel_grid[x][y];
     }
   }
 }
 
+
 void handle_user_exit(int _) {
   printf("\n");
   interrupted = 1;
+}
+
+int init_grid(list_t* list){
+  csv_parser_t *coords_to_pos_parser = csv_parser_new(PIXEL_FILE, " ");
+  csv_row_t *row;
+  while ((row = csv_parser_getRow(coords_to_pos_parser)) ) {
+      char **rowFields = csv_parser_getFields(row);
+      int pos = atoi(rowFields[2]);
+      pixel_info_t *pi;
+      if((pi = list_get(list, pos)) == NULL){
+        pi = malloc(sizeof(pixel_info_t));
+        *pi = (pixel_info_t){{.x = atoi(rowFields[0]), .y =atoi(rowFields[1])},
+                {-1, -1}};
+        list_add(list, pi); //TODO: NEEDS TO ADD IN CORRECT POS
+      }
+      else {
+        pi->grid = (grid_t){.x = atoi(rowFields[0]), .y =atoi(rowFields[1])};
+      }
+      csv_parser_destroy_row(row);
+  }
+  csv_parser_destroy(coords_to_pos_parser);
+  return 0;
 }
 
 // TODO: make sure we don't have a map sized gap written to the buffer_tb efore repeating
@@ -174,6 +125,10 @@ void run(buffer_t* buff, double rate) {
   //     buff_copy->grid[x][y] = buff->grid[x][y];
   //   }
   // }
+
+  // Setup pixel_info
+  list_t *pixel_info = list_new(&free);
+  init_grid(pixel_info);
 
   pixel_t pixels[NUM_PIXELS];
   pixel_t **pixel_grid = pixel_grid_new();
@@ -198,7 +153,7 @@ void run(buffer_t* buff, double rate) {
 
   while (!interrupted) {
     // Update the pixel_t list
-    read_grid_to_list(pixels, pixel_grid);
+    read_grid_to_list(pixels, pixel_grid, pixel_info);
 
     // Write the pixels to the display
     opc_put_pixels(s, 0, NUM_PIXELS, pixels);

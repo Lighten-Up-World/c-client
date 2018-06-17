@@ -6,7 +6,7 @@
 #include "../pixel.h"
 
 #define WHITE_PIXEL (pixel_t) {255, 255, 255}
-#define CONFIG_FILE "../layout/CoordsToListPos.txt"
+#define PIXEL_FILE "../layout/CoordsToListPos.txt"
 #define MILLI_TO_NANO 100000
 #define HOST_AND_PORT "127.0.0.1:7890"
 

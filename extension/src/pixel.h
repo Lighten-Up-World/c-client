@@ -2,6 +2,8 @@
 #define PIXEL_H
 
 #include <stdint.h>
+#include <stdlib.h>
+#include "utils/list.h"
 
 #define GRID_WIDTH 53
 #define GRID_HEIGHT 24
@@ -29,11 +31,6 @@ typedef struct {
   uint8_t b;
 } pixel_t;
 
-// typedef struct pixel{
-//   grid_t      grid;
-//   colour_t    colour;
-// } pixel_t;
-
 typedef struct geolocation{
   double latitude;
   double longitude;
@@ -44,7 +41,9 @@ typedef struct {
   geolocation_t geo;
 } pixel_info_t;
 
-// Node Functions
-pixel_t *pixel_new(grid_t grid, colour_t colour, intensity_t intensity);
+pixel_t **grid_new(int cols, int rows);
+pixel_t **pixel_grid_new(void);
+void grid_free(pixel_t **pixel_grid);
+int get_pos(int x, int y, list_t *pixel_info);
 
 #endif
