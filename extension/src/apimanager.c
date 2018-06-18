@@ -25,6 +25,7 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
     return -1;
   }
   byte_count = recv(sockfd, buf, buf_size, 0);
+
   return byte_count;
 }
 

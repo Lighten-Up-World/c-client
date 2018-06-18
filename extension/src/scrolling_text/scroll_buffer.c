@@ -6,7 +6,7 @@
 #include "../utils/csv.h"
 #include "../utils/list.h"
 #include "../../../src/utils/error.h"
-#include "../opc/opc_client.c"
+#include "../opc/opc_client.h"
 #include "scroll_buffer.h"
 #include "../extension.h"
 

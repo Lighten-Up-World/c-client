@@ -41,12 +41,12 @@ effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, lis
 }
 
 void effect_runner_delete(effect_runner_t *self) {
-  free(self);
   if(self != NULL){
     list_delete(self->pixel_info);
     free(self->effect);
     free(self->frame);
   }
+  free(self);
 }
 
 
@@ -160,6 +160,7 @@ int main(int argc, const char * argv[]) {
       }
     }
   }
+
 
   // Close it all up
   effect_runner_delete(effect_runner);

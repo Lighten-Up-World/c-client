@@ -33,4 +33,6 @@ typedef struct {
 static opc_sink_info opc_sinks[OPC_MAX_SINKS];
 static opc_sink opc_next_sink = 0;
 
+void opc_close(opc_sink sink);
+
 #endif

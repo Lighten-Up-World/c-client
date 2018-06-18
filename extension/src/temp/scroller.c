@@ -5,8 +5,8 @@
 #include <time.h>
 #include "../utils/csv.h"
 #include "../utils/list.h"
-#include "../../../src/utils/error.h"
-#include "../opc/opc_client.c"
+#include "error.h"
+#include "../opc/opc_client.h"
 #include "scroller.h"
 #include "../extension.h"
 
