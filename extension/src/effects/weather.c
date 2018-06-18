@@ -50,7 +50,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
 
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
-  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, attr, object, val) < 0){
+  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, attr, object, val) < 0){
     return -1;
   }
 
