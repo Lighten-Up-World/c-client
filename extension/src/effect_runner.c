@@ -109,7 +109,8 @@ int main(int argc, const char * argv[]) {
   signal(SIGINT, handle_user_exit);
   opc_sink sink = '\0';
 
-  if(strncmp("temp_log", argv[1], strlen(argv[1])) == 0) {
+  printf("%s", argv[1]);
+  if(strncmp("temp_log", argv[1], 8) != 0) {
     // Open connection
     sink = opc_new_sink(HOST_AND_PORT);
     if (sink == -1) {

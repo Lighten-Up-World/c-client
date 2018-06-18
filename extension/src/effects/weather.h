@@ -17,7 +17,7 @@
 #define WEATHER_HOST "api.openweathermap.org"
 #define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=%s"
 
-#define TEMP_TIMELAPSE_FILE "temp_timelapse.txt"
+#define TEMP_TIMELAPSE_FILE "temp_timelapse2.txt"
 #define TEMP_TIMELAPSE2_FILE "temp_timelapse2.txt"
 
 //TEMPERATURE
