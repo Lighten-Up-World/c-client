@@ -16,6 +16,40 @@ void handle_user_exit(int _) {
   interrupted = 1;
 }
 
+effect_runner_t *effect_runner_new(void){
+  effect_runner_t *effect_runner = NULL;
+  effect_runner = malloc(sizeof(effect_runner_t));
+  if (effect_runner == NULL){
+    perror("effect_runner_new failed");
+    return NULL;
+  }
+  effect_runner->effect = NULL;
+  effect_runner->pixel_info = NULL;
+  effect_runner->frame = calloc(1, sizeof(frame_t));
+  return effect_runner;
+}
+
+effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, list_t *pixel_info){
+  if(self == NULL) {
+    self = effect_runner_new();
+  }
+  if(self != NULL){
+    self->effect = effect;
+    self->pixel_info = pixel_info;
+  }
+  return self;
+}
+
+void effect_runner_delete(effect_runner_t *self) {
+  free(self);
+  if(self != NULL){
+    list_delete(self->pixel_info);
+    free(self->effect);
+    free(self->frame);
+  }
+}
+
+
 int init_grid(list_t* list){
   csv_parser_t *coords_to_pos_parser = csv_parser_new(PIXEL_FILE, " ");
   csv_row_t *row;
@@ -64,7 +98,6 @@ int init_geo(list_t* list){
 
 int main(int argc, const char * argv[]) {
   assert(argc > 1);
-  opc_pixel_t pixels[NUM_PIXELS];
 
   signal(SIGINT, handle_user_exit);
 
@@ -74,11 +107,6 @@ int main(int argc, const char * argv[]) {
   s = opc_new_sink(HOST_AND_PORT);
   if(s == -1) {
     exit(EXIT_FAILURE);
-  }
-
-  //Clear Pixels
-  for(int p = 0; p < NUM_PIXELS; p++) {
-    pixels[p] = (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
   }
 
   // Setup pixel_info
@@ -105,8 +133,8 @@ int main(int argc, const char * argv[]) {
   }
 
   // Initialise api manager
-  api_manager_t *api_manager = api_manager_init(NULL, effect, pixel_info);
-  if(api_manager == NULL){
+  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info);
+  if(effect_runner == NULL){
     fprintf(stderr, "Api_manager failed to initialise with effect %s\n", argv[1]);
     free(effect);
     opc_close(s);
@@ -114,14 +142,19 @@ int main(int argc, const char * argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  //Clear Pixels
+  for(int p = 0; p < NUM_PIXELS; p++) {
+    effect_runner->frame->pixels[p] = (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX,PIXEL_COLOUR_MAX};
+  }
+
   while(!interrupted){
     for (int i = 0; i < NUM_PIXELS; i++) {
       if(interrupted){
         break;
       }
-      nanosleep(&api_manager->effect->time_delta, NULL);
-      api_manager->effect->get_pixel(api_manager, i, pixels+i);
-      if(!opc_put_pixels(s, channel, NUM_PIXELS, pixels)) {
+      nanosleep(&effect_runner->effect->time_delta, NULL);
+      effect_runner->effect->get_pixel(effect_runner, i, effect_runner->frame->pixels+i);
+      if(!opc_put_pixels(s, channel, NUM_PIXELS, effect_runner->frame->pixels)) {
         interrupted = 1;
         break;
       }
@@ -129,7 +162,7 @@ int main(int argc, const char * argv[]) {
   }
 
   // Close it all up
-  api_manager_delete(api_manager);
+  effect_runner_delete(effect_runner);
   opc_close(s);
   return EXIT_SUCCESS;
 }

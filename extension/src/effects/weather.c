@@ -1,9 +1,21 @@
 //
 // Created by User on 14/06/2018.
 //
-#include "weather_api.h"
+#include "weather.h"
 
 #define API_DELAY 50
+
+int weather_run(effect_runner_t *self){
+  // for (int i = 0; i < NUM_PIXELS; i++) {
+  //   nanosleep(&self->effect->time_delta, NULL);
+  //   self->effect->get_pixel(self, i, self->frame->pixels+i);
+  //   if(!opc_put_pixels(self->socket, 0, NUM_PIXELS, self->frame->pixels)) {
+  //     interrupted = 1;
+  //     return -1;
+  //   }
+  // }
+}
+
 //// TEMPERATURE ////
 
 /***
@@ -91,7 +103,7 @@ int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
   return 0;
 }
 
-int temp_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel){
+int temp_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel){
   return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
@@ -134,7 +146,7 @@ int windspeed_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc){
   return 0;
 }
 
-int windspeed_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel){
+int windspeed_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel){
   return windspeed_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 

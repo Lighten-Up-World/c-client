@@ -32,13 +32,13 @@ MODE = temp
 simulation: mkdir server $(PATHB)effect_runner.out
 	$(PATHB)effect_runner.out $(MODE)
 
-conway: mkdir server
+conway: mkdir
 	python $(PATHROOT)$(PATHOPC)python/conway.py
 
-raverplaid: mkdir server
+raverplaid: mkdir
 	python $(PATHROOT)$(PATHOPC)python/raver_plaid.py
 
-lavalamp: mkdir server
+lavalamp: mkdir
 	python $(PATHROOT)$(PATHOPC)python/lava_lamp.py --layout $(PATHROOT)$(PATHLAYOUT)WorldMap.json
 
 server: layout

@@ -2,6 +2,8 @@
 #define ARM11_22_EXTENSION_H
 
 #include <stdint.h>
+#include <time.h>
+#include "utils/list.h"
 
 #define MILLI_TO_NANO 100000
 #define HOST_AND_PORT "127.0.0.1:7890"
@@ -23,16 +25,35 @@ typedef struct {
 } opc_pixel_t;
 
 typedef struct {
-  opc_pixel_t **grid;
-  int width;
-  int height;
-  double time;
+  opc_pixel_t pixels[NUM_PIXELS];
 } frame_t;
 
 typedef struct grid {
   int x;
   int y;
 } grid_t;
+
+typedef struct effect effect_t;
+typedef struct effect_runner effect_runner_t;
+
+typedef int (*get_frame_func) (effect_runner_t *self, frame_t *frame);
+typedef int (*get_pixel_func) (effect_runner_t *self, int pos, opc_pixel_t *pixel);
+typedef int (*effect_runner_func)(effect_runner_t *self);
+
+struct effect {
+  get_frame_func get_frame;
+  get_pixel_func get_pixel;
+  long frame_no;
+  struct timespec time_delta;
+  effect_runner_func init;
+  void *obj;
+};
+
+struct effect_runner{
+  effect_t *effect;
+  list_t *pixel_info;
+  frame_t *frame;
+};
 
 typedef uint32_t intensity_t;
 

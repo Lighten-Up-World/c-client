@@ -5,39 +5,6 @@
 #include "apimanager.h"
 #include "utils/list.h"
 #include "extension.h"
-
-api_manager_t *api_manager_new(void){
-  api_manager_t *api_manager = NULL;
-  api_manager = malloc(sizeof(api_manager_t));
-  if (api_manager == NULL){
-    perror("api_manager_new failed");
-    return NULL;
-  }
-  api_manager->effect = NULL;
-  api_manager->pixel_info = NULL;
-
-  return api_manager;
-}
-
-api_manager_t *api_manager_init(api_manager_t *self, effect_t *effect, list_t *pixel_info){
-  if(self == NULL) {
-    self = api_manager_new();
-  }
-  if(self != NULL){
-    self->effect = effect;
-    self->pixel_info = pixel_info;
-  }
-  return self;
-}
-
-int api_manager_delete(api_manager_t *self) {
-  free(self);
-  if(self != NULL){
-    list_delete(self->pixel_info);
-  }
-  return EC_OK;
-}
-
 /**
  * SEND GET REQUEST
  * Sends a HTTP GET request and stores the result in a buffer
@@ -114,14 +81,14 @@ int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *
   http_request_t request;
   request.host = host;
   request.method = GET;
-
   asprintf(&(request.path), path, loc->latitude, loc->longitude, key);
 
   char buff[600];
   if (send_get_request(sockfd, request, buff, sizeof(buff)) < 0) {
+    free(request.path);
     return -1;
   }
-
+  free(request.path);
   return get_double_from_json(buff, attr, object, val);
 }
 

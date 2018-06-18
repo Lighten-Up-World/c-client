@@ -2,10 +2,11 @@
 // Created by User on 14/06/2018.
 //
 
-#ifndef weather_api_h
-#define weather_api_h
+#ifndef WEATHER_H
+#define WEATHER_H
 
 #include "../apimanager.h"
+#include "../effect_runner.h"
 
 #define WEATHER_HOST_2 "api.darksky.net"
 #define WEATHER_PATH_2 "forecast/bf050bc7f491ed6167290c1fe09c95d7/%f,%f"
@@ -17,11 +18,11 @@
 #define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=%s"
 
 //TEMPERATURE
-int temp_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel);
+int temp_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel);
 effect_t *get_temp_effect(void);
 
 //WIND SPEED
-int windspeed_get_pixel(api_manager_t *self, int pos, opc_pixel_t *pixel);
+int windspeed_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel);
 effect_t *get_windspeed_effect(void);
 
 #endif
