@@ -10,7 +10,8 @@ typedef struct {
 const string_to_constructor effects[] = {
     {"temp", &get_temp_effect},
     {"windspeed", &get_windspeed_effect},
-    {"scroll", &get_scroller_effect}
+    {"scroll", &get_scroller_effect},
+    {"temp_timelapse", &get_temp_timelapse_effect}
 };
 
 void handle_user_exit(int _) {
@@ -156,6 +157,7 @@ int main(int argc, const char * argv[]) {
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
   }
+  fclose((FILE *) effect_runner->effect->obj);
 
   // Close it all up
   effect_runner_delete(effect_runner);

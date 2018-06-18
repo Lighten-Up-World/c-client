@@ -4,6 +4,7 @@
 #include "weather.h"
 
 #define API_DELAY 5000
+#define TIMELAPSE_DELAY 10
 
 int weather_run(effect_runner_t *self){
   int i = self->frame_no % NUM_PIXELS;
@@ -51,25 +52,21 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   return 0;
 }
 
-/***
- * TEMP GET PIXEL FOR XY
- * Gets pixel data for the temperature mode.
- *
- * @param pixel - pixel to write values to.
- * @return 0 for success; -1 for failure
- */
-
-int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
+void set_windspeed_pixel_colour(opc_pixel_t *pixel, double val) {
   assert(pixel != NULL);
+  printf("Windspeed: %f \n", val);
+  pixel->b = PIXEL_COLOUR_MAX;
 
-  double val;
-  if (weather_get_val_for_xy(pixel, geoloc, "temp", "main", &val) < 0){
-    return -1;
-  }
+  int rg = (PIXEL_COLOUR_MAX / 10.0) * (val);
+  rg = rg > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : rg;
+  pixel->g = rg;
+  pixel->r = rg;
+}
+
+void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
+  assert(pixel != NULL);
   val -= 273.0;
-
   printf("Temperature: %f \n", val);
-
   int red = 0;
   int blue = 0;
   int green = 0;
@@ -102,7 +99,24 @@ int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
   pixel->b = blue;
   pixel->g = green;
   pixel->r = red;
+}
 
+/***
+ * TEMP GET PIXEL FOR XY
+ * Gets pixel data for the temperature mode.
+ *
+ * @param pixel - pixel to write values to.
+ * @return 0 for success; -1 for failure
+ */
+
+int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
+  assert(pixel != NULL);
+
+  double val;
+  if (weather_get_val_for_xy(pixel, geoloc, "temp", "main", &val) < 0){
+    return -1;
+  }
+  set_temp_pixel_colour(pixel, val);
   return 0;
 }
 
@@ -118,6 +132,42 @@ effect_t *get_temp_effect(void){
   effect->get_pixel = &temp_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
+  return effect;
+}
+
+//TIMELAPSE
+
+int temp_timelapse_get_pixel(effect_runner_t *self, int pos){
+  FILE *temp_file = self->effect->obj;
+  char buffer[50];
+  if (fgets(buffer, sizeof(buffer), temp_file) == NULL){
+    fseek(temp_file, 0, SEEK_SET);
+    fgets(buffer, sizeof(buffer), temp_file);
+  }else{
+    int loc = atoi(strtok(buffer, " "));
+    double val = atof(strtok(NULL, " "));
+    if (loc != pos){
+      return -1;
+    }
+    set_temp_pixel_colour(self->frame->pixels+pos, val);
+  }
+  return 0;
+}
+
+effect_t *get_temp_timelapse_effect(void){
+  effect_t *effect = calloc(1, sizeof(effect_t));
+  if(effect == NULL){
+    return NULL;
+  }
+  effect->get_pixel = &temp_timelapse_get_pixel;
+  effect->time_delta = (struct timespec){0, TIMELAPSE_DELAY * MILLI_TO_NANO};
+  effect->run = &weather_run;
+  FILE *temp_file = fopen(TEMP_TIMELAPSE_FILE, "r");
+  if (temp_file == NULL){
+    perror("temp_file");
+    exit(EXIT_FAILURE);
+  }
+  effect->obj = temp_file;
   return effect;
 }
 
@@ -138,14 +188,7 @@ int windspeed_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc){
   if (weather_get_val_for_xy(pixel, geoloc, "speed", "wind", &val) < 0){
     return -1;
   }
-
-  printf("Windspeed: %f \n", val);
-  pixel->b = PIXEL_COLOUR_MAX;
-
-  int rg = (PIXEL_COLOUR_MAX / 10.0) * (val);
-  rg = rg > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : rg;
-  pixel->g = rg;
-  pixel->r = rg;
+  set_windspeed_pixel_colour(pixel, val);
 
   return 0;
 }
@@ -159,7 +202,7 @@ effect_t *get_windspeed_effect(void){
   if(effect == NULL){
     return NULL;
   }
-  effect->get_pixel = &temp_get_pixel;
+  effect->get_pixel = &windspeed_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
   return effect;

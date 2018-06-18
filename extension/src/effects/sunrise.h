@@ -8,7 +8,7 @@
 // Sample request: https://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400
 
 #define SUNRISE_HOST "api.sunrise-sunset.org"
-#define SUNRISE_PATH "/json?lat=%f&lng=%f" // can also add &date and &formatted
+#define SUNRISE_PATH "/json?lat=%f&lng=%f%d" // can also add &date and &formatted
 
 
 #endif

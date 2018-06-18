@@ -23,7 +23,7 @@ int get_sun_data_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr, ch
 	printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
 	if (get_value_for_geolocation(sockfd,&geoloc, SUNRISE_HOST, SUNRISE_PATH,
-																API_KEY, attr, object, val) < 0){
+																0, attr, object, val) < 0){
     return -1;
   }
 
@@ -39,7 +39,7 @@ int get_sun_data_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr, ch
  * @param geoloc - geolocation of pixel
  * may need more params such as current time/sunrise data
  */
-int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
+int sunrise_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
   assert(pixel != NULL);
 
 	// fetch data
