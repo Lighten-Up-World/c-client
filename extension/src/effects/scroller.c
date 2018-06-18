@@ -5,31 +5,10 @@
 #include <time.h>
 #include "../utils/csv.h"
 #include "../utils/list.h"
-#include "error.h"
+#include "../../../src/utils/error.h"
 #include "../opc/opc_client.h"
 #include "scroller.h"
 #include "../extension.h"
-
-volatile int interrupted = 0;
-
-void buffer_run(void){
-  // Create a buffer pixel grid to contain data about to be displayed
-  int buff_width = 5;
-  buffer_t *buff = buffer_new(buff_width);
-  clear_buffer(buff);
-
-  // Set a shaded buffer
-  for (uint8_t x = 0; x < buff_width; x++){
-    for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      int c = x * (255/buff_width);
-      buff->grid[x][y] = (opc_pixel_t) {c, c, c};
-    }
-  }
-
-  run(buff, 200);
-
-  buffer_free(buff);
-}
 
 buffer_t* buffer_new(int cols) {
   buffer_t* b = (buffer_t* ) malloc(sizeof(buffer_t));
@@ -78,7 +57,7 @@ void shift_columns(opc_pixel_t **pixel_grid, buffer_t* buff) {
       pixel_grid[GRID_WIDTH - 1][y] = left_col[y];
     }
   }
-
+  //TODO: Buffer isn't consistent need to have an init and store in effect
   buff->pos++;
   if(buff->pos == buff->width && buff->width > GRID_WIDTH){
     buff->pos = 0;
@@ -99,34 +78,6 @@ void read_grid_to_list(opc_pixel_t *pixel_list, opc_pixel_t **pixel_grid, list_t
   }
 }
 
-
-void handle_user_exit(int _) {
-  printf("\n");
-  interrupted = 1;
-}
-
-int init_grid(list_t* list){
-  csv_parser_t *coords_to_pos_parser = csv_parser_new(PIXEL_FILE, " ");
-  csv_row_t *row;
-  while ((row = csv_parser_getRow(coords_to_pos_parser)) ) {
-      char **rowFields = csv_parser_getFields(row);
-      int pos = atoi(rowFields[2]);
-      pixel_info_t *pi;
-      if((pi = list_get(list, pos)) == NULL){
-        pi = malloc(sizeof(pixel_info_t));
-        *pi = (pixel_info_t){{.x = atoi(rowFields[0]), .y =atoi(rowFields[1])},
-                {-1, -1}};
-        list_add(list, pi); //TODO: NEEDS TO ADD IN CORRECT POS
-      }
-      else {
-        pi->grid = (grid_t){.x = atoi(rowFields[0]), .y =atoi(rowFields[1])};
-      }
-      csv_parser_destroy_row(row);
-  }
-  csv_parser_destroy(coords_to_pos_parser);
-  return 0;
-}
-
 // TODO: make sure we don't have a map sized gap written to the buffer_tb efore repeating
 // TODO: make a parameter for delay before replaying the buffer
 /**
@@ -135,21 +86,52 @@ int init_grid(list_t* list){
  * @param buff: a buffer_tc ontaining the data to scroll across the map
  * @param rate: the delay between each frame of scrolling, in microseconds
  */
-void run(buffer_t* buff, double rate) {
-  // Copy buffer_ti nto new pointer
-  // Not sure why we have to do this but we do
-  // buffer_t* buff_copy = buffer_new(buff->width);
-  // for (uint8_t x = 0; x < buff->width; x++) {
-  //   for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-  //     buff_copy->grid[x][y] = buff->grid[x][y];
-  //   }
-  // }
+int run(effect_runner_t* self) {  //
+  scroller_storage_t *storage = self->effect->obj;
 
-  // Setup pixel_info
-  list_t *pixel_info = list_new(&free);
-  init_grid(pixel_info);
+  // // Setup the time delay
+  // struct timespec t1, t2;
+  // t1.tv_sec = 0;
+  // t1.tv_nsec = (long) (rate * MILLI_TO_NANO);
 
-  opc_pixel_t pixels[NUM_PIXELS];
+  // Assign interrupt handler to close connection and cleanup after early exit
+  // Update the opc_pixel_t list
+  read_grid_to_list(self->frame->pixels, storage->pixel_grid, self->pixel_info);
+
+  // Write the pixels to the display
+  opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
+  nanosleep(&self->effect->time_delta, NULL);
+
+  // Scroll along 1
+  shift_columns(storage->pixel_grid, storage->buff);
+
+  // TODO: Add cleanup function to effect Cleanup code
+  // grid_free(pixel_grid);
+  // buffer_free(buff);
+  return 0;
+}
+
+effect_t *get_scroller_effect(void){
+  effect_t *effect = calloc(1, sizeof(effect_t));
+  if(effect == NULL){
+    return NULL;
+  }
+  effect->time_delta = (struct timespec){0, 50 * MILLI_TO_NANO};
+  effect->run = &run;
+
+  // Create a buffer pixel grid to contain data about to be displayed
+  int buff_width = 5;
+  buffer_t *buff = buffer_new(buff_width);
+  clear_buffer(buff);
+
+  // Set a shaded buffer
+  for (uint8_t x = 0; x < buff_width; x++){
+    for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
+      int c = x * (255/buff_width);
+      buff->grid[x][y] = (opc_pixel_t) {c, c, c};
+    }
+  }
+
   opc_pixel_t **pixel_grid = pixel_grid_new();
 
   // Set opc_pixel_t grid to all white
@@ -159,31 +141,11 @@ void run(buffer_t* buff, double rate) {
     }
   }
 
-  // Open connection
-  opc_sink s = opc_new_sink(HOST_AND_PORT);
 
-  // Setup the time delay
-  struct timespec t1, t2;
-  t1.tv_sec = 0;
-  t1.tv_nsec = (long) (rate * MILLI_TO_NANO);
+  effect->obj = malloc(sizeof(scroller_storage_t));
+  scroller_storage_t *storage = effect->obj;
+  storage->buff = buff;
+  storage->pixel_grid = pixel_grid;
 
-  // Assign interrupt handler to close connection and cleanup after early exit
-  signal(SIGINT, handle_user_exit);
-
-  while (!interrupted) {
-    // Update the opc_pixel_t list
-    read_grid_to_list(pixels, pixel_grid, pixel_info);
-
-    // Write the pixels to the display
-    opc_put_pixels(s, 0, NUM_PIXELS, pixels);
-    nanosleep(&t1, &t2);
-
-    // Scroll along 1
-    shift_columns(pixel_grid, buff);
-  }
-
-  // Cleanup code
-  grid_free(pixel_grid);
-  buffer_free(buff);
-  opc_close(s);
+  return effect;
 }

@@ -18,11 +18,11 @@
 #define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=%s"
 
 //TEMPERATURE
-int temp_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel);
+int temp_get_pixel(effect_runner_t *self, int pos);
 effect_t *get_temp_effect(void);
 
 //WIND SPEED
-int windspeed_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel);
+int windspeed_get_pixel(effect_runner_t *self, int pos);
 effect_t *get_windspeed_effect(void);
 
 #endif

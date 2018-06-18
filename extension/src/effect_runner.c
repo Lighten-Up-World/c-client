@@ -9,7 +9,8 @@ typedef struct {
 
 const string_to_constructor effects[] = {
     {"temp", &get_temp_effect},
-    {"windspeed", &get_windspeed_effect}
+    {"windspeed", &get_windspeed_effect},
+    {"scroll", &get_scroller_effect}
 };
 
 void handle_user_exit(int _) {
@@ -25,28 +26,32 @@ effect_runner_t *effect_runner_new(void){
   }
   effect_runner->effect = NULL;
   effect_runner->pixel_info = NULL;
+  effect_runner->sink = -1;
+  effect_runner->frame_no = 0;
   effect_runner->frame = calloc(1, sizeof(frame_t));
   return effect_runner;
 }
 
-effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, list_t *pixel_info){
+effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, list_t *pixel_info, opc_sink sink){
   if(self == NULL) {
     self = effect_runner_new();
   }
   if(self != NULL){
     self->effect = effect;
     self->pixel_info = pixel_info;
+    self->sink = sink;
   }
   return self;
 }
 
 void effect_runner_delete(effect_runner_t *self) {
+  free(self);
   if(self != NULL){
+    opc_close(self->sink);
     list_delete(self->pixel_info);
     free(self->effect);
     free(self->frame);
   }
-  free(self);
 }
 
 
@@ -101,18 +106,16 @@ int main(int argc, const char * argv[]) {
 
   signal(SIGINT, handle_user_exit);
 
-  uint8_t channel = 0;
-  opc_sink s;
   // Open connection
-  s = opc_new_sink(HOST_AND_PORT);
-  if(s == -1) {
+  opc_sink sink = opc_new_sink(HOST_AND_PORT);
+  if(sink == -1) {
     exit(EXIT_FAILURE);
   }
 
   // Setup pixel_info
   list_t *pixel_info = list_new(&free);
   if(pixel_info == NULL){
-    opc_close(s);
+    opc_close(sink);
     exit(EXIT_FAILURE);
   }
   init_grid(pixel_info);
@@ -127,17 +130,17 @@ int main(int argc, const char * argv[]) {
   }
   if(effect == NULL){
     fprintf(stderr, "Failed to construct effect using argument %s\n", argv[1]);
-    opc_close(s);
+    opc_close(sink);
     list_delete(pixel_info);
     exit(EXIT_FAILURE);
   }
 
   // Initialise api manager
-  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info);
+  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info, sink);
   if(effect_runner == NULL){
     fprintf(stderr, "Api_manager failed to initialise with effect %s\n", argv[1]);
     free(effect);
-    opc_close(s);
+    opc_close(sink);
     list_delete(pixel_info);
     exit(EXIT_FAILURE);
   }
@@ -148,22 +151,13 @@ int main(int argc, const char * argv[]) {
   }
 
   while(!interrupted){
-    for (int i = 0; i < NUM_PIXELS; i++) {
-      if(interrupted){
-        break;
-      }
-      nanosleep(&effect_runner->effect->time_delta, NULL);
-      effect_runner->effect->get_pixel(effect_runner, i, effect_runner->frame->pixels+i);
-      if(!opc_put_pixels(s, channel, NUM_PIXELS, effect_runner->frame->pixels)) {
-        interrupted = 1;
-        break;
-      }
-    }
+    printf("======== %ld =========\n", effect_runner->frame_no);
+    nanosleep(&effect_runner->effect->time_delta, NULL);
+    effect_runner->effect->run(effect_runner);
+    effect_runner->frame_no++;
   }
-
 
   // Close it all up
   effect_runner_delete(effect_runner);
-  opc_close(s);
   return EXIT_SUCCESS;
 }

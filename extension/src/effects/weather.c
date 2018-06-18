@@ -4,18 +4,17 @@
 #include "weather.h"
 
 #define API_DELAY 5000
-/*
+
 int weather_run(effect_runner_t *self){
-  // for (int i = 0; i < NUM_PIXELS; i++) {
-  //   nanosleep(&self->effect->time_delta, NULL);
-  //   self->effect->get_pixel(self, i, self->frame->pixels+i);
-  //   if(!opc_put_pixels(self->socket, 0, NUM_PIXELS, self->frame->pixels)) {
-  //     interrupted = 1;
-  //     return -1;
-  //   }
-  // }
+  int i = self->frame_no % NUM_PIXELS;
+  nanosleep(&self->effect->time_delta, NULL);
+  self->effect->get_pixel(self, i);
+  if(!opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels)) {
+    return 1;
+  }
+  return 0;
 }
-*/
+
 //// TEMPERATURE ////
 
 /***
@@ -107,8 +106,8 @@ int temp_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
   return 0;
 }
 
-int temp_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel){
-  return temp_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
+int temp_get_pixel(effect_runner_t *self, int pos){
+  return temp_get_pixel_for_xy(self->frame->pixels+pos, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
 effect_t *get_temp_effect(void){
@@ -118,6 +117,7 @@ effect_t *get_temp_effect(void){
   }
   effect->get_pixel = &temp_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
+  effect->run = &weather_run;
   return effect;
 }
 
@@ -150,8 +150,8 @@ int windspeed_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc){
   return 0;
 }
 
-int windspeed_get_pixel(effect_runner_t *self, int pos, opc_pixel_t *pixel){
-  return windspeed_get_pixel_for_xy(pixel, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
+int windspeed_get_pixel(effect_runner_t *self, int pos){
+  return windspeed_get_pixel_for_xy(self->frame->pixels+pos, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
 effect_t *get_windspeed_effect(void){
@@ -161,5 +161,6 @@ effect_t *get_windspeed_effect(void){
   }
   effect->get_pixel = &temp_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
+  effect->run = &weather_run;
   return effect;
 }

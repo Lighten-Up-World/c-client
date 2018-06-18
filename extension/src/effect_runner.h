@@ -16,9 +16,10 @@
 
 effect_runner_t *effect_runner_new(void);
 void effect_runner_delete(effect_runner_t *self);
-effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, list_t *pixel_info);
+effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, list_t *pixel_info, opc_sink sink);
 
 // EFFECTS
 #include "effects/weather.h"
+#include "effects/scroller.h"
 
 #endif

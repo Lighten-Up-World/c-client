@@ -52,7 +52,7 @@ layout:
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
-$(PATHB)effect_runner.out: $(PATHOBJ)effect_runner.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather.o $(PATHOBJ)csv.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
+$(PATHB)effect_runner.out: $(PATHOBJ)effect_runner.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather.o $(PATHOBJ)scroller.o $(PATHOBJ)csv.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o $(PATHOBJ)pixel.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o

@@ -14,6 +14,10 @@ specific language governing permissions and limitations under the License.
 
 #include "opc_client.h"
 
+static opc_sink_info opc_sinks[OPC_MAX_SINKS];
+static opc_sink opc_next_sink = 0;
+
+
 int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   struct addrinfo* addr;
   struct addrinfo* ai;
