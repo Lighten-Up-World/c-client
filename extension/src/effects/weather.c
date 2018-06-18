@@ -3,8 +3,8 @@
 //
 #include "weather.h"
 
-#define API_DELAY 50
-
+#define API_DELAY 5000
+/*
 int weather_run(effect_runner_t *self){
   // for (int i = 0; i < NUM_PIXELS; i++) {
   //   nanosleep(&self->effect->time_delta, NULL);
@@ -15,7 +15,7 @@ int weather_run(effect_runner_t *self){
   //   }
   // }
 }
-
+*/
 //// TEMPERATURE ////
 
 /***
@@ -36,10 +36,14 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   assert(object != NULL);
 
   int sockfd = socket_connect(WEATHER_HOST, 80);
+  if (sockfd < 0){
+    perror("SOCKFD");
+    return -1;
+  }
 
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
-  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, attr, object, val) < 0){
+  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, attr, object, val) < 0){
     return -1;
   }
 

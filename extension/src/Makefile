@@ -12,9 +12,10 @@ PATHLAYOUT = extension/src/layout/
 PATHS = ./
 PATHJSON = parson/
 PATHUTIL = utils/
-PATHAPI = api/
+PATHEFFECT = effects/
 PATHB = build/
 PATHOBJ = build/objs/
+PATHOPENPC = opc/
 
 BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
@@ -51,7 +52,7 @@ layout:
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
-$(PATHB)effect_runner.out: $(PATHOBJ)effect_runner.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather_api.o $(PATHOBJ)csv.o $(PATHOBJ)list.o
+$(PATHB)effect_runner.out: $(PATHOBJ)effect_runner.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather.o $(PATHOBJ)csv.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
@@ -63,10 +64,13 @@ $(PATHOBJ)%.o: $(PATHS)%.c
 $(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(PATHOBJ)%.o: $(PATHAPI)%.c $(PATHAPI)%.h
+$(PATHOBJ)%.o: $(PATHEFFECT)%.c $(PATHEFFECT)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 $(PATHOBJ)%.o: $(PATHUTIL)%.c $(PATHUTIL)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
+
+$(PATHOBJ)%.o: $(PATHOPENPC)%.c $(PATHOPENPC)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)

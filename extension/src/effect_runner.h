@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "opc/opc_client.c"
+#include "opc/opc_client.h"
 #include "utils/csv.h"
 #include "extension.h"
 
