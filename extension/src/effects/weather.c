@@ -51,7 +51,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
   size_t buf_size = 600;
   char buf[buf_size];
-  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, buf, buf_size) < 0){
+  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, buf, buf_size) < 0){
     return -1;
   }
 
@@ -86,13 +86,13 @@ void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
   //Red
 
   if (val > 0.0){
-    red = (PIXEL_COLOUR_MAX / 10.0) * (val);
+    red = (PIXEL_COLOUR_MAX / 15.0) * (val);
     red = red > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : red;
   }
 
   //Green
 
-  if (val > 10.0){
+  if (val > 15.0){
     green = (PIXEL_COLOUR_MAX / 30.0) * (40 - val);
     green = green < 0 ? 0 : green;
   }else if (val > -5){
@@ -103,7 +103,7 @@ void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
 
   //Blue
   if (val > -5.0){
-    blue = (PIXEL_COLOUR_MAX / 5.0)  * (-val);
+    blue = (PIXEL_COLOUR_MAX / 10.0)  * (5-val);
     blue = blue < 0 ? 0 : blue;
   }else{
     blue = PIXEL_COLOUR_MAX;

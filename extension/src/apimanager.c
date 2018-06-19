@@ -20,12 +20,13 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   assert(request.method == GET);
   char req[300];
   size_t byte_count;
-  snprintf(req, sizeof(req), "GET /%s\nHTTP/1.1\r\nHost:%s\nConnection:keep-alive\r\n", request.path, request.host);
-  if (send(sockfd, req, sizeof(req), 0) < 0) {
+  snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n", request.path, request.host);
+  printf("\n%s\n", req);
+  if (write(sockfd, req, sizeof(req)) < 0) {
     return -1;
   }
-  byte_count = recv(sockfd, buf, buf_size, 0);
-
+  byte_count = read(sockfd, buf, buf_size);
+  printf("%s\n", buf);
   return byte_count;
 }
 
@@ -82,7 +83,6 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
 
   JSON_Value *root_value;
   root_value = json_parse_string(buf);
-  //free(buf);
   if (json_value_get_type(root_value) != JSONObject) {
     printf("Not a json object \n");
     return -1;
@@ -105,7 +105,6 @@ int get_data_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *p
   request.host = host;
   request.method = GET;
   asprintf(&(request.path), path, loc->latitude, loc->longitude, key);
-
   if (send_get_request(sockfd, request, buf, buf_size) < 0) {
     free(request.path);
     return -1;
