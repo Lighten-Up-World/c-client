@@ -4,7 +4,7 @@
 #include "weather.h"
 
 #define API_DELAY 5000
-#define TIMELAPSE_DELAY 10
+#define TIMELAPSE_DELAY 100
 
 int weather_run(effect_runner_t *self){
   int i = self->frame_no % NUM_PIXELS;
@@ -49,8 +49,13 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   }
 
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
+  size_t buf_size = 600;
+  char buf[buf_size];
+  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, buf, buf_size) < 0){
+    return -1;
+  }
 
-  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, attr, object, val) < 0){
+  if(get_double_from_json(buf, attr, object, val) < 0){
     return -1;
   }
 
@@ -73,35 +78,38 @@ void set_windspeed_pixel_colour(opc_pixel_t *pixel, double val) {
 void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
   assert(pixel != NULL);
   val -= 273.0;
-  printf("Temperature: %f \n", val);
-  int red = 0;
-  int blue = 0;
-  int green = 0;
+  printf("Temperature: %f ", val);
+  int red = PIXEL_COLOUR_MIN;
+  int blue = PIXEL_COLOUR_MIN;
+  int green = PIXEL_COLOUR_MIN;
 
-  if(val > 10){
-    red = (PIXEL_COLOUR_MAX / 20.0) * (val - 10.0);
+  //Red
+
+  if (val > 0.0){
+    red = (PIXEL_COLOUR_MAX / 10.0) * (val);
     red = red > PIXEL_COLOUR_MAX ? PIXEL_COLOUR_MAX : red;
-  }else{
-    pixel->r = 0;
   }
 
-  if (val > 20){
-    green = (PIXEL_COLOUR_MAX / 10.0) * (30.0 - val);
+  //Green
+
+  if (val > 10.0){
+    green = (PIXEL_COLOUR_MAX / 30.0) * (40 - val);
     green = green < 0 ? 0 : green;
-  }else if (val > 0){
+  }else if (val > -5){
     green = PIXEL_COLOUR_MAX;
   }else if (val > -10){
-    green = (PIXEL_COLOUR_MAX / 10.0) * (10.0 + val);
-  }else{
-    green = 0;
+    green = (PIXEL_COLOUR_MAX / 10.0) * (-val);
   }
 
-  if(val > 0){
-    blue = (PIXEL_COLOUR_MAX / 10.0) * (10.0 - val);
+  //Blue
+  if (val > -5.0){
+    blue = (PIXEL_COLOUR_MAX / 5.0)  * (-val);
     blue = blue < 0 ? 0 : blue;
   }else{
     blue = PIXEL_COLOUR_MAX;
   }
+
+  printf("r:%d, g:%d, b:%d \n", red, green, blue);
 
   pixel->b = blue;
   pixel->g = green;
@@ -131,7 +139,7 @@ int temp_get_pixel(effect_runner_t *self, int pos){
   return temp_get_pixel_for_xy(self->frame->pixels+pos, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
-effect_t *get_temp_effect(void){
+effect_t *get_temp_effect(void * obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;
@@ -167,7 +175,7 @@ int temp_log_pixel(effect_runner_t *self, int pos){
   return temp_log_pixel_for_xy(self->frame->pixels+pos, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo, self->effect, pos);
 }
 
-effect_t *get_temp_log_effect(void){
+effect_t *get_temp_log_effect(void *obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;
@@ -203,7 +211,7 @@ int temp_timelapse_get_pixel(effect_runner_t *self, int pos){
   return 0;
 }
 
-effect_t *get_temp_timelapse_effect(void){
+effect_t *get_temp_timelapse_effect(void *obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;
@@ -248,7 +256,7 @@ int windspeed_get_pixel(effect_runner_t *self, int pos){
   return windspeed_get_pixel_for_xy(self->frame->pixels+pos, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo);
 }
 
-effect_t *get_windspeed_effect(void){
+effect_t *get_windspeed_effect(void *obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;

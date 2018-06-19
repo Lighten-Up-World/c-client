@@ -1,5 +1,5 @@
 #ifndef COMMON_EFFECT_H
-#define COMMON_EFFECT_C
+#define COMMON_EFFECT_H
 
 #include <stdio.h>
 #include "../extension.h"

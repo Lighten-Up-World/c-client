@@ -4,7 +4,7 @@ volatile int interrupted = 0;
 
 typedef struct {
   char *str;
-  effect_t *(*new)(void);
+  effect_t *(*new)(void *);
 } string_to_constructor;
 
 const string_to_constructor effects[] = {
@@ -132,7 +132,7 @@ int main(int argc, const char * argv[]) {
   effect_t *effect = NULL;
   for (int i = 0; i < sizeof(effects)/sizeof(string_to_constructor); i++) {
     if(strcmp(effects[i].str, argv[1]) == 0){
-      effect = effects[i].new();
+      effect = effects[i].new(pixel_info);
     }
   }
   if(effect == NULL){

@@ -96,7 +96,7 @@ void free_scroller(effect_t *self){
   free_effect(self);
 }
 
-effect_t *get_scroller_effect(void){
+effect_t *get_scroller_effect(void * obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;

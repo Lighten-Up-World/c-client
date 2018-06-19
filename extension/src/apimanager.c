@@ -30,6 +30,41 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
 }
 
 /**
+ * GET String FROM JSON
+ * Takes in json and the attribute required (along with the object it contains) and writes string to val.
+ *
+ * @param buf - json to parse
+ * @param name - name of the attribute that the double represents
+ * @param object - the json object containing the attribute
+ * @param val - string where the result is stored
+ * @return - 0 for success, -1 for failure
+ */
+int get_string_from_json(char *buf, char *name, char *object, char *val) {
+  assert(buf != NULL);
+  assert(name != NULL);
+  assert(val != NULL);
+  assert(object != NULL);
+
+  JSON_Value *root_value;
+  root_value = json_parse_string(buf);
+
+  if (json_value_get_type(root_value) != JSONObject) {
+    printf("Not a json object \n");
+    return -1;
+  }
+  JSON_Object *obj;
+  obj = json_object_get_object(json_object(root_value), object);
+
+  const char *str = json_object_get_string(obj, name);
+
+  strncpy(val, str, strlen(str));
+
+  json_value_free(root_value);
+
+  return -(*val == 0);
+}
+
+/**
  * GET DOUBLE FROM JSON
  * Takes in json and the attribute required (along with the object it contains) and writes double to val.
  *
@@ -59,39 +94,24 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
   return -(*val == 0);
 }
 
-/**
- * GET VALUE FOR GEO-LOCATION
- * Passes socket and relevant parsing information to retrieve a particular value at a geolocation using a HTTP request.
- *
- * @param sockfd - socket for the TCP/IP connection
- * @param loc - pointer to the geolocation
- * @param host - hostname
- * @param path - url path format string
- * @param attr - name of attribute to be obtained
- * @param object - name of json object in which the attribute will be contained
- * @param val - pointer to the double where the value is stored.
- * @return
- */
-int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *key, char *attr, char *object,
-                              double *val) {
+int get_data_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *key, char *buf, size_t buf_size){
   assert(loc != NULL);
   assert(host != NULL);
-  assert(object != NULL);
-  assert(attr != NULL);
   assert(path != NULL);
+  assert(buf != NULL);
+  assert(key != NULL);
 
   http_request_t request;
   request.host = host;
   request.method = GET;
   asprintf(&(request.path), path, loc->latitude, loc->longitude, key);
 
-  char buff[600];
-  if (send_get_request(sockfd, request, buff, sizeof(buff)) < 0) {
+  if (send_get_request(sockfd, request, buf, buf_size) < 0) {
     free(request.path);
     return -1;
   }
   free(request.path);
-  return get_double_from_json(buff, attr, object, val);
+  return 0;
 }
 
 /**

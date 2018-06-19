@@ -7,7 +7,7 @@
 #include "../pixel.h"
 
 int image_run(effect_runner_t* self);
-effect_t *get_image_effect(void);
+effect_t *get_image_effect(void *obj);
 void free_image(effect_t *self);
 
 #endif
