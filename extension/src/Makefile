@@ -15,7 +15,7 @@ PATHUTIL = utils/
 PATHEFFECT = effects/
 PATHB = build/
 PATHOBJ = build/objs/
-PATHOPC = opc/
+PATHOPCLIENT = opc/
 
 BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
@@ -48,7 +48,7 @@ server: layout
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
 layout:
-	cd layout; make
+	python layout/csv_to_layout.py
 
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
@@ -71,7 +71,7 @@ $(PATHOBJ)%.o: $(PATHEFFECT)%.c $(PATHEFFECT)%.h
 $(PATHOBJ)%.o: $(PATHUTIL)%.c $(PATHUTIL)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(PATHOBJ)%.o: $(PATHOPC)%.c $(PATHOPC)%.h
+$(PATHOBJ)%.o: $(PATHOPCLIENT)%.c $(PATHOPCLIENT)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)
