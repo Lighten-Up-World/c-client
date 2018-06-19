@@ -82,7 +82,7 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
 
   JSON_Value *root_value;
   root_value = json_parse_string(buf);
-
+  //free(buf);
   if (json_value_get_type(root_value) != JSONObject) {
     printf("Not a json object \n");
     return -1;

@@ -7,6 +7,7 @@
 
 #include "../apimanager.h"
 #include "../effect_runner.h"
+#include "common.h"
 
 #define WEATHER_HOST_2 "api.darksky.net"
 #define WEATHER_PATH_2 "forecast/bf050bc7f491ed6167290c1fe09c95d7/%f,%f"

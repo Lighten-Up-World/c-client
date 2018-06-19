@@ -51,6 +51,7 @@ void increment_current_time(effect_t *eff){
 
 
 int sun_get_pixel(effect_runner_t *self, int pos){
+  /*
   sun_state_t *state = self->effect->obj;
   size_t buf_size = 40;
   char buf[buf_size];
@@ -82,10 +83,6 @@ int sun_get_pixel(effect_runner_t *self, int pos){
     r = 0;
     g = 0;
     b = 0;
-  }else{
-    if (fromsunrise > seconds_to_solar_noon){
-
-    }
   }
 
   opc_pixel_t *px = self->frame->pixels+pos;
@@ -93,10 +90,11 @@ int sun_get_pixel(effect_runner_t *self, int pos){
   px->b = b;
   px->g = g;
 
+   */
   return 0;
 }
 
-int load_sun_data(effect_runner_t *self, FILE *sun_file, struct tm *current){
+int load_sun_data(list_t *pixel_info, FILE *sun_file, struct tm *current){
   assert(sun_file != NULL);
 
   fprintf(sun_file, "%d %d", current->tm_mon, current->tm_year);
@@ -108,7 +106,7 @@ int load_sun_data(effect_runner_t *self, FILE *sun_file, struct tm *current){
       return -1;
     }
 
-    geolocation_t geoloc = ((pixel_info_t *)list_get(self->pixel_info, i))->geo;
+    geolocation_t geoloc = ((pixel_info_t *)list_get(pixel_info, i))->geo;
 
     printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
@@ -144,17 +142,18 @@ int load_sun_data(effect_runner_t *self, FILE *sun_file, struct tm *current){
 }
 
 
-effect_t *get_sun_effect(void){
+effect_t *get_sun_effect(void *obj) {
+  list_t *pixel_info = (list_t *) obj;
   effect_t *effect = calloc(1, sizeof(effect_t));
   sun_state_t *state = malloc(sizeof(sun_state_t));
-  if(effect == NULL){
+  if (effect == NULL) {
     return NULL;
   }
   effect->get_pixel = &sun_get_pixel;
-  effect->time_delta = (struct timespec){1, 0};
+  effect->time_delta = (struct timespec) {1, 0};
   effect->run = &sunrise_run;
   FILE *sun_file = fopen(SUN_FILE, "a");
-  if (sun_file == NULL){
+  if (sun_file == NULL) {
     perror("sun_file");
     exit(EXIT_FAILURE);
   }
@@ -165,13 +164,13 @@ effect_t *get_sun_effect(void){
 
   struct tm *current = localtime(&result);
 
-  if (fgets(buf,buf_size,sun_file) == NULL){
-    load_sun_data(sun_file, current);
-  }else{
+  if (fgets(buf, buf_size, sun_file) == NULL) {
+    load_sun_data(pixel_info, sun_file, current);
+  } else {
     int m = atoi(strtok(buf, " "));
     int y = atoi(strtok(NULL, " "));
-    if (m != current->tm_mon || y != current->tm_year){
-      load_sun_data(sun_file, current);
+    if (m != current->tm_mon || y != current->tm_year) {
+      load_sun_data(pixel_info, sun_file, current);
     }
   }
   struct tm *curr = malloc(sizeof(curr));
