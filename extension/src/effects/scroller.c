@@ -111,7 +111,7 @@ int run(effect_runner_t* self) {  //
   return 0;
 }
 
-effect_t *get_scroller_effect(void){
+effect_t *get_scroller_effect(void * obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;

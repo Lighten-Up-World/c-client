@@ -19,6 +19,6 @@ buffer_t *buffer_new(int cols);
 void buffer_free(buffer_t *buff);
 void clear_buffer(buffer_t *b);
 int run(effect_runner_t* self);
-effect_t *get_scroller_effect(void);
+effect_t *get_scroller_effect(void * obj);
 
 #endif

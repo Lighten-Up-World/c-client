@@ -17,21 +17,21 @@
 #define WEATHER_HOST "api.openweathermap.org"
 #define WEATHER_PATH "data/2.5/weather?lat=%f&lon=%f&appid=%s"
 
-#define TEMP_TIMELAPSE_FILE "temp_timelapse2.txt"
+#define TEMP_TIMELAPSE_FILE "temp_timelapse.txt"
 #define TEMP_TIMELAPSE2_FILE "temp_timelapse2.txt"
 
 //TEMPERATURE
 int temp_get_pixel(effect_runner_t *self, int pos);
-effect_t *get_temp_effect(void);
+effect_t *get_temp_effect(void * obj);
 
 int temp_timelapse_get_pixel(effect_runner_t *self, int pos);
-effect_t *get_temp_timelapse_effect(void);
+effect_t *get_temp_timelapse_effect(void * obj);
 
 int temp_log_pixel(effect_runner_t *self, int pos);
-effect_t *get_temp_log_effect(void);
+effect_t *get_temp_log_effect(void * obj);
 
 //WIND SPEED
 int windspeed_get_pixel(effect_runner_t *self, int pos);
-effect_t *get_windspeed_effect(void);
+effect_t *get_windspeed_effect(void * obj);
 
 #endif
