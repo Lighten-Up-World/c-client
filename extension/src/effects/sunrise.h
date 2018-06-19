@@ -10,7 +10,7 @@
 #define SUNRISE_HOST "api.sunrise-sunset.org"
 #define SUNRISE_PATH "json?lat=%f&lng=%f%s" // can also add &date and &formatted
 
-#define SUN_FILE "sun_data.txt"
+#define SUN_FILE "../data/sun_data.txt"
 
 typedef struct {
     FILE *sun_file;
