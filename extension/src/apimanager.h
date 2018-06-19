@@ -1,5 +1,5 @@
-#ifndef apimanager_h
-#define apimanager_h
+#ifndef APIMANAGER_H
+#define APIMANAGER_H
 
 #include <stdio.h>
 #include <string.h>
