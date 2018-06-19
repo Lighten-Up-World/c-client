@@ -1,5 +1,5 @@
-#ifndef ARM11_22_EXTENSION_H
-#define ARM11_22_EXTENSION_H
+#ifndef EXTENSION_H
+#define EXTENSION_H
 
 #include <stdint.h>
 #include <time.h>
@@ -39,12 +39,14 @@ typedef struct effect_runner effect_runner_t;
 typedef int (*get_frame_func) (effect_runner_t *self, frame_t *frame);
 typedef int (*get_pixel_func) (effect_runner_t *self, int pos);
 typedef int (*effect_runner_func)(effect_runner_t *self);
+typedef void (*effect_func)(effect_t *self);
 
 struct effect {
   get_frame_func get_frame;
   get_pixel_func get_pixel;
   struct timespec time_delta;
   effect_runner_func run;
+  effect_func remove;
   void *obj;
 };
 

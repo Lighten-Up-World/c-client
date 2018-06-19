@@ -11,10 +11,12 @@ const string_to_constructor effects[] = {
     {"temp", &get_temp_effect},
     {"windspeed", &get_windspeed_effect},
     {"scroll", &get_scroller_effect},
-    {"temp_timelapse", &get_temp_timelapse_effect}
+    {"temp_timelapse", &get_temp_timelapse_effect},
+    {"image", &get_image_effect}
 };
 
 void handle_user_exit(int _) {
+  perror("Interrupted, cleaning up\n");
   interrupted = 1;
 }
 
@@ -46,13 +48,13 @@ effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, lis
 }
 
 void effect_runner_delete(effect_runner_t *self) {
-  free(self);
   if(self != NULL){
     opc_close(self->sink);
     list_delete(self->pixel_info);
-    free(self->effect);
+    self->effect->remove(self->effect);
     free(self->frame);
   }
+  free(self);
 }
 
 
@@ -95,7 +97,6 @@ int init_geo(list_t* list){
       else {
         pi->geo = (geolocation_t){.latitude = atof(rowFields[0]), .longitude =atof(rowFields[1])};
       }
-
       csv_parser_destroy_row(row);
   }
   csv_parser_destroy(coords_to_pos_parser);
@@ -157,7 +158,6 @@ int main(int argc, const char * argv[]) {
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
   }
-  fclose((FILE *) effect_runner->effect->obj);
 
   // Close it all up
   effect_runner_delete(effect_runner);

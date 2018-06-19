@@ -24,29 +24,28 @@ void csv_parser_setErrorMessage(csv_parser_t *csvParser, const char *errorMessag
 }
 
 csv_parser_t *csv_parser_new(const char *path, const char *delimiter){
-    csv_parser_t *csvParser = (csv_parser_t*)malloc(sizeof(csv_parser_t));
+    csv_parser_t *parser = (csv_parser_t*)malloc(sizeof(csv_parser_t));
     if (path == NULL) {
-        csvParser->path = NULL;
+        parser->path = NULL;
     } else {
         int pathLen = strlen(path);
-        csvParser->path = (char*)malloc((pathLen + 1));
-        strcpy(csvParser->path, path);
+        parser->path = (char*)malloc((pathLen + 1));
+        strcpy(parser->path, path);
     }
-    csvParser->errMsg = NULL;
+    parser->errMsg = NULL;
     if (delimiter == NULL) {
-        csvParser->delimiter = ',';
+        parser->delimiter = ',';
     } else if (csv_parser_delimiterIsAccepted(delimiter)) {
-        csvParser->delimiter = *delimiter;
+        parser->delimiter = *delimiter;
     } else {
-        csvParser->delimiter = '\0';
+        parser->delimiter = '\0';
     }
-    csvParser->header = NULL;
-    csvParser->file = NULL;
-	csvParser->from_string = 0;
-	csvParser->csv_string = NULL;
-	csvParser->csv_stringIter = 0;
+    parser->file = NULL;
+    parser->from_string = 0;
+    parser->csv_string = NULL;
+    parser->csv_stringIter = 0;
 
-    return csvParser;
+    return parser;
 }
 
 csv_parser_t *csv_parser_new_from_string(const char *csv_string, const char *delimiter) {
@@ -73,9 +72,6 @@ void csv_parser_destroy(csv_parser_t *csvParser) {
     if (csvParser->file != NULL) {
         fclose(csvParser->file);
     }
-    if (csvParser->header != NULL) {
-        csv_parser_destroy_row(csvParser->header);
-    }
 	if (csvParser->csv_string != NULL) {
 		free(csvParser->csv_string);
 	}
@@ -83,8 +79,7 @@ void csv_parser_destroy(csv_parser_t *csvParser) {
 }
 
 void csv_parser_destroy_row(csv_row_t *csvRow) {
-    int i;
-    for (i = 0 ; i < csvRow->size ; i++) {
+    for (int i = 0 ; i < csvRow->size ; i++) {
         free(csvRow->fields[i]);
     }
     free(csvRow);

@@ -132,6 +132,9 @@ effect_t *get_temp_effect(void){
   effect->get_pixel = &temp_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
+  effect->remove = &free_effect;
+  effect->get_frame = NULL;
+  effect->obj = NULL;
   return effect;
 }
 
@@ -162,6 +165,8 @@ effect_t *get_temp_timelapse_effect(void){
   effect->get_pixel = &temp_timelapse_get_pixel;
   effect->time_delta = (struct timespec){0, TIMELAPSE_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
+  effect->remove = &free_file;
+  effect->get_frame = NULL;
   FILE *temp_file = fopen(TEMP_TIMELAPSE_FILE, "r");
   if (temp_file == NULL){
     perror("temp_file");
@@ -205,5 +210,8 @@ effect_t *get_windspeed_effect(void){
   effect->get_pixel = &windspeed_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
+  effect->remove = &free_effect;
+  effect->get_frame = NULL;
+  effect->obj = NULL;
   return effect;
 }

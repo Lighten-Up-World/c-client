@@ -48,16 +48,17 @@ int sunrise_get_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc) {
 	int blue = 0;
 	int green = 0;
 
-	if (/* current time > sunrise time || current time < sunset time */) {
-		/*
-		gradually increase rgb as time gets closer to solar noon
-		requires function calcTimeDiff()
-		calcTimeDiff() returns int between 0 and 255 that gives rgb values as a
-		function of the time difference from the solalr noon
-		*/
-	}
+	// if (/* current time > sunrise time || current time < sunset time */) {
+	// 	/*
+	// 	gradually increase rgb as time gets closer to solar noon
+	// 	requires function calcTimeDiff()
+	// 	calcTimeDiff() returns int between 0 and 255 that gives rgb values as a
+	// 	function of the time difference from the solalr noon
+	// 	*/
+	// }
 
 	pixel->b = blue;
   pixel->g = green;
   pixel->r = red;
+	return 0;
 }
