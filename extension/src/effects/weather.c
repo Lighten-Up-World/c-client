@@ -16,6 +16,13 @@ int weather_run(effect_runner_t *self){
   return 0;
 }
 
+int weather_log_run(effect_runner_t *self){
+  int i = self->frame_no % NUM_PIXELS;
+  nanosleep(&self->effect->time_delta, NULL);
+  self->effect->get_pixel(self, i);
+  return 0;
+}
+
 //// TEMPERATURE ////
 
 /***
@@ -43,7 +50,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
 
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
-  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, attr, object, val) < 0){
+  if (get_value_for_geolocation(sockfd,&geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, attr, object, val) < 0){
     return -1;
   }
 
@@ -132,9 +139,48 @@ effect_t *get_temp_effect(void){
   effect->get_pixel = &temp_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
-  effect->remove = &free_effect;
-  effect->get_frame = NULL;
-  effect->obj = NULL;
+  FILE *temp_file = fopen(TEMP_TIMELAPSE2_FILE, "a");
+  if (temp_file == NULL){
+    perror("temp_file2");
+    exit(EXIT_FAILURE);
+  }
+  effect->obj = temp_file;
+  return effect;
+}
+
+//LOGGING
+
+int temp_log_pixel_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, effect_t *eff, int loc) {
+  assert(pixel != NULL);
+  FILE *temp_file = eff->obj;
+  double val;
+  if (weather_get_val_for_xy(pixel, geoloc, "temp", "main", &val) < 0){
+    return -1;
+  }
+  set_temp_pixel_colour(pixel, val);
+  printf("%d %f\n", loc, val);
+  fprintf(temp_file, "%d %f\n", loc, val);
+  return 0;
+}
+
+int temp_log_pixel(effect_runner_t *self, int pos){
+  return temp_log_pixel_for_xy(self->frame->pixels+pos, ((pixel_info_t *)list_get(self->pixel_info, pos))->geo, self->effect, pos);
+}
+
+effect_t *get_temp_log_effect(void){
+  effect_t *effect = calloc(1, sizeof(effect_t));
+  if(effect == NULL){
+    return NULL;
+  }
+  effect->get_pixel = &temp_log_pixel;
+  effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
+  effect->run = &weather_log_run;
+  FILE *temp_file = fopen(TEMP_TIMELAPSE2_FILE, "a");
+  if (temp_file == NULL){
+    perror("temp_file2");
+    exit(EXIT_FAILURE);
+  }
+  effect->obj = temp_file;
   return effect;
 }
 

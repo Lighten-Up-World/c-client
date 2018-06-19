@@ -9,6 +9,8 @@ typedef struct {
 
 const string_to_constructor effects[] = {
     {"temp", &get_temp_effect},
+    {"temp_timelapse", &get_temp_timelapse_effect},
+    {"temp_log", &get_temp_log_effect},
     {"windspeed", &get_windspeed_effect},
     {"scroll", &get_scroller_effect},
     {"temp_timelapse", &get_temp_timelapse_effect},
@@ -107,13 +109,16 @@ int main(int argc, const char * argv[]) {
   assert(argc > 1);
 
   signal(SIGINT, handle_user_exit);
+  opc_sink sink = '\0';
 
-  // Open connection
-  opc_sink sink = opc_new_sink(HOST_AND_PORT);
-  if(sink == -1) {
-    exit(EXIT_FAILURE);
+  printf("%s", argv[1]);
+  if(strncmp("temp_log", argv[1], 8) != 0) {
+    // Open connection
+    sink = opc_new_sink(HOST_AND_PORT);
+    if (sink == -1) {
+      exit(EXIT_FAILURE);
+    }
   }
-
   // Setup pixel_info
   list_t *pixel_info = list_new(&free);
   if(pixel_info == NULL){
