@@ -15,7 +15,7 @@ PATHUTIL = utils/
 PATHEFFECT = effects/
 PATHB = build/
 PATHOBJ = build/objs/
-PATHOPC = opc/
+PATHOPENPC = opc/
 
 BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
@@ -71,7 +71,7 @@ $(PATHOBJ)%.o: $(PATHEFFECT)%.c $(PATHEFFECT)%.h
 $(PATHOBJ)%.o: $(PATHUTIL)%.c $(PATHUTIL)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(PATHOBJ)%.o: $(PATHOPC)%.c $(PATHOPC)%.h
+$(PATHOBJ)%.o: $(PATHOPENPC)%.c $(PATHOPENPC)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)

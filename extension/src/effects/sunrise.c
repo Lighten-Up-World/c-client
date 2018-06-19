@@ -112,7 +112,7 @@ int load_sun_data(list_t *pixel_info, FILE *sun_file, struct tm *current){
 
     size_t buf_size = 600;
     char buff[buf_size];
-    if (get_data_for_geolocation(sockfd, &geoloc, SUNRISE_HOST, SUNRISE_PATH, 0, buff, buf_size) < 0){
+    if (get_data_for_geolocation(sockfd, &geoloc, SUNRISE_HOST, SUNRISE_PATH, "0", buff, buf_size) < 0){
       return -1;
     }
 
@@ -137,6 +137,7 @@ int load_sun_data(list_t *pixel_info, FILE *sun_file, struct tm *current){
     fprintf(sun_file, "%d %d:%d:%d %d:%d:%d\n", i, sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec);
 
     socket_close(sockfd);
+    sleep(1);
   }
   return 0;
 }
