@@ -48,7 +48,7 @@ server: layout
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
 layout:
-	cd layout; make
+	python layout/csv_to_layout.py
 
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
