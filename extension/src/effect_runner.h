@@ -20,6 +20,10 @@ effect_runner_t *effect_runner_init(effect_runner_t *self, effect_t *effect, lis
 
 // EFFECTS
 #include "effects/weather.h"
+#include "effects/sunrise.h"
 #include "effects/scroller.h"
+#include "effects/sunrise.h"
+#include "effects/image.h"
+
 
 #endif

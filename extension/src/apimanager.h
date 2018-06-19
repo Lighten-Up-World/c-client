@@ -1,5 +1,5 @@
-#ifndef apimanager_h
-#define apimanager_h
+#ifndef APIMANAGER_H
+#define APIMANAGER_H
 
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +34,9 @@ typedef struct http_request{
 int socket_connect(const char *host, in_port_t port);
 int socket_close(int sockfd);
 
-int get_value_for_geolocation(int sockfd, geolocation_t *loc, char *host,
-                              char *path, char *key, char *attr, char *object, double *val);
+int get_double_from_json(char *buf, char *name, char *object, double *val);
+int get_string_from_json(char *buf, char *name, char *object, char *val);
+
+int get_data_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *key, char *buf, size_t buf_size);
+
 #endif /* apimanagerh */

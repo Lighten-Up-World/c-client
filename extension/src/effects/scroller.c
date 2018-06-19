@@ -1,14 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include "../utils/csv.h"
-#include "../utils/list.h"
-#include "../../../src/utils/error.h"
-#include "../opc/opc_client.h"
 #include "scroller.h"
-#include "../extension.h"
+#include "common.h"
 
 buffer_t* buffer_new(int cols) {
   buffer_t* b = (buffer_t* ) malloc(sizeof(buffer_t));
@@ -67,17 +58,6 @@ void shift_columns(opc_pixel_t **pixel_grid, buffer_t* buff) {
   }
 }
 
-// Updates opc_pixel_t list based on grid - more efficient to do this backwards iterating over the opc_pixel_t list
-void read_grid_to_list(opc_pixel_t *pixel_list, opc_pixel_t **pixel_grid, list_t *pixel_info) {
-  int pos;
-  for (uint8_t x = 0; x < GRID_WIDTH; x++) {
-    for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      pos = get_pos(x, y, pixel_info);
-      pixel_list[pos] = pixel_grid[x][y];
-    }
-  }
-}
-
 // TODO: make sure we don't have a map sized gap written to the buffer_tb efore repeating
 // TODO: make a parameter for delay before replaying the buffer
 /**
@@ -86,13 +66,8 @@ void read_grid_to_list(opc_pixel_t *pixel_list, opc_pixel_t **pixel_grid, list_t
  * @param buff: a buffer_tc ontaining the data to scroll across the map
  * @param rate: the delay between each frame of scrolling, in microseconds
  */
-int run(effect_runner_t* self) {  //
+int scroller_run(effect_runner_t* self) {  //
   scroller_storage_t *storage = self->effect->obj;
-
-  // // Setup the time delay
-  // struct timespec t1, t2;
-  // t1.tv_sec = 0;
-  // t1.tv_nsec = (long) (rate * MILLI_TO_NANO);
 
   // Assign interrupt handler to close connection and cleanup after early exit
   // Update the opc_pixel_t list
@@ -104,20 +79,31 @@ int run(effect_runner_t* self) {  //
 
   // Scroll along 1
   shift_columns(storage->pixel_grid, storage->buff);
-
-  // TODO: Add cleanup function to effect Cleanup code
-  // grid_free(pixel_grid);
-  // buffer_free(buff);
   return 0;
 }
 
-effect_t *get_scroller_effect(void){
+void free_scroller_storage(effect_t *self){
+  scroller_storage_t *storage = self->obj;
+  if(storage != NULL){
+    grid_free(storage->pixel_grid);
+    buffer_free(storage->buff);
+  }
+  free(storage);
+}
+
+void free_scroller(effect_t *self){
+  free_scroller_storage(self);
+  free_effect(self);
+}
+
+effect_t *get_scroller_effect(void * obj){
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;
   }
   effect->time_delta = (struct timespec){0, 50 * MILLI_TO_NANO};
-  effect->run = &run;
+  effect->run = &scroller_run;
+  effect->remove = &free_effect;
 
   // Create a buffer pixel grid to contain data about to be displayed
   int buff_width = 5;

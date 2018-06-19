@@ -15,12 +15,13 @@ PATHUTIL = utils/
 PATHEFFECT = effects/
 PATHB = build/
 PATHOBJ = build/objs/
-PATHOPENPC = opc/
+PATHOPCLIENT = opc/
 
 BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
-SRCT = $(wildcard $(PATHT)*.c)
-SRCRUN = $(wildcard $(PATHRUN)*.c)
+ROOT_O = $(patsubst $(PATHS)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHS)*.c))
+UTIL_O = $(patsubst $(PATHUTIL)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHUTIL)*.c))
+EFFECT_O = $(patsubst $(PATHEFFECT)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHEFFECT)*.c))
 
 COMPILE = gcc -c
 LINK = gcc
@@ -47,12 +48,12 @@ server: layout
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
 layout:
-	cd layout; make
+	python layout/csv_to_layout.py
 
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
-$(PATHB)effect_runner.out: $(PATHOBJ)effect_runner.o $(PATHOBJ)apimanager.o $(PATHOBJ)parson.o  $(PATHOBJ)projection.o $(PATHOBJ)weather.o $(PATHOBJ)scroller.o $(PATHOBJ)csv.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o $(PATHOBJ)pixel.o
+$(PATHB)effect_runner.out: $(ROOT_O) $(UTIL_O) $(EFFECT_O) $(PATHOBJ)opc_client.o $(PATHOBJ)parson.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)%.out: $(PATHOBJ)%.o
@@ -70,7 +71,7 @@ $(PATHOBJ)%.o: $(PATHEFFECT)%.c $(PATHEFFECT)%.h
 $(PATHOBJ)%.o: $(PATHUTIL)%.c $(PATHUTIL)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(PATHOBJ)%.o: $(PATHOPENPC)%.c $(PATHOPENPC)%.h
+$(PATHOBJ)%.o: $(PATHOPCLIENT)%.c $(PATHOPCLIENT)%.h
 	$(COMPILE) $(CFLAGS) $< -o $@
 
 mkdir: $(PATHB) $(PATHOBJ)

@@ -12,7 +12,6 @@ typedef struct csv_parser_t {
   char *path;
   char delimiter;
   char *errMsg;
-  csv_row_t *header;
   FILE *file;
 	int from_string;
 	char *csv_string;
