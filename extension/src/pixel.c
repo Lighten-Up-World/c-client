@@ -1,14 +1,17 @@
+#include <stdbool.h>
 #include "pixel.h"
 #include "extension.h"
 
 // Updates opc_pixel_t list based on grid - more efficient to do this backwards iterating over the opc_pixel_t list
-void read_grid_to_list(opc_pixel_t *pixel_list, opc_pixel_t **pixel_grid, list_t *pixel_info) {
+void read_grid_to_list(opc_pixel_t **channel_pixels, opc_pixel_t **pixel_grid, list_t *pixel_info) {
   int pos;
+  int channel;
   for (uint8_t x = 0; x < GRID_WIDTH; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      pos = get_pos(x, y, pixel_info);
-      if (pos > 0) {
-        pixel_list[pos] = pixel_grid[x][y];
+      if (is_on_map(x, y)) {
+        pos = get_pos(x, y, pixel_info);
+        channel = get_channel(x, y, pixel_info);
+        channel_pixels[channel][pos] = pixel_grid[x][y];
       }
     }
   }
@@ -47,6 +50,10 @@ typedef struct {
   int cnt;
   pixel_info_t key;
 } search_pair_t;
+
+void get_channel_enum(void *value, void *obj){
+  
+}
 
 void get_pos_enum(void *value, void *obj) {
   pixel_info_t *pi = value;
