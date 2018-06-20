@@ -117,35 +117,35 @@ int main(int argc, const char *argv[]) {
     }
   }
   // Setup pixel_info
-  list_t *pixel_info = list_new(&free);
-  if (pixel_info == NULL) {
+  list_t *pixel_mapping = list_new(&free);
+  if (pixel_mapping == NULL) {
     opc_close(sink);
     exit(EXIT_FAILURE);
   }
-  init_config(pixel_info);
-  add_geo(pixel_info);
+  init_config(pixel_mapping);
+  add_geo(pixel_mapping);
 
   // Find effect from argument
   effect_t *effect = NULL;
   for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
     if (strcmp(effects[i].str, argv[1]) == 0) {
-      effect = effects[i].new(pixel_info);
+      effect = effects[i].new(pixel_mapping);
     }
   }
   if (effect == NULL) {
     fprintf(stderr, "Failed to construct effect using argument %s\n", argv[1]);
     opc_close(sink);
-    list_delete(pixel_info);
+    list_delete(pixel_mapping);
     exit(EXIT_FAILURE);
   }
 
   // Initialise api manager
-  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info, sink);
+  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_mapping, sink);
   if (effect_runner == NULL) {
     fprintf(stderr, "Api_manager failed to initialise with effect %s\n", argv[1]);
     free(effect);
     opc_close(sink);
-    list_delete(pixel_info);
+    list_delete(pixel_mapping);
     exit(EXIT_FAILURE);
   }
 
