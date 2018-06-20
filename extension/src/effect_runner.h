@@ -11,9 +11,9 @@
 #include "utils/csv.h"
 #include "extension.h"
 
-#define PIXEL_FILE "layout/coordinates.txt"
+#define PIXEL_FILE "layout/pixel_config.txt"
 #define GEOLOC_FILE "layout/geolocation.txt"
-#define STRIP_FILE "layout/strip_config.txt"
+// #define STRIP_FILE "layout/strip_config.txt"
 
 effect_runner_t *effect_runner_new(void);
 void effect_runner_delete(effect_runner_t *self);
