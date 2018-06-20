@@ -15,7 +15,8 @@ const string_to_constructor effects[] = {
     {"scroll", &get_scroller_effect},
     {"temp_timelapse", &get_temp_timelapse_effect},
     {"image", &get_image_effect},
-    {"sun", &get_sun_effect}
+    {"sun", &get_sun_effect},
+    {"test", &get_test_effect}
 };
 
 void handle_user_exit(int _) {
