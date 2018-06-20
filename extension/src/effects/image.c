@@ -14,7 +14,7 @@ int image_run(effect_runner_t* self) {  //
   read_grid_to_list(self->frame->pixels, pixel_grid, self->pixel_info);
 
   // Write the pixels to the display
-  opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
+  opc_put_pixels(self->sink, get_channel_num(), NUM_PIXELS, self->frame->pixels);
   nanosleep(&self->effect->time_delta, NULL);
 
   return 0;

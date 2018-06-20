@@ -1,8 +1,8 @@
 #include "scroller.h"
 #include "common.h"
 
-buffer_t* buffer_new(int cols) {
-  buffer_t* b = (buffer_t* ) malloc(sizeof(buffer_t));
+buffer_t *buffer_new(int cols) {
+  buffer_t *b = (buffer_t *) malloc(sizeof(buffer_t));
   if (!b) {
     return NULL;
   }
@@ -12,7 +12,7 @@ buffer_t* buffer_new(int cols) {
   return b;
 }
 
-void clear_buffer(buffer_t* b) {
+void clear_buffer(buffer_t *b) {
   for (uint8_t x = 0; x < b->width; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
       b->grid[0][y] = (opc_pixel_t) {255, 255, 255};
@@ -20,12 +20,12 @@ void clear_buffer(buffer_t* b) {
   }
 }
 
-void buffer_free(buffer_t* b) {
+void buffer_free(buffer_t *b) {
   grid_free(b->grid);
   free(b);
 }
 
-void shift_columns(opc_pixel_t **pixel_grid, buffer_t* buff) {
+void shift_columns(opc_pixel_t **pixel_grid, buffer_t *buff) {
   // Store leftmost column temporarily
   opc_pixel_t left_col[GRID_HEIGHT];
   for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
@@ -41,24 +41,22 @@ void shift_columns(opc_pixel_t **pixel_grid, buffer_t* buff) {
 
   // Update rightmost column from buffer_tt hen update the buffer
   for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-    if(buff->pos < buff->width){
+    if (buff->pos < buff->width) {
       pixel_grid[GRID_WIDTH - 1][y] = buff->grid[buff->pos][y];
-    }
-    else{
+    } else {
       pixel_grid[GRID_WIDTH - 1][y] = left_col[y];
     }
   }
   //TODO: Buffer isn't consistent need to have an init and store in effect
   buff->pos++;
-  if(buff->pos == buff->width && buff->width > GRID_WIDTH){
+  if (buff->pos == buff->width && buff->width > GRID_WIDTH) {
     buff->pos = 0;
   }
-  if(buff->pos == GRID_WIDTH && buff->width < GRID_WIDTH){
+  if (buff->pos == GRID_WIDTH && buff->width < GRID_WIDTH) {
     buff->pos = 0;
   }
 }
 
-// TODO: make sure we don't have a map sized gap written to the buffer_tb efore repeating
 // TODO: make a parameter for delay before replaying the buffer
 /**
  * Scroll a buffer_ta cross the map continuously
@@ -66,43 +64,40 @@ void shift_columns(opc_pixel_t **pixel_grid, buffer_t* buff) {
  * @param buff: a buffer_tc ontaining the data to scroll across the map
  * @param rate: the delay between each frame of scrolling, in microseconds
  */
-int scroller_run(effect_runner_t* self) {  //
+int scroller_run(effect_runner_t *self) {  //
   scroller_storage_t *storage = self->effect->obj;
 
-  // Assign interrupt handler to close connection and cleanup after early exit
   // Update the opc_pixel_t list
   read_grid_to_list(self->frame->pixels, storage->pixel_grid, self->pixel_info);
 
   // Write the pixels to the display
-  opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info);
-  // opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
-  nanosleep(&self->effect->time_delta, NULL);
+  opc_put_pixel_list(self->sink, pixel_list);
 
   // Scroll along 1
   shift_columns(storage->pixel_grid, storage->buff);
   return 0;
 }
 
-void free_scroller_storage(effect_t *self){
+void free_scroller_storage(effect_t *self) {
   scroller_storage_t *storage = self->obj;
-  if(storage != NULL){
+  if (storage != NULL) {
     grid_free(storage->pixel_grid);
     buffer_free(storage->buff);
   }
   free(storage);
 }
 
-void free_scroller(effect_t *self){
+void free_scroller(effect_t *self) {
   free_scroller_storage(self);
   free_effect(self);
 }
 
-effect_t *get_scroller_effect(void * obj){
+effect_t *get_scroller_effect(void *obj) {
   effect_t *effect = calloc(1, sizeof(effect_t));
-  if(effect == NULL){
+  if (effect == NULL) {
     return NULL;
   }
-  effect->time_delta = (struct timespec){0, 50 * MILLI_TO_NANO};
+  effect->time_delta = (struct timespec) {0, 50 * MILLI_TO_NANO};
   effect->run = &scroller_run;
   effect->remove = &free_effect;
 
@@ -112,9 +107,9 @@ effect_t *get_scroller_effect(void * obj){
   clear_buffer(buff);
 
   // Set a shaded buffer
-  for (uint8_t x = 0; x < buff_width; x++){
+  for (uint8_t x = 0; x < buff_width; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      int c = x * (255/buff_width);
+      int c = x * (255 / buff_width);
       buff->grid[x][y] = (opc_pixel_t) {c, c, c};
     }
   }
@@ -127,7 +122,6 @@ effect_t *get_scroller_effect(void * obj){
       pixel_grid[x][y] = WHITE_PIXEL;
     }
   }
-
 
   effect->obj = malloc(sizeof(scroller_storage_t));
   scroller_storage_t *storage = effect->obj;
