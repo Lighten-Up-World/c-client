@@ -31,17 +31,29 @@ with open('layout/csv/WorldMap.csv', 'rb') as csvfile:
                           ((width - x + x_offset) * spacing, 0, (height - y + y_offset) * spacing))
             pixel_channels[cell_channel][cell_num] = pixels[-1]
 
-            mappings.append('%d %d %d' % (x, y, count))
-            strip.append('%d %s %d' % (cell_channel, cell_num, count))
+            mappings.append('%d %d' % (x, y))
+            strip.append('%d %s' % (cell_channel, cell_num))
             count+=1
             x += 1
         y += 1
-with open('layout/strip_config.txt', 'w') as sf:
-    sf.write('\n'.join(strip))
-with open('layout/coordinates.txt', 'w') as ci:
-    ci.write('\n'.join(mappings))
+with open('layout/pixel_config.txt', 'w') as sf:
+    sf.write('x y channel num\n')
+    sf.write('\n'.join([ m + ' ' + s for m, s in zip(mappings, strip)]))
+# with open('layout/strip_config.txt', 'w') as sf:
+#     sf.write('\n'.join(strip))
+# with open('layout/coordinates.txt', 'w') as ci:
+#     ci.write('\n'.join(mappings))
 with open('layout/WorldMap.json', 'w') as f:
     f.write('[\n' + ',\n'.join(pixels) + '\n]')
+
+with open('layout/channel_lengths.txt', 'w') as f:
+    f.write('')
+size = []
 for i in range(NUM_CHANNELS):
+    stripped_channel = [p for p in pixel_channels[i] if p != ""]
     with open('layout/WorldMap' + str(i+1) + '.json', 'w') as f:
-        f.write('[\n' + ',\n'.join([p for p in pixel_channels[i] if p != ""]) + '\n]');
+        f.write('[\n' + ',\n'.join(stripped_channel) + '\n]');
+    size += [str(len(stripped_channel))]
+
+with open('layout/channel_lengths.txt', 'a') as cl:
+    cl.write('\n'.join(size))

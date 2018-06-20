@@ -35,7 +35,7 @@ effect_runner_t *effect_runner_new(void) {
   effect_runner->pixel_info = NULL;
   effect_runner->sink = -1;
   effect_runner->frame_no = 0;
-  effect_runner->frame = calloc(1, sizeof(frame_t));
+  //effect_runner->frame = calloc(1, sizeof(frame_t)); TODO:
   return effect_runner;
 }
 
@@ -56,33 +56,32 @@ void effect_runner_delete(effect_runner_t *self) {
     opc_close(self->sink);
     list_delete(self->pixel_info);
     self->effect->remove(self->effect);
-    free(self->frame);
+    free(self->channel_pixels[0]);
+    free(self->channel_pixels);
   }
   free(self);
 }
 
-int init_grid(list_t *list) {
+int init_config(list_t *list) {
   csv_parser_t *coords_to_pos_parser = csv_parser_new(PIXEL_FILE, " ");
   csv_row_t *row;
+  // Skip header
+  row = csv_parser_getRow(coords_to_pos_parser);
+  csv_parser_destroy_row(row);
+
   while ((row = csv_parser_getRow(coords_to_pos_parser))) {
     char **rowFields = csv_parser_getFields(row);
-    int pos = atoi(rowFields[2]);
-    pixel_info_t *pi;
-    if ((pi = list_get(list, pos)) == NULL) {
-      pi = malloc(sizeof(pixel_info_t));
-      *pi = (pixel_info_t) {{.x = atoi(rowFields[0]), .y =atoi(rowFields[1])},
-          .geo={-1, -1}, .strip={-1, -1}};
-      list_add(list, pi); //TODO: NEEDS TO ADD IN CORRECT POS
-    } else {
-      pi->grid = (grid_t) {.x = atoi(rowFields[0]), .y =atoi(rowFields[1])};
-    }
+    pixel_info_t *pi = malloc(sizeof(pixel_info_t));
+    *pi = (pixel_info_t) {{.x = atoi(rowFields[0]), .y =atoi(rowFields[1])},
+        .geo={-1, -1}, .strip={atoi(rowFields[2]), atoi(rowFields[3])}};
+    list_add(list, pi);
     csv_parser_destroy_row(row);
   }
   csv_parser_destroy(coords_to_pos_parser);
   return 0;
 }
 
-int init_geo(list_t *list) {
+int add_geo(list_t *list) {
   csv_parser_t *coords_to_pos_parser = csv_parser_new(GEOLOC_FILE, " ");
   csv_row_t *row;
   while ((row = csv_parser_getRow(coords_to_pos_parser))) {
@@ -100,27 +99,6 @@ int init_geo(list_t *list) {
     csv_parser_destroy_row(row);
   }
   csv_parser_destroy(coords_to_pos_parser);
-  return 0;
-}
-
-int init_strip(list_t *list) {
-  csv_parser_t *parser = csv_parser_new(STRIP_FILE, " ");
-  csv_row_t *row;
-  while ((row = csv_parser_getRow(parser))) {
-    char **rowFields = csv_parser_getFields(row);
-
-    int pos = atoi(rowFields[2]);
-    pixel_info_t *pi;
-    if ((pi = list_get(list, pos)) == NULL) {
-      perror("Pixel Info list should already by populated by init_grid");
-      return 1;
-    } else {
-      pi->strip = (strip_t) {.channel = atoi(rowFields[0]), .num = atoi(rowFields[1])};
-    }
-    //free(rowFields);
-    csv_parser_destroy_row(row);
-  }
-  csv_parser_destroy(parser);
   return 0;
 }
 
@@ -144,9 +122,8 @@ int main(int argc, const char *argv[]) {
     opc_close(sink);
     exit(EXIT_FAILURE);
   }
-  init_grid(pixel_info);
-  init_geo(pixel_info);
-  init_strip(pixel_info);
+  init_config(pixel_info);
+  add_geo(pixel_info);
 
   // Find effect from argument
   effect_t *effect = NULL;
@@ -172,10 +149,10 @@ int main(int argc, const char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  //Clear Pixels
-  for (int p = 0; p < NUM_PIXELS; p++) {
-    effect_runner->frame->pixels[p] = (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX};
-  }
+  // //Clear Pixels
+  // for (int p = 0; p < NUM_PIXELS; p++) {
+  //   effect_runner->frame->pixels[p] = (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX};
+  // }
 
   while (!interrupted) {
     printf("======== %ld =========\n", effect_runner->frame_no);
