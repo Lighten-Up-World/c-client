@@ -239,7 +239,7 @@ effect_t *get_temp_timelapse_effect(void *obj){
     return NULL;
   }
   effect->get_pixel = &temp_timelapse_get_pixel;
-  effect->time_delta = (struct timespec){0, TIMELAPSE_DELAY};
+  effect->time_delta = (struct timespec){0, TIMELAPSE_DELAY * MILLI_TO_NANO};
   effect->run = &weather_timelapse_run;
   effect->remove = &free_file;
   effect->get_frame = NULL;
