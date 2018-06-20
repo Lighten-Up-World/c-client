@@ -35,7 +35,7 @@ effect_runner_t *effect_runner_new(void) {
   effect_runner->pixel_info = NULL;
   effect_runner->sink = -1;
   effect_runner->frame_no = 0;
-  effect_runner->frame = calloc(1, sizeof(frame_t));
+  effect_runner->channel_pixels = grid_new(NUM_STRIPS, MAX_STRIP_SIZE);
   return effect_runner;
 }
 
@@ -56,7 +56,7 @@ void effect_runner_delete(effect_runner_t *self) {
     opc_close(self->sink);
     list_delete(self->pixel_info);
     self->effect->remove(self->effect);
-    free(self->frame);
+    grid_free(self->channel_pixels);
   }
   free(self);
 }
@@ -172,9 +172,11 @@ int main(int argc, const char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  //Clear Pixels
-  for (int p = 0; p < NUM_PIXELS; p++) {
-    effect_runner->frame->pixels[p] = (opc_pixel_t) {PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX, PIXEL_COLOUR_MAX};
+  // Clear Pixels
+  for (int channel = 0; channel < NUM_STRIPS; channel++) {
+    for (int pixel = 0; pixel < NUM_PIXELS; pixel++) {
+      effect_runner->channel_pixels[channel][pixel] = WHITE_PIXEL;
+    }
   }
 
   while (!interrupted) {

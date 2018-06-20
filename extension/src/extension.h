@@ -26,10 +26,6 @@ typedef struct {
   uint8_t b;
 } opc_pixel_t;
 
-typedef struct {
-  opc_pixel_t pixels[NUM_PIXELS];
-} frame_t;
-
 typedef struct grid {
   int x;
   int y;
@@ -38,7 +34,7 @@ typedef struct grid {
 typedef struct effect effect_t;
 typedef struct effect_runner effect_runner_t;
 
-typedef int (*get_frame_func)(effect_runner_t *self, frame_t *frame);
+typedef int (*get_frame_func)(effect_runner_t *self, opc_pixel_t **channel_pixels);
 typedef int (*get_pixel_func)(effect_runner_t *self, int pos);
 typedef int (*effect_runner_func)(effect_runner_t *self);
 typedef void (*effect_func)(effect_t *self);
@@ -54,8 +50,8 @@ struct effect {
 
 struct effect_runner {
   effect_t *effect;
-  list_t **pixel_lists;
-  frame_t *frame;
+  list_t *pixel_info;
+  opc_pixel_t **channel_pixels;
   int8_t sink;
   long frame_no;
 };
