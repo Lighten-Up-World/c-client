@@ -63,7 +63,6 @@ void get_pos_enum(void *value, void *obj){
 }
 
 int get_pos(int x, int y, list_t *pixel_info){
-  printf("Searching for: %d %d\n", x, y);
   search_pair_t sp = {.ret=-1, .cnt=0, .key={.grid={x, y},.geo={-1, -1}, .strip={-1, -1}}};
   list_enum(pixel_info, &get_pos_enum, &sp);
   return sp.ret;

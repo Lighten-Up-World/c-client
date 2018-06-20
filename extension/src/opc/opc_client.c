@@ -209,10 +209,6 @@ uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_inf
     pixel_info_t *pi = curr->value;
     //printf("%d - (x: %d, y: %d, c: %d, n: %d)\n", pos, pi->grid.x, pi->grid.y, pi->strip.channel, pi->strip.num);
     channel_pixels[pi->strip.channel][pi->strip.num] = pixels[pos];
-    if(channel_pixels[pi->strip.channel][pi->strip.num].r == 0xff){
-      printf("(%d, %d)\n", pi->grid.x, pi->grid.y);
-      printf("Mapping pixel %d to %d:%d\n", pos, pi->strip.channel, pi->strip.num);
-    }
     pos++;
   }
 

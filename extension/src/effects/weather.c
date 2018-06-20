@@ -3,7 +3,7 @@
 //
 #include "weather.h"
 
-#define API_DELAY 5000
+#define API_DELAY 50
 #define TIMELAPSE_DELAY 0.05
 
 int weather_run(effect_runner_t *self){
@@ -71,7 +71,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
   size_t buf_size = 600;
   char buf[buf_size];
-  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, buf, buf_size) < 0){
+  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, buf, buf_size) < 0){
     return -1;
   }
 
@@ -129,7 +129,7 @@ void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
     blue = PIXEL_COLOUR_MAX;
   }
 
-  printf("r:%d, g:%d, b:%d \n", red, green, blue);
+  // printf("r:%d, g:%d, b:%d \n", red, green, blue);
 
   pixel->b = blue;
   pixel->g = green;
