@@ -18,23 +18,22 @@
 int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_size) {
   assert(buf != NULL);
   assert(request.method == GET);
-  char req[300];
+  size_t req_size = 300;
+  char req[req_size];
   size_t byte_count;
 
   // TODO: complete hack, fix if you want
   // TODO: fix 'write over read only memory' leak
   if (strcmp(request.host, "api.sunrise-sunset.org") == 0) {
-    snprintf(req, sizeof(req), "GET /%s HTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n\r\n", request.path, request.host);
+    snprintf(req, req_size, "GET /%s HTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n\r\n", request.path, request.host);
   } else {
-    snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n", request.path, request.host);
+    snprintf(req, req_size, "GET /%s\r\nHTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n", request.path, request.host);
   }
 
-  printf("\n%s\n", req);
-  if (write(sockfd, req, sizeof(req)) < 0) {
+  if (write(sockfd, req, req_size) < 0) {
     return -1;
   }
   byte_count = read(sockfd, buf, buf_size);
-  printf("%s\n", buf);
   return byte_count;
 }
 
@@ -95,11 +94,12 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
     printf("Not a json object \n");
     return -1;
   }
+  printf("name: %s, should be in %s\n", name, object);
   JSON_Object *obj;
   obj = json_object_get_object(json_object(root_value), object);
   *val = json_object_get_number(obj, name);
   json_value_free(root_value);
-  return -(*val == 0);
+  return 0;
 }
 
 int get_data_for_geolocation(int sockfd, geolocation_t *loc, char *host, char *path, char *key, char *buf, size_t buf_size){
