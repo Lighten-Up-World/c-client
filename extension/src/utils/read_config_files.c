@@ -52,3 +52,33 @@ pixel_mapping_t get_led_data_from_grid(uint8_t x, uint8_t y, const char *config_
   perror("No pixel found at grid coordinate given");
   exit(EC_INVALID_PARAM);
 }
+
+int get_channel_size(int channel, const char *channel_file) {
+  FILE *file = fopen(channel_file, "r");
+  if (file == NULL) {
+    perror("File could not be opened");
+    exit(EC_SYS);
+  }
+
+  size_t line_size = 100 * sizeof(char); //shouldn't be larger than this, should calculate and move to global constant
+  char *buffer = malloc(line_size);
+  int line = 0;
+  while (fgets(buffer, (int) line_size, file) != NULL) {
+    if (line == channel) {
+      return atoi(buffer);
+    }
+  }
+
+  if (ferror(file)) {
+    perror("Failed to read from file");
+    exit(EC_SYS);
+  }
+
+  if (fclose(file)) {
+    perror("File could not be closed");
+    exit(EC_SYS);
+  }
+
+  perror("No pixel found at grid coordinate given");
+  exit(EC_INVALID_PARAM);
+}
