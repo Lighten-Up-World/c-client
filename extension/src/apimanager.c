@@ -20,7 +20,15 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
   assert(request.method == GET);
   char req[300];
   size_t byte_count;
-  snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n", request.path, request.host);
+
+  // TODO: complete hack, fix if you want
+  // TODO: fix 'write over read only memory' leak
+  if (strcmp(request.host, "api.sunrise-sunset.org") == 0) {
+    snprintf(req, sizeof(req), "GET /%s HTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n\r\n", request.path, request.host);
+  } else {
+    snprintf(req, sizeof(req), "GET /%s\r\nHTTP/1.1\r\nHost:%s\r\nAccept:application/json\r\n", request.path, request.host);
+  }
+
   printf("\n%s\n", req);
   if (write(sockfd, req, sizeof(req)) < 0) {
     return -1;
