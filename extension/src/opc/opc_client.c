@@ -190,15 +190,48 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel
       opc_send(sink, (uint8_t*) pixels, len, OPC_SEND_TIMEOUT_MS);
 }
 
+int get_channel_size(int channel, const char *channel_file) {
+  FILE *file = fopen(channel_file, "r");
+  if (file == NULL) {
+    perror("File could not be opened");
+    exit(EXIT_FAILURE);
+  }
+
+  size_t line_size = 100 * sizeof(char); //shouldn't be larger than this, should calculate and move to global constant
+  char *buffer = malloc(line_size);
+  int line = 0;
+  while (fgets(buffer, (int) line_size, file) != NULL) {
+    if (line == channel) {
+      return atoi(buffer);
+    }
+  }
+
+  if (ferror(file)) {
+    perror("Failed to read from file");
+    exit(EXIT_FAILURE);
+  }
+
+  if (fclose(file)) {
+    perror("File could not be closed");
+    exit(EXIT_FAILURE);
+  }
+
+  perror("No pixel found at grid coordinate given");
+  exit(EXIT_FAILURE);
+}
+
+
 // TODO: Read from a read only array mapping channels to their lengths
 uint16_t get_channel_length(int channel) {
-  return 0;
+  return get_channel_size(channel, "../layout/channel_lengths.txt");
 }
 
 // Function to display a pixel list on the LEDs
 uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t **pixel_lists) {
   // Loop through each channel, writing their LEDs to the board
   for (uint8_t channel = 0; channel < NUM_STRIPS; channel++) {
-    opc_put_pixels(sink, (uint8_t) (channel + 1), get_channel_length(channel), pixel_lists[channel]);
+    _status = opc_put_pixels(sink, (uint8_t) (channel + 1), get_channel_length(channel), pixel_lists[channel]);
   }
+
+  return
 }
