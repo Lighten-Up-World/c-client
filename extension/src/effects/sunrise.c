@@ -173,7 +173,8 @@ effect_t *get_sun_effect(void *obj) {
   effect->get_pixel = &sun_get_pixel;
   effect->time_delta = (struct timespec) {1, 0};
   effect->run = &sunrise_run;
-  FILE *sun_file = fopen(SUN_FILE, "a");
+  effect->remove = &free_file;
+  FILE *sun_file = fopen(SUN_FILE, "ra");
   if (sun_file == NULL) {
     perror("sun_file");
     exit(EXIT_FAILURE);
@@ -194,6 +195,7 @@ effect_t *get_sun_effect(void *obj) {
       load_sun_data(pixel_info, sun_file, current);
     }
   }
+  fseek(sun_file, 0, SEEK_SET);
   struct tm *curr = malloc(sizeof(curr));
   curr->tm_sec = 0;
   curr->tm_min = 0;
