@@ -190,3 +190,23 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel
   return opc_send(sink, header, 4, OPC_SEND_TIMEOUT_MS) &&
       opc_send(sink, (uint8_t*) pixels, len, OPC_SEND_TIMEOUT_MS);
 }
+
+uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_info){
+  opc_pixel_t **channel_pixels = malloc(NUM_STRIPS * sizeof(opc_pixel_t *));
+  *channel_pixels = malloc(MAX_STRIP_SIZE * NUM_STRIPS * sizeof(opc_pixel_t));
+  for(int i = 1; i < NUM_STRIPS; i++){
+    channel_pixels[i] = *channel_pixels + MAX_STRIP_SIZE;
+  }
+
+  int pos = 0;
+  for (list_elem_t *curr = pixel_info->head; curr != NULL; curr = curr->next) {
+    pixel_info_t *pi = curr->value;
+    channel_pixels[pi->strip.channel][pi->strip.num] = pixels[pos];
+    printf("Mapping pixel %d to %d:%d\n", pos, pi->strip.channel, pi->strip.num);
+    pos++;
+  }
+  for (int i = 0; i < NUM_STRIPS; i++) {
+    opc_put_pixels(sink, i+1, MAX_STRIP_SIZE, channel_pixels[i]);
+  }
+  return 0;
+}

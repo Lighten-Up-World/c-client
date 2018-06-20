@@ -98,6 +98,7 @@ int init_geo(list_t* list){
       else {
         pi->geo = (geolocation_t){.latitude = atof(rowFields[0]), .longitude =atof(rowFields[1])};
       }
+      //free(rowFields);
       csv_parser_destroy_row(row);
   }
   csv_parser_destroy(coords_to_pos_parser);
@@ -119,6 +120,7 @@ int init_strip(list_t* list){
       else {
         pi->strip = (strip_t){.channel = atoi(rowFields[0]), .num = atoi(rowFields[1])};
       }
+      //free(rowFields);
       csv_parser_destroy_row(row);
   }
   csv_parser_destroy(parser);
