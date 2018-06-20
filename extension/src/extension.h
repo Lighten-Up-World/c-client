@@ -11,6 +11,8 @@
 #define GRID_WIDTH 53
 #define GRID_HEIGHT 24
 #define NUM_PIXELS 471
+#define MAX_STRIP_SIZE 64
+#define NUM_STRIPS 8
 
 #define PIXEL_COLOUR_MAX 255
 #define PIXEL_COLOUR_MIN 0

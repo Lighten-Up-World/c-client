@@ -61,6 +61,7 @@ opc_sink opc_new_sink(char* hostport);
 /* to connect the sink if needed; if the connection could not be opened, the */
 /* the data is not sent.  Returns 1 if the data was sent, 0 otherwise. */
 uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel_t* pixels);
+uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_info);
 
 void opc_close(opc_sink sink);
 

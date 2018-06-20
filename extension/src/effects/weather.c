@@ -10,7 +10,7 @@ int weather_run(effect_runner_t *self){
   int i = self->frame_no % NUM_PIXELS;
   nanosleep(&self->effect->time_delta, NULL);
   self->effect->get_pixel(self, i);
-  if(!opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels)) {
+  if(opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info)) {
     return 1;
   }
   return 0;
