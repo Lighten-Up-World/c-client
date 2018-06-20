@@ -4,7 +4,7 @@
 #include "weather.h"
 
 #define API_DELAY 5000
-#define TIMELAPSE_DELAY 100
+#define TIMELAPSE_DELAY 0.05
 
 int weather_run(effect_runner_t *self){
   int i = self->frame_no % NUM_PIXELS;
@@ -16,8 +16,28 @@ int weather_run(effect_runner_t *self){
   return 0;
 }
 
+int weather_timelapse_run(effect_runner_t *self){
+  int i = self->frame_no;
+  if (i >= NUM_PIXELS){
+    i = 0;
+    self->frame_no = 0;
+    if(!opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels)) {
+      return 1;
+    }
+  }
+  nanosleep(&self->effect->time_delta, NULL);
+  self->effect->get_pixel(self, i);
+  return 0;
+}
+
+
 int weather_log_run(effect_runner_t *self){
-  int i = self->frame_no % NUM_PIXELS;
+  int i = self->frame_no;
+  if (i >= NUM_PIXELS){
+    i = 0;
+    self->frame_no = 0;
+    sleep(1800);
+  }
   nanosleep(&self->effect->time_delta, NULL);
   self->effect->get_pixel(self, i);
   return 0;
@@ -51,7 +71,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
   size_t buf_size = 600;
   char buf[buf_size];
-  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, buf, buf_size) < 0){
+  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, buf, buf_size) < 0){
     return -1;
   }
 
@@ -147,7 +167,8 @@ effect_t *get_temp_effect(void * obj){
   effect->get_pixel = &temp_get_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_run;
-  FILE *temp_file = fopen(TEMP_TIMELAPSE2_FILE, "a");
+  effect->remove = &free_effect;
+  FILE *temp_file = fopen(TEMP_TIMELAPSE_WRITE_FILE, "a");
   if (temp_file == NULL){
     perror("temp_file2");
     exit(EXIT_FAILURE);
@@ -183,7 +204,8 @@ effect_t *get_temp_log_effect(void *obj){
   effect->get_pixel = &temp_log_pixel;
   effect->time_delta = (struct timespec){0, API_DELAY * MILLI_TO_NANO};
   effect->run = &weather_log_run;
-  FILE *temp_file = fopen(TEMP_TIMELAPSE2_FILE, "a");
+  effect->remove = &free_file;
+  FILE *temp_file = fopen(TEMP_TIMELAPSE_WRITE_FILE, "a");
   if (temp_file == NULL){
     perror("temp_file2");
     exit(EXIT_FAILURE);
@@ -217,11 +239,11 @@ effect_t *get_temp_timelapse_effect(void *obj){
     return NULL;
   }
   effect->get_pixel = &temp_timelapse_get_pixel;
-  effect->time_delta = (struct timespec){0, TIMELAPSE_DELAY * MILLI_TO_NANO};
-  effect->run = &weather_run;
+  effect->time_delta = (struct timespec){0, TIMELAPSE_DELAY};
+  effect->run = &weather_timelapse_run;
   effect->remove = &free_file;
   effect->get_frame = NULL;
-  FILE *temp_file = fopen(TEMP_TIMELAPSE_FILE, "r");
+  FILE *temp_file = fopen(TEMP_TIMELAPSE_READ_FILE, "r");
   if (temp_file == NULL){
     perror("temp_file");
     exit(EXIT_FAILURE);
