@@ -29,14 +29,22 @@ static int strip_size[] = {
 };
 
 static int channel_map[] = {
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+  // 3,
+  // 1,
+  // 5,
+  // 4,
+  // 0,
+  // 2,
+  // 7,
+  // 6
 };
 
 int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
