@@ -68,10 +68,10 @@ int scroller_run(effect_runner_t *self) {  //
   scroller_storage_t *storage = self->effect->obj;
 
   // Update the opc_pixel_t list
-  read_grid_to_list(self->frame->pixels, storage->pixel_grid, self->pixel_info);
+  //read_grid_to_list(self->frame->pixels, storage->pixel_grid, self->pixel_info);
 
   // Write the pixels to the display
-  opc_put_pixel_list(self->sink, pixel_list);
+  opc_put_pixel_list(self->sink, self->channel_pixels);
 
   // Scroll along 1
   shift_columns(storage->pixel_grid, storage->buff);

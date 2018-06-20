@@ -8,13 +8,13 @@
  * @param rate: the delay between each frame of scrolling, in microseconds
  */
 int image_run(effect_runner_t* self) {  //
-  opc_pixel_t **pixel_grid = self->effect->obj;
+  //opc_pixel_t **pixel_grid = self->effect->obj;
 
   // Update the opc_pixel_t list
-  read_grid_to_list(self->frame->pixels, pixel_grid, self->pixel_info);
+  //TODO: read_grid_to_list(self->channel_pixels, pixel_grid, self->pixel_info);
 
   // Write the pixels to the display
-  opc_put_pixels(self->sink, get_channel_num(), NUM_PIXELS, self->frame->pixels);
+  opc_put_pixel_list(self->sink, self->channel_pixels);
   nanosleep(&self->effect->time_delta, NULL);
 
   return 0;

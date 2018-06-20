@@ -9,7 +9,7 @@ int sunrise_run(effect_runner_t *self){
   int i = self->frame_no % NUM_PIXELS;
   nanosleep(&self->effect->time_delta, NULL);
   self->effect->get_pixel(self, i);
-  if(!opc_put_pixels(self->sink, get_channel_num(), NUM_PIXELS, self->frame->pixels)) {
+  if(!opc_put_pixel_list(self->sink, self->channel_pixels)) {
     return 1;
   }
   increment_current_time(self->effect);
