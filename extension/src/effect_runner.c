@@ -71,7 +71,7 @@ int init_grid(list_t* list){
       if((pi = list_get(list, pos)) == NULL){
         pi = malloc(sizeof(pixel_info_t));
         *pi = (pixel_info_t){{.x = atoi(rowFields[0]), .y =atoi(rowFields[1])},
-                {-1, -1}};
+                .geo={-1, -1}, .strip={-1, -1}};
         list_add(list, pi); //TODO: NEEDS TO ADD IN CORRECT POS
       }
       else {
@@ -92,10 +92,8 @@ int init_geo(list_t* list){
       int pos = atoi(rowFields[2]);
       pixel_info_t *pi;
       if((pi = list_get(list, pos)) == NULL){
-        pi = malloc(sizeof(pixel_info_t));
-        *pi = (pixel_info_t){{-1, -1},
-                {.latitude = atof(rowFields[0]), .longitude =atof(rowFields[1])}};
-        list_add(list, pi); //TODO: NEEDS TO ADD IN CORRECT POS
+        perror("Pixel Info list should already by populated by init_grid");
+        return 1;
       }
       else {
         pi->geo = (geolocation_t){.latitude = atof(rowFields[0]), .longitude =atof(rowFields[1])};
@@ -103,6 +101,27 @@ int init_geo(list_t* list){
       csv_parser_destroy_row(row);
   }
   csv_parser_destroy(coords_to_pos_parser);
+  return 0;
+}
+
+int init_strip(list_t* list){
+  csv_parser_t *parser = csv_parser_new(STRIP_FILE, " ");
+  csv_row_t *row;
+  while ((row = csv_parser_getRow(parser)) ) {
+      char **rowFields = csv_parser_getFields(row);
+
+      int pos = atoi(rowFields[2]);
+      pixel_info_t *pi;
+      if((pi = list_get(list, pos)) == NULL){
+        perror("Pixel Info list should already by populated by init_grid");
+        return 1;
+      }
+      else {
+        pi->strip = (strip_t){.channel = atoi(rowFields[0]), .num = atoi(rowFields[1])};
+      }
+      csv_parser_destroy_row(row);
+  }
+  csv_parser_destroy(parser);
   return 0;
 }
 
@@ -128,6 +147,7 @@ int main(int argc, const char * argv[]) {
   }
   init_grid(pixel_info);
   init_geo(pixel_info);
+  init_strip(pixel_info);
 
   // Find effect from argument
   effect_t *effect = NULL;

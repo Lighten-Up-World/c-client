@@ -66,8 +66,14 @@ typedef struct geolocation {
 } geolocation_t;
 
 typedef struct {
+  int channel;
+  int num;
+} strip_t;
+
+typedef struct {
   grid_t grid;
   geolocation_t geo;
+  strip_t strip;
 } pixel_info_t;
 
 #endif //ARM11_22_EXTENSION_H
