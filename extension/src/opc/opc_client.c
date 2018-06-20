@@ -17,7 +17,6 @@ specific language governing permissions and limitations under the License.
 static opc_sink_info opc_sinks[OPC_MAX_SINKS];
 static opc_sink opc_next_sink = 0;
 
-uint16_t get_channel_length(opc_pixel_t *ptr);
 int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   struct addrinfo* addr;
   struct addrinfo* ai;
@@ -191,35 +190,15 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel
       opc_send(sink, (uint8_t*) pixels, len, OPC_SEND_TIMEOUT_MS);
 }
 
+// TODO: Read from a read only array mapping channels to their lengths
+uint16_t get_channel_length(int channel) {
+  return 0;
+}
+
 // Function to display a pixel list on the LEDs
 uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t **pixel_lists) {
-  // Loop thorugh each channel, writing their LEDs to the board
-  for (uint8_t channel = 1; channel <= 8; channel++) {
-    opc_put_pixels(sink, channel, get_channel_length(pixel_lists[channel]), pixel_lists[channel]);
+  // Loop through each channel, writing their LEDs to the board
+  for (uint8_t channel = 0; channel < NUM_STRIPS; channel++) {
+    opc_put_pixels(sink, (uint8_t) (channel + 1), get_channel_length(channel), pixel_lists[channel]);
   }
 }
-
-// TODO: Read from a read only array mapping channels to their lengths
-uint16_t get_channel_length(opc_pixel_t *ptr) {
-  return 0;
-}
-
-/*uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_info){
-  opc_pixel_t **channel_pixels = malloc(NUM_STRIPS * sizeof(opc_pixel_t *));
-  *channel_pixels = malloc(MAX_STRIP_SIZE * NUM_STRIPS * sizeof(opc_pixel_t));
-  for(int i = 1; i < NUM_STRIPS; i++){
-    channel_pixels[i] = *channel_pixels + MAX_STRIP_SIZE;
-  }
-
-  int pos = 0;
-  for (list_elem_t *curr = pixel_info->head; curr != NULL; curr = curr->next) {
-    pixel_info_t *pi = curr->value;
-    channel_pixels[pi->strip.channel][pi->strip.num] = pixels[pos];
-    printf("Mapping pixel %d to %d:%d\n", pos, pi->strip.channel, pi->strip.num);
-    pos++;
-  }
-  for (int i = 0; i < NUM_STRIPS; i++) {
-    opc_put_pixels(sink, i+1, MAX_STRIP_SIZE, channel_pixels[i]);
-  }
-  return 0;
-}*/

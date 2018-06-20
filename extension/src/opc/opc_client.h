@@ -63,8 +63,7 @@ opc_sink opc_new_sink(char* hostport);
 uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel_t* pixels);
 
 // Puts an entire map to the board, channel by channel
-//uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_info);
-uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t **pixel_list);
+uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t **channel_pixels);
 
 void opc_close(opc_sink sink);
 
