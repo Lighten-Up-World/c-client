@@ -51,7 +51,7 @@ void increment_current_time(effect_t *eff){
 
 
 int sun_get_pixel(effect_runner_t *self, int pos){
-  /*
+
   sun_state_t *state = self->effect->obj;
   size_t buf_size = 40;
   char buf[buf_size];
@@ -64,8 +64,7 @@ int sun_get_pixel(effect_runner_t *self, int pos){
   sunrise.tm_hour = atoi(strtok(buf, ":"));
   sunrise.tm_min = atoi(strtok(NULL, ":"));
   sunrise.tm_sec = atoi(strtok(NULL, " "));
-
-  sunset.tm_hour = atoi(strtok(buf, ":"));
+  sunset.tm_hour = atoi(strtok(NULL, ":"));
   sunset.tm_min = atoi(strtok(NULL, ":"));
   sunset.tm_sec = atoi(strtok(NULL, " "));
 
@@ -73,24 +72,45 @@ int sun_get_pixel(effect_runner_t *self, int pos){
     return -1;
   }
 
-  uint8_t r,g,b;
+  uint8_t set = PIXEL_COLOUR_MIN;
 
-  double seconds_to_solar_noon = get_time_difference(sunset, sunrise) / 2.0;
-  printf("daylight seconds: %f", daylight);
 
-  double fromsunrise = get_time_difference(state->current_time, sunrise);
-  if (fromsunrise < 0){
-    r = 0;
-    g = 0;
-    b = 0;
+  double daylight = get_time_difference(&sunset, &sunrise);
+  if (daylight == 0){
+    set = PIXEL_COLOUR_MAX;
+  }else if (daylight > 0){
+    //Then sunrise occurs before sunset
+    double before_sunrise = get_time_difference(&sunrise, state->current_time);
+    if (before_sunrise < 0){
+      //Current is after sunrise
+      double before_sunset = get_time_difference(&sunset, state->current_time);
+      if (before_sunset > 0) {
+        //Current is before sunset
+        set = (uint8_t) (before_sunset / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
+      }
+    }
+  }else{
+    //Then sunset occurs before sunrise
+    double before_sunset = get_time_difference(&sunset, state->current_time);
+    if (before_sunset > 0){
+      //Current is before sunset
+      daylight += (3600 * 24);
+      set = (uint8_t) (before_sunset / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
+    }else{
+      double before_sunrise = get_time_difference(&sunrise, state->current_time);
+      if (before_sunrise < 0){
+        //Current is after sunrise
+        set = (uint8_t) (-before_sunrise / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
+      }
+    }
   }
 
   opc_pixel_t *px = self->frame->pixels+pos;
-  px->r = r;
-  px->b = b;
-  px->g = g;
+  px->r = set;
+  px->b = set;
+  px->g = set;
 
-   */
+
   return 0;
 }
 
