@@ -17,6 +17,16 @@ specific language governing permissions and limitations under the License.
 static opc_sink_info opc_sinks[OPC_MAX_SINKS];
 static opc_sink opc_next_sink = 0;
 
+static int strip_size[] = {
+  60,
+  63,
+  44,
+  60,
+  64,
+  52,
+  64,
+  64
+};
 
 int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   struct addrinfo* addr;
@@ -192,21 +202,22 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel
 }
 
 uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_info){
-  opc_pixel_t **channel_pixels = malloc(NUM_STRIPS * sizeof(opc_pixel_t *));
-  *channel_pixels = malloc(MAX_STRIP_SIZE * NUM_STRIPS * sizeof(opc_pixel_t));
-  for(int i = 1; i < NUM_STRIPS; i++){
-    channel_pixels[i] = *channel_pixels + MAX_STRIP_SIZE;
-  }
+  opc_pixel_t **channel_pixels = grid_new(NUM_STRIPS, MAX_STRIP_SIZE);
 
   int pos = 0;
   for (list_elem_t *curr = pixel_info->head; curr != NULL; curr = curr->next) {
     pixel_info_t *pi = curr->value;
+    //printf("%d - (x: %d, y: %d, c: %d, n: %d)\n", pos, pi->grid.x, pi->grid.y, pi->strip.channel, pi->strip.num);
     channel_pixels[pi->strip.channel][pi->strip.num] = pixels[pos];
-    printf("Mapping pixel %d to %d:%d\n", pos, pi->strip.channel, pi->strip.num);
+    if(channel_pixels[pi->strip.channel][pi->strip.num].r == 0xff){
+      printf("(%d, %d)\n", pi->grid.x, pi->grid.y);
+      printf("Mapping pixel %d to %d:%d\n", pos, pi->strip.channel, pi->strip.num);
+    }
     pos++;
   }
+
   for (int i = 0; i < NUM_STRIPS; i++) {
-    opc_put_pixels(sink, i+1, MAX_STRIP_SIZE, channel_pixels[i]);
+    opc_put_pixels(sink, i+1, strip_size[i], channel_pixels[i]);
   }
   return 0;
 }

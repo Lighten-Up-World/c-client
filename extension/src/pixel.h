@@ -1,6 +1,8 @@
 #ifndef PIXEL_H
 #define PIXEL_H
 
+#include <stdio.h>
+
 #include "utils/list.h"
 #include "extension.h"
 

@@ -8,20 +8,25 @@
  * @param rate: the delay between each frame of scrolling, in microseconds
  */
 int test_run(effect_runner_t* self) {  //
-  opc_pixel_t **grid = self->effect->obj;
+  // opc_pixel_t **grid = self->effect->obj;
   // Assign interrupt handler to close connection and cleanup after early exit
-  // Update the opc_pixel_t list
-  read_grid_to_list(self->frame->pixels, self->effect->obj, self->pixel_info);
-
-  // Write the pixels to the display
-  opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
   // opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
   nanosleep(&self->effect->time_delta, NULL);
-  int x = self->frame_no % GRID_WIDTH;
-  int y = (self->frame_no / GRID_WIDTH) % GRID_HEIGHT;
-  int on = ((self->frame_no / (GRID_WIDTH * GRID_HEIGHT)) + 1) % 2;
-  printf("Turning %d (%d,%d)\n", on, x, y);
-  grid[x][y] = on ? WHITE_PIXEL : BLACK_PIXEL;
+
+  for(int i = 0; i < NUM_PIXELS; i++){
+    self->frame->pixels[i] = (opc_pixel_t){100, 100, 100};
+  }
+  //
+  // int x = self->frame_no % GRID_WIDTH;
+  // int y = (self->frame_no / GRID_WIDTH) % GRID_HEIGHT;
+  // printf("Turning on (%d,%d)\n", x, y);
+  // grid[x][y] = WHITE_PIXEL;
+  //
+  // // Update the opc_pixel_t list
+  // read_grid_to_list(self->frame->pixels, grid, self->pixel_info);
+  self->frame->pixels[self->frame_no] = WHITE_PIXEL;
+  // Write the pixels to the display
+  opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info);
 
   return 0;
 }
@@ -36,7 +41,7 @@ void free_test_effect(effect_t *self){
 
 effect_t *get_test_effect(void * obj){
   effect_t *effect = malloc(sizeof(effect_t));
-  effect->time_delta = (struct timespec){0, 50 * MILLI_TO_NANO};
+  effect->time_delta = (struct timespec){0, 1000 * MILLI_TO_NANO};
   effect->run = &test_run;
   effect->remove = &free_test_effect;
 

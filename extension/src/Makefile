@@ -45,7 +45,7 @@ lavalamp: mkdir
 
 server: layout
 	cd $(PATHROOT)$(PATHOPC); make
-	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap1.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap2.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap3.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap4.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap5.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap6.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap7.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap8.json&
+	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap1.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap2.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap3.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap4.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap5.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap6.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap7.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap8.json
 
 glserver: layout
 	cd $(PATHROOT)$(PATHOPC); make
