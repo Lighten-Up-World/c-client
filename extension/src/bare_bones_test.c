@@ -14,7 +14,7 @@ int main() {
 
   opc_pixel_t *pixels = calloc(NUM_PIXELS, sizeof(opc_pixel_t));
   for (int i = 0; i < NUM_PIXELS; i++) {
-    pixels[i] = (opc_pixel_t) {50, 50, 50};
+    pixels[i] = BLACK_PIXEL;
   }
 
   struct timespec ts;
