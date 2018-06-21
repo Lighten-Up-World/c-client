@@ -215,11 +215,9 @@ uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_inf
   int offset = 0;
   int x;
   for (uint8_t channel = 0; channel < NUM_STRIPS; channel++) {
-    printf("channel: %d, strip size: %d\n", channel, strip_size[channel]);
     for (int s = 0; s < strip_size[channel]; s++) {
       x = s + offset;
       pixel_list_organised[x] = channel_pixels[channel][s];
-      printf("pixel offset: %d\n", x);
     }
     offset += strip_size[channel];
   }
