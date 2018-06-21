@@ -54,8 +54,14 @@ glserver: layout
 layout:
 	python layout/csv_to_layout.py
 
+run_bones: mkdir $(PATHB)bare_bones_test.out
+	./build/bare_bones_test.out
+
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
+
+$(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o 
+	$(LINK) -o $@ $^ -lm
 
 $(PATHB)effect_runner.out: $(ROOT_O) $(UTIL_O) $(EFFECT_O) $(PATHOBJ)opc_client.o $(PATHOBJ)parson.o
 	$(LINK) -o $@ $^ -lm
