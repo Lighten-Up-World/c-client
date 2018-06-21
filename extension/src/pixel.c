@@ -33,6 +33,11 @@ opc_pixel_t **grid_new(int cols, int rows) {
   for (uint8_t i = 1; i < cols; i++) {
     matrix[i] = matrix[0] + i * rows;
   }
+  // for(int x = 0; x < rows; x++){
+  //   for(int y = 0; y < cols; y++){
+  //     printf("%d %d - %p\n", x, y, (void *)&matrix[x][y]);
+  //   }
+  // }
   return matrix;
 }
 
@@ -52,7 +57,7 @@ typedef struct {
 } search_pair_t;
 
 void get_channel_enum(void *value, void *obj){
-  
+
 }
 
 void get_pos_enum(void *value, void *obj) {
@@ -60,13 +65,12 @@ void get_pos_enum(void *value, void *obj) {
   search_pair_t *sp = obj;
   if (pi->grid.x == sp->key.grid.x && pi->grid.y == sp->key.grid.y) {
     sp->ret = sp->cnt;
-  } else {
-    sp->cnt++;
   }
+  sp->cnt++;
 }
 
-int get_pos(int x, int y, list_t *pixel_info) {
-  search_pair_t sp = {-1, 0, {{x, y}, {-1, -1}}};
+int get_pos(int x, int y, list_t *pixel_info){
+  search_pair_t sp = {.ret=-1, .cnt=0, .key={.grid={x, y},.geo={-1, -1}, .strip={-1, -1}}};
   list_enum(pixel_info, &get_pos_enum, &sp);
   return sp.ret;
 }

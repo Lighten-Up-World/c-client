@@ -17,6 +17,17 @@ specific language governing permissions and limitations under the License.
 static opc_sink_info opc_sinks[OPC_MAX_SINKS];
 static opc_sink opc_next_sink = 0;
 
+static int strip_size[] = {
+  64,
+  60,
+  52,
+  64,
+  63,
+  44,
+  60,
+  64
+};
+
 int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   struct addrinfo* addr;
   struct addrinfo* ai;
@@ -190,48 +201,31 @@ uint8_t opc_put_pixels(opc_sink sink, uint8_t channel, uint16_t count, opc_pixel
       opc_send(sink, (uint8_t*) pixels, len, OPC_SEND_TIMEOUT_MS);
 }
 
-int get_channel_size(int channel, const char *channel_file) {
-  FILE *file = fopen(channel_file, "r");
-  if (file == NULL) {
-    perror("File could not be opened");
-    exit(EXIT_FAILURE);
+uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_info){
+  opc_pixel_t **channel_pixels = grid_new(NUM_STRIPS, MAX_STRIP_SIZE);
+
+  int pos = 0;
+  for (list_elem_t *curr = pixel_info->head; curr != NULL; curr = curr->next) {
+    pixel_info_t *pi = curr->value;
+    channel_pixels[pi->strip.channel][pi->strip.num] = pixels[pos];
+    pos++;
   }
 
-  size_t line_size = 100 * sizeof(char); //shouldn't be larger than this, should calculate and move to global constant
-  char *buffer = malloc(line_size);
-  int line = 0;
-  while (fgets(buffer, (int) line_size, file) != NULL) {
-    if (line == channel) {
-      return atoi(buffer);
-    }
-  }
-
-  if (ferror(file)) {
-    perror("Failed to read from file");
-    exit(EXIT_FAILURE);
-  }
-
-  if (fclose(file)) {
-    perror("File could not be closed");
-    exit(EXIT_FAILURE);
-  }
-
-  perror("No pixel found at grid coordinate given");
-  exit(EXIT_FAILURE);
-}
-
-
-// TODO: Read from a read only array mapping channels to their lengths
-uint16_t get_channel_length(int channel) {
-  return get_channel_size(channel, "../layout/channel_lengths.txt");
-}
-
-// Function to display a pixel list on the LEDs
-uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t **pixel_lists) {
-  // Loop through each channel, writing their LEDs to the board
+  opc_pixel_t *pixel_list_organised = (opc_pixel_t *) calloc(sizeof(opc_pixel_t) * 471, sizeof(opc_pixel_t));
+  int offset = 0;
+  int x;
   for (uint8_t channel = 0; channel < NUM_STRIPS; channel++) {
-    _status = opc_put_pixels(sink, (uint8_t) (channel + 1), get_channel_length(channel), pixel_lists[channel]);
+    printf("channel: %d, strip size: %d\n", channel, strip_size[channel]);
+    for (int s = 0; s < strip_size[channel]; s++) {
+      x = s + offset;
+      pixel_list_organised[x] = channel_pixels[channel][s];
+      printf("pixel offset: %d\n", x);
+    }
+    offset += strip_size[channel];
   }
 
-  return
+
+  opc_put_pixels(sink, 0, NUM_PIXELS, pixel_list_organised);
+
+  return 0;
 }

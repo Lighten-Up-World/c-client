@@ -17,6 +17,8 @@
 #include <stdint.h>
 #include "../extension.h"
 
+#include "../pixel.h"
+
 #define OPC_DEFAULT_PORT 7890
 
 /* OPC broadcast channel */

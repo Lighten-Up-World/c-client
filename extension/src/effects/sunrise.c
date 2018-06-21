@@ -2,17 +2,29 @@
 
 // NOTE: All times requested by sunrise api are in UTC
 
+void free_sunrise(effect_t *self){
+  sun_state_t *state = self->obj;
+  free(state->current_time);
+  fclose(state->sun_file);
+  free_effect(self);
+}
+
 void increment_current_time(effect_t *eff);
 
 int sunrise_run(effect_runner_t *self){
-
-  int i = self->frame_no % NUM_PIXELS;
-  nanosleep(&self->effect->time_delta, NULL);
-  self->effect->get_pixel(self, i);
-  if(!opc_put_pixel_list(self->sink, self->channel_pixels)) {
-    return 1;
+  int i = self->frame_no;
+  if (i >= NUM_PIXELS){
+    i = 0;
+    self->frame_no = 0;
+    self->effect->get_pixel(self, i);
+    increment_current_time(self->effect);
+    if(!opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info)) {
+      return 1;
+    }
+  }else{
+    self->effect->get_pixel(self, i);
   }
-  increment_current_time(self->effect);
+  nanosleep(&self->effect->time_delta, NULL);
   return 0;
 }
 
@@ -22,6 +34,10 @@ int parse_time_string(char *time_chars, struct tm *time){
   time->tm_hour = atoi(strtok(time_chars, ":"));
   time->tm_min = atoi(strtok(NULL, ":"));
   time->tm_sec = atoi(strtok(NULL, " "));
+
+  if (strncmp(strtok(NULL, " "), "PM", 2) == 0){
+    time->tm_hour += 12;
+  }
   return 0;
 }
 
@@ -35,16 +51,12 @@ double get_time_difference(struct tm *first, struct tm *second){
 
 void increment_current_time(effect_t *eff){
   sun_state_t *state = eff->obj;
-  state->current_time->tm_sec += 10;
-  if (state->current_time->tm_sec == 60){
-    state->current_time->tm_sec = 0;
-    state->current_time->tm_min += 1;
-    if (state->current_time->tm_min == 60){
-      state->current_time->tm_min = 0;
-      state->current_time->tm_hour += 1;
-      if (state->current_time->tm_hour == 24){
-        state->current_time->tm_hour = 0;
-      }
+  state->current_time->tm_min += 10;
+  if (state->current_time->tm_min == 60){
+    state->current_time->tm_min = 0;
+    state->current_time->tm_hour += 1;
+    if (state->current_time->tm_hour == 24){
+      state->current_time->tm_hour = 0;
     }
   }
 }
@@ -58,17 +70,19 @@ int sun_get_pixel(effect_runner_t *self, int pos){
   struct tm sunrise;
   struct tm sunset;
   if(fgets(buf, buf_size, state->sun_file) == NULL){
-    return -1;
+    fseek(state->sun_file, 0, SEEK_SET);
+    fgets(buf, buf_size, state->sun_file);
   }
+  printf("%s \n", buf);
   int loc = atoi(strtok(buf, " "));
-  sunrise.tm_hour = atoi(strtok(buf, ":"));
+  sunrise.tm_hour = atoi(strtok(NULL, ":"));
   sunrise.tm_min = atoi(strtok(NULL, ":"));
   sunrise.tm_sec = atoi(strtok(NULL, " "));
   sunset.tm_hour = atoi(strtok(NULL, ":"));
   sunset.tm_min = atoi(strtok(NULL, ":"));
   sunset.tm_sec = atoi(strtok(NULL, " "));
 
-  if (loc == pos){
+  if (loc != pos){
     return -1;
   }
 
@@ -105,6 +119,8 @@ int sun_get_pixel(effect_runner_t *self, int pos){
     }
   }
 
+  printf("set: %d\n", set);
+
   opc_pixel_t *px = self->frame->pixels+pos;
   px->r = set;
   px->b = set;
@@ -114,10 +130,14 @@ int sun_get_pixel(effect_runner_t *self, int pos){
   return 0;
 }
 
-int load_sun_data(list_t *pixel_info, FILE *sun_file, struct tm *current){
-  assert(sun_file != NULL);
+int load_sun_data(list_t *pixel_info){
 
-  fprintf(sun_file, "%d %d", current->tm_mon, current->tm_year);
+  FILE *sun_file = fopen(SUN_FILE, "a");
+  if (sun_file == NULL) {
+    perror("sun_file");
+    exit(EXIT_FAILURE);
+  }
+
   for (int i = 0; i < NUM_PIXELS; ++i) {
 
     int sockfd = socket_connect(SUNRISE_HOST, 80);
@@ -136,42 +156,51 @@ int load_sun_data(list_t *pixel_info, FILE *sun_file, struct tm *current){
       return -1;
     }
 
+    int json_start = 0;
+
+    while (json_start < buf_size && buff[json_start] != '{'){
+      json_start++;
+    }
+
+    char json_buff[buf_size - json_start];
+    strncpy(json_buff, buff + json_start, buf_size - json_start);
+
     struct tm sunrise;
     struct tm sunset;
 
     char time[25];
 
-    if(get_string_from_json(buff, "sunrise", "result", time) < 0){
+    if(get_string_from_json(json_buff, "sunrise", "results", time) < 0){
       return -1;
     }
 
     parse_time_string(time, &sunrise);
 
-    if(get_string_from_json(buff, "sunset", "result",  time) < 0){
+    if(get_string_from_json(json_buff, "sunset", "results",  time) < 0){
       return -1;
     }
 
     parse_time_string(time, &sunset);
-    sunset.tm_hour += 12;
 
-    fprintf(sun_file, "%d %d:%d:%d %d:%d:%d\n", i, sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec);
+    printf("%d\n", fprintf(sun_file, "%d %d:%d:%d %d:%d:%d\n", i, sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec));
 
     socket_close(sockfd);
     sleep(1);
   }
+  fclose(sun_file);
   return 0;
 }
 
 
 effect_t *get_sun_effect(void *obj) {
-  list_t *pixel_info = (list_t *) obj;
+  //list_t *pixel_info = (list_t *) obj;
   effect_t *effect = calloc(1, sizeof(effect_t));
   sun_state_t *state = malloc(sizeof(sun_state_t));
   if (effect == NULL) {
     return NULL;
   }
   effect->get_pixel = &sun_get_pixel;
-  effect->time_delta = (struct timespec) {1, 0};
+  effect->time_delta = (struct timespec) {0, 60000};
   effect->run = &sunrise_run;
   effect->remove = &free_file;
   FILE *sun_file = fopen(SUN_FILE, "ra");
@@ -179,6 +208,7 @@ effect_t *get_sun_effect(void *obj) {
     perror("sun_file");
     exit(EXIT_FAILURE);
   }
+  /*
   size_t buf_size = 20;
   char buf[buf_size];
 
@@ -187,12 +217,12 @@ effect_t *get_sun_effect(void *obj) {
   struct tm *current = localtime(&result);
 
   if (fgets(buf, buf_size, sun_file) == NULL) {
-    load_sun_data(pixel_info, sun_file, current);
+    load_sun_data(pixel_info, current);
   } else {
     int m = atoi(strtok(buf, " "));
     int y = atoi(strtok(NULL, " "));
     if (m != current->tm_mon || y != current->tm_year) {
-      load_sun_data(pixel_info, sun_file, current);
+      load_sun_data(pixel_info, current);
     }
   }
   fseek(sun_file, 0, SEEK_SET);

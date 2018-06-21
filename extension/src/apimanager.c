@@ -34,6 +34,7 @@ int send_get_request(int sockfd, http_request_t request, char *buf, size_t buf_s
     return -1;
   }
   byte_count = read(sockfd, buf, buf_size);
+  printf("%s\n", buf);
   return byte_count;
 }
 
@@ -94,7 +95,6 @@ int get_double_from_json(char *buf, char *name, char *object, double *val) {
     printf("Not a json object \n");
     return -1;
   }
-  printf("name: %s, should be in %s\n", name, object);
   JSON_Object *obj;
   obj = json_object_get_object(json_object(root_value), object);
   *val = json_object_get_number(obj, name);

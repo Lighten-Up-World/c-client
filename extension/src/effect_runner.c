@@ -16,7 +16,8 @@ const string_to_constructor effects[] = {
     {"temp_timelapse", &get_temp_timelapse_effect},
     {"image", &get_image_effect},
     {"sun", &get_sun_effect},
-    {"test", &get_test_effect}
+    {"test", &get_test_effect},
+    {"test0", &get_test0_effect}
 };
 
 void handle_user_exit(int _) {
@@ -115,6 +116,7 @@ int main(int argc, const char *argv[]) {
       exit(EXIT_FAILURE);
     }
   }
+
   // Setup pixel_info
   list_t *pixel_mapping = list_new(&free);
   if (pixel_mapping == NULL) {

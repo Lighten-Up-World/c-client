@@ -21,12 +21,14 @@ int weather_timelapse_run(effect_runner_t *self){
   if (i >= NUM_PIXELS){
     i = 0;
     self->frame_no = 0;
-    if(!opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels)) {
+    self->effect->get_pixel(self, i);
+    if(!opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info)) {
       return 1;
     }
+  }else{
+    self->effect->get_pixel(self, i);
   }
   nanosleep(&self->effect->time_delta, NULL);
-  self->effect->get_pixel(self, i);
   return 0;
 }
 
@@ -36,7 +38,7 @@ int weather_log_run(effect_runner_t *self){
   if (i >= NUM_PIXELS){
     i = 0;
     self->frame_no = 0;
-    sleep(1800);
+    sleep(1200);
   }
   nanosleep(&self->effect->time_delta, NULL);
   self->effect->get_pixel(self, i);
@@ -129,7 +131,7 @@ void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
     blue = PIXEL_COLOUR_MAX;
   }
 
-  printf("r:%d, g:%d, b:%d \n", red, green, blue);
+  // printf("r:%d, g:%d, b:%d \n", red, green, blue);
 
   pixel->b = blue;
   pixel->g = green;
@@ -226,6 +228,7 @@ int temp_timelapse_get_pixel(effect_runner_t *self, int pos){
     int loc = atoi(strtok(buffer, " "));
     double val = atof(strtok(NULL, " "));
     if (loc != pos){
+      printf("LOC: %d, POS: %d", loc, pos);
       return -1;
     }
     set_temp_pixel_colour(self->frame->pixels+pos, val);
