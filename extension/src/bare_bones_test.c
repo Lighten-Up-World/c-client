@@ -15,7 +15,7 @@ int main() {
 
   opc_pixel_t *pixels = calloc(NUM_PIXELS, sizeof(opc_pixel_t));
   for (int i = 0; i < NUM_PIXELS; i++) {
-    pixels[i] = DIM_PIXEL;
+    pixels[i] = (opc_pixel_t) {0, 0, 255};
   }
 
   opc_put_pixels(sink, 0, NUM_PIXELS, pixels);
