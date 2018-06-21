@@ -3,7 +3,7 @@
 //
 #include "weather.h"
 
-#define API_DELAY 50
+#define API_DELAY 5000
 #define TIMELAPSE_DELAY 0.05
 
 int weather_run(effect_runner_t *self){
@@ -21,12 +21,14 @@ int weather_timelapse_run(effect_runner_t *self){
   if (i >= NUM_PIXELS){
     i = 0;
     self->frame_no = 0;
-    if(!opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels)) {
+    self->effect->get_pixel(self, i);
+    if(!opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info)) {
       return 1;
     }
+  }else{
+    self->effect->get_pixel(self, i);
   }
   nanosleep(&self->effect->time_delta, NULL);
-  self->effect->get_pixel(self, i);
   return 0;
 }
 
@@ -36,7 +38,7 @@ int weather_log_run(effect_runner_t *self){
   if (i >= NUM_PIXELS){
     i = 0;
     self->frame_no = 0;
-    sleep(1800);
+    sleep(1200);
   }
   nanosleep(&self->effect->time_delta, NULL);
   self->effect->get_pixel(self, i);
@@ -71,7 +73,7 @@ int weather_get_val_for_xy(opc_pixel_t *pixel, geolocation_t geoloc, char *attr,
   printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
   size_t buf_size = 600;
   char buf[buf_size];
-  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, DANIEL_OWM_API_KEY, buf, buf_size) < 0){
+  if (get_data_for_geolocation(sockfd, &geoloc, WEATHER_HOST, WEATHER_PATH, WILL_OWM_API_KEY, buf, buf_size) < 0){
     return -1;
   }
 
@@ -226,6 +228,7 @@ int temp_timelapse_get_pixel(effect_runner_t *self, int pos){
     int loc = atoi(strtok(buffer, " "));
     double val = atof(strtok(NULL, " "));
     if (loc != pos){
+      printf("LOC: %d, POS: %d", loc, pos);
       return -1;
     }
     set_temp_pixel_colour(self->frame->pixels+pos, val);

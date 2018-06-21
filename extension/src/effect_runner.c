@@ -132,16 +132,14 @@ int main(int argc, const char * argv[]) {
   assert(argc > 1);
 
   signal(SIGINT, handle_user_exit);
-  opc_sink sink = '\0';
+  //opc_sink sink = '\0';
 
-  printf("%s", argv[1]);
-  if(strncmp("temp_log", argv[1], 8) != 0) {
-    // Open connection
-    sink = opc_new_sink(HOST_AND_PORT);
-    if (sink == -1) {
-      exit(EXIT_FAILURE);
-    }
+  // Open connection
+  opc_sink sink = opc_new_sink(HOST_AND_PORT);
+  if (sink == -1) {
+    exit(EXIT_FAILURE);
   }
+
   // Setup pixel_info
   list_t *pixel_info = list_new(&free);
   if(pixel_info == NULL){
