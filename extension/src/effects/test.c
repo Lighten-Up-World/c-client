@@ -11,10 +11,10 @@ int test_run(effect_runner_t* self) {  //
   // opc_pixel_t **grid = self->effect->obj;
   // Assign interrupt handler to close connection and cleanup after early exit
   // opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
-  nanosleep(&self->effect->time_delta, NULL);
+  //nanosleep(&self->effect->time_delta, NULL);
 
   for(int i = 0; i < NUM_PIXELS; i++){
-    self->frame->pixels[i] = (opc_pixel_t){100, 100, 100};
+    self->frame->pixels[i] = (opc_pixel_t){50, 50, 50};
   }
   //
   // int x = self->frame_no % GRID_WIDTH;
