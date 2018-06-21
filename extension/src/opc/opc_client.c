@@ -213,10 +213,12 @@ uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_inf
 
   opc_pixel_t *pixel_list_organised = (opc_pixel_t *) calloc(sizeof(opc_pixel_t) * 471, sizeof(opc_pixel_t));
   int offset = 0;
+  int x;
   for (uint8_t channel = 0; channel < NUM_STRIPS; channel++) {
     for (int s = 0; s < strip_size[channel]; s++) {
-      pixel_list_organised[s + offset] = channel_pixels[channel][s];
-      printf("channel: %d, pixel_num: %d\n", channel, s);
+      x = s + offset;
+      pixel_list_organised[x] = channel_pixels[channel][s];
+      printf("pixel offset: %d\n", x);
     }
     offset += strip_size[channel];
   }
