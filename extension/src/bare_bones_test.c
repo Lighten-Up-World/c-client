@@ -17,6 +17,8 @@ int main() {
     pixels[i] = BLACK_PIXEL;
   }
 
+  opc_put_pixels(sink, 0, NUM_PIXELS, pixels);
+
   struct timespec ts;
   int milli = 100;
   //ts.tv_sec = milli / 1000;
@@ -24,9 +26,8 @@ int main() {
 
   for (int x = 0; x < NUM_PIXELS; x++) {
     pixels[x] = WHITE_PIXEL;
+    opc_put_pixels(sink, 0, NUM_PIXELS, pixels);
     nanosleep(&ts, NULL);
   }
 
-
-  opc_put_pixels(sink, 0, NUM_PIXELS, pixels);
 }
