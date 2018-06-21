@@ -41,7 +41,7 @@ with open('layout/strip_config.txt', 'w') as sf:
 with open('layout/coordinates.txt', 'w') as ci:
     ci.write('\n'.join(mappings))
 with open('layout/WorldMap.json', 'w') as f:
-    f.write('[\n' + ',\n'.join(pixels) + '\n]')
-for i in range(NUM_CHANNELS):
-    with open('layout/WorldMap' + str(i+1) + '.json', 'w') as f:
-        f.write('[\n' + ',\n'.join([p for p in pixel_channels[i] if p != ""]) + '\n]');
+    f.write('[\n')
+    flatten = [item for sublist in pixel_channels for item in sublist if item != ""]
+    f.write(',\n'.join(flatten))
+    f.write('\n]')

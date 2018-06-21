@@ -45,10 +45,6 @@ lavalamp: mkdir
 
 server: layout
 	cd $(PATHROOT)$(PATHOPC); make
-	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap1.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap2.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap3.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap4.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap5.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap6.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap7.json -l $(PATHROOT)$(PATHLAYOUT)WorldMap8.json
-
-glserver: layout
-	cd $(PATHROOT)$(PATHOPC); make
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json
 
 layout:
@@ -60,7 +56,7 @@ run_bones: mkdir $(PATHB)bare_bones_test.out
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
-$(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o 
+$(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)effect_runner.out: $(ROOT_O) $(UTIL_O) $(EFFECT_O) $(PATHOBJ)opc_client.o $(PATHOBJ)parson.o
