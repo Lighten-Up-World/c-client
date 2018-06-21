@@ -18,8 +18,9 @@ int main() {
   }
 
   struct timespec ts;
-  ts.tv_sec = 1 / 1000;
-  ts.tv_nsec = (1 % 1000) * 1000000;
+  int milli = 100;
+  //ts.tv_sec = milli / 1000;
+  ts.tv_nsec = (milli % 1000) * 1000000;
 
   for (int x = 0; x < NUM_PIXELS; x++) {
     pixels[x] = WHITE_PIXEL;
