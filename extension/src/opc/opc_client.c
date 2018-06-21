@@ -28,7 +28,7 @@ static int strip_size[] = {
   64
 };
 
-static int channel_map[] = {
+/*static int channel_map[] = {
   1,
   2,
   3,
@@ -45,7 +45,7 @@ static int channel_map[] = {
   // 2,
   // 7,
   // 6
-};
+};*/
 
 int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   struct addrinfo* addr;
@@ -231,9 +231,22 @@ uint8_t opc_put_pixel_list(opc_sink sink, opc_pixel_t* pixels, list_t *pixel_inf
     pos++;
   }
 
-  for (int i = 0; i < NUM_STRIPS; i++) {
+  /*for (int i = 0; i < NUM_STRIPS; i++) {
     //opc_put_pixels(sink, i+1, strip_size[i], channel_pixels[i]);
     opc_put_pixels(sink, channel_map[i], strip_size[i], channel_pixels[i]);
+  }*/
+
+  opc_pixel_t *pixel_list_organised = (opc_pixel_t *) calloc(sizeof(opc_pixel_t) * 471, sizeof(opc_pixel_t));
+  int offset = 0;
+  for (uint8_t channel = 0; channel < NUM_STRIPS; channel++) {
+
+    for (int s = 0; s < strip_size[channel]; s++) {
+      pixel_list_organised[s + offset] = channel_pixels[channel][s];
+    }
+    offset += strip_size[channel];
   }
+
+  opc_put_pixels(sink, 0, NUM_PIXELS, pixel_list_organised);
+
   return 0;
 }
