@@ -20,7 +20,7 @@ int main() {
   opc_put_pixels(sink, 0, NUM_PIXELS, pixels);
 
   struct timespec ts;
-  int milli = 100;
+  int milli = 1;
   //ts.tv_sec = milli / 1000;
   ts.tv_nsec = milli * 1000000;
 
