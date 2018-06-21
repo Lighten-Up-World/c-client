@@ -3,7 +3,7 @@
 
 #define DIM_PIXEL (opc_pixel_t) {50,50,50}
 
-int main() {
+/*int main() {
   opc_sink sink;
 
   // Open connection
@@ -28,4 +28,4 @@ int main() {
     nanosleep(&ts, NULL);
   }
 
-}
+}*/
