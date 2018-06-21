@@ -39,7 +39,7 @@ void free_test_effect2(effect_t *self){
   free_effect(self);
 }
 
-effect_t *get_test0_effect2(void * obj){
+effect_t *get_test0_effect(void * obj){
   effect_t *effect = malloc(sizeof(effect_t));
   effect->time_delta = (struct timespec){0, 1000 * MILLI_TO_NANO};
   effect->run = &test_run;
