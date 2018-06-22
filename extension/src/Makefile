@@ -53,6 +53,10 @@ layout:
 run_bones: mkdir $(PATHB)bare_bones_test.out
 	./build/bare_bones_test.out
 
+black:
+	python ../../fadecandy/examples/python/solid-black.py
+
+
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
