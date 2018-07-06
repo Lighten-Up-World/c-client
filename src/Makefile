@@ -1,83 +1,100 @@
 .PHONY: clean
-.PHONY: build/
-.PHONY: emulate
-.PHONY: assemble
-.PHONY: compile
+.PHONY: run
+.PHONY: mkdir
+.PHONY: simulation
+.PHONY: server
+.PHONY: layout
+.PHONY: run
+PATHROOT = ../../
+PATHOPC = openpixelcontrol/
+PATHLAYOUT = extension/src/layout/
 
-DEBUG = -DDEBUG
-CFLAGS = -Wall -Werror -pedantic -g -O0 $(DEBUG)
+PATHS = ./
+PATHJSON = parson/
+PATHUTIL = utils/
+PATHEFFECT = effects/
+PATHB = build/
+PATHOBJ = build/objs/
+PATHOPENPC = opc/
 
-RUN = ldr01
-OUT = out
+BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
-BUILD = ./build/
-UTIL = ./utils/
-EMULATE = ./emulate/
-ASSEMBLE = ./assemble/
+ROOT_O = $(patsubst $(PATHS)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHS)*.c))
+UTIL_O = $(patsubst $(PATHUTIL)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHUTIL)*.c))
+EFFECT_O = $(patsubst $(PATHEFFECT)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHEFFECT)*.c))
 
-COMPILE = gcc -c $(CFLAGS) $< -o $@
-all: assemble emulate
+COMPILE = gcc -c
+LINK = gcc
 
-compile: build ./build/assemble.out ./build/emulate.out
+DEBUG = -DDEBUG -g
+CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
 
-debug_ass:
-	make clean; make assemble RUN=$(RUN)
+MODE = temp
 
-assemble: build ./build/assemble.out
-	$(BUILD)assemble.out ../test/test_cases/$(RUN).s $(OUT)
+simulation: mkdir server $(PATHB)effect_runner.out
+	$(PATHB)effect_runner.out $(MODE)
 
-$(BUILD)assemble.out: $(BUILD)assemble.o $(BUILD)io.o $(BUILD)encode.o $(BUILD)parser.o $(BUILD)tokenizer.o $(BUILD)bitops.o $(BUILD)error.o $(BUILD)list.o $(BUILD)symbolmap.o $(BUILD)referencemap.o $(BUILD)register.o
-	gcc $^ -o $@
+conway: mkdir
+	python $(PATHROOT)$(PATHOPC)python/conway.py
 
-$(BUILD)assemble.o: assemble.c assemble.h
-	$(COMPILE)
+raverplaid: mkdir
+	python $(PATHROOT)$(PATHOPC)python/raver_plaid.py
 
-$(BUILD)encode.o: $(ASSEMBLE)encode.c $(ASSEMBLE)encode.h
-	$(COMPILE)
+lavalamp: mkdir
+	python $(PATHROOT)$(PATHOPC)python/lava_lamp.py --layout $(PATHROOT)$(PATHLAYOUT)WorldMap.json
 
-$(BUILD)parser.o: $(ASSEMBLE)parser.c $(ASSEMBLE)parser.h $(ASSEMBLE)tokenizer.c
-	$(COMPILE)
+server: layout
+	cd $(PATHROOT)$(PATHOPC); make
+	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json
 
-$(BUILD)tokenizer.o: $(ASSEMBLE)tokenizer.c $(ASSEMBLE)tokenizer.h
-	$(COMPILE)
+layout:
+	python layout/csv_to_layout.py
 
-$(BUILD)symbolmap.o: $(ASSEMBLE)symbolmap.c $(ASSEMBLE)symbolmap.h
-	$(COMPILE)
+run_bones: mkdir $(PATHB)bare_bones_test.out
+	./build/bare_bones_test.out
 
-$(BUILD)referencemap.o: $(ASSEMBLE)referencemap.c $(ASSEMBLE)referencemap.h
-	$(COMPILE)
+black:
+	python ../../fadecandy/examples/python/solid-black.py
 
-emulate: build ./build/emulate.out
-	$(BUILD)emulate.out ../test/test_cases/$(RUN)
 
-$(BUILD)emulate.out: $(BUILD)emulate.o $(BUILD)io.o $(BUILD)execute.o $(BUILD)decode.o $(BUILD)register.o $(BUILD)bitops.o $(BUILD)error.o
-	gcc $^ -o $@
+run: mkdir $(PATHB)effect_runner.out
+	./build/effect_runner.out $(MODE)
 
-$(BUILD)emulate.o: emulate.c $(UTIL)arm.h $(UTIL)io.h $(EMULATE)execute.h $(EMULATE)decode.h $(UTIL)register.h
-	$(COMPILE)
+$(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
+	$(LINK) -o $@ $^ -lm
 
-$(BUILD)execute.o: $(EMULATE)execute.c $(EMULATE)execute.h $(UTIL)bitops.h $(UTIL)register.h
-	$(COMPILE)
+$(PATHB)effect_runner.out: $(ROOT_O) $(UTIL_O) $(EFFECT_O) $(PATHOBJ)opc_client.o $(PATHOBJ)parson.o
+	$(LINK) -o $@ $^ -lm
 
-$(BUILD)decode.o: $(EMULATE)decode.c $(EMULATE)decode.h $(UTIL)arm.h $(UTIL)instructions.h $(UTIL)bitops.h
-	$(COMPILE)
+$(PATHB)%.out: $(PATHOBJ)%.o
+	$(LINK) -o $@ $^ -lm
 
-# UTILITY OBJECTS
+$(PATHOBJ)%.o: $(PATHS)%.c
+	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(BUILD)io.o: $(UTIL)io.c $(UTIL)io.h $(UTIL)bitops.h $(UTIL)register.h
-	$(COMPILE)
+$(PATHOBJ)%.o: $(PATHJSON)%.c $(PATHJSON)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(BUILD)register.o: $(UTIL)register.c $(UTIL)register.h $(UTIL)arm.h
-	$(COMPILE)
+$(PATHOBJ)%.o: $(PATHEFFECT)%.c $(PATHEFFECT)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
 
-$(BUILD)%.o: $(UTIL)%.c $(UTIL)%.h
-	$(COMPILE)
+$(PATHOBJ)%.o: $(PATHUTIL)%.c $(PATHUTIL)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
 
-dependencies:
-	grep '#include' *.[ch] | grep '"'
+$(PATHOBJ)%.o: $(PATHOPENPC)%.c $(PATHOPENPC)%.h
+	$(COMPILE) $(CFLAGS) $< -o $@
 
-build:
-	mkdir -p build
+mkdir: $(PATHB) $(PATHOBJ)
+
+$(PATHB):
+	mkdir -p $(PATHB)
+
+$(PATHOBJ):
+	mkdir -p $(PATHOBJ)
 
 clean:
-	rm -rf $(BUILD)
+	rm -f $(PATHOBJ)*.o
+	rm -f $(PATHB)*.out
+
+.PRECIOUS: $(PATHB)test_%.out
+.PRECIOUS: $(PATHOBJ)%.o
