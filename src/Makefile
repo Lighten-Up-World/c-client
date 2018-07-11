@@ -5,9 +5,9 @@
 .PHONY: server
 .PHONY: layout
 .PHONY: run
-PATHROOT = ../../
+PATHROOT = ../
 PATHOPC = openpixelcontrol/
-PATHLAYOUT = extension/src/layout/
+PATHLAYOUT = src/layout/
 
 PATHS = ./
 PATHJSON = parson/
