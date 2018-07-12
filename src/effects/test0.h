@@ -6,7 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include "../../../src/utils/error.h"
 #include "../utils/csv.h"
 #include "../utils/list.h"
 #include "../opc/opc_client.h"

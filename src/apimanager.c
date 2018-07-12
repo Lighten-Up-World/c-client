@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 
 #include <string.h>
-#include "../../src/utils/error.h"
 #include "apimanager.h"
 #include "utils/list.h"
 #include "extension.h"
