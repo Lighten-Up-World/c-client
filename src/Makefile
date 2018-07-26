@@ -7,15 +7,16 @@
 .PHONY: run
 PATHROOT = ../
 PATHOPC = openpixelcontrol/
+PATHGAMES = games/
 PATHLAYOUT = src/layout/
 
 PATHS = ./
-PATHJSON = parson/
-PATHUTIL = utils/
-PATHEFFECT = effects/
+PATHJSON = src/parson/
+PATHUTIL = src/utils/
+PATHEFFECT = src/effects/
 PATHB = build/
 PATHOBJ = build/objs/
-PATHOPENPC = opc/
+PATHOPENPC = src/opc/
 
 BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
@@ -42,6 +43,9 @@ raverplaid: mkdir
 
 lavalamp: mkdir
 	python $(PATHROOT)$(PATHOPC)python/lava_lamp.py --layout $(PATHROOT)$(PATHLAYOUT)WorldMap.json
+
+snake: mkdir
+	python $(PATHROOT)$(PATHGAMES)snake/snake.py
 
 server: layout
 	cd $(PATHROOT)$(PATHOPC); make
