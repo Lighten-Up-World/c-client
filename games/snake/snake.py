@@ -35,19 +35,22 @@ while key != 27:
     # Increase speed of Snake as length increases
     win.timeout(150 - (len(snake)/5 + len(snake)/10)%120)
 
-    prevKey = key                                                  # Previous key pressed
+    # Previous key pressed
+    prevKey = key
     event = win.getch()
     key = key if event == -1 else event
 
 
-    if key == ord(' '):                                            # If SPACE BAR is pressed, wait for another
-        key = -1                                                   # one (Pause/Resume)
+    # If SPACE BAR is pressed, wait for another one (Pause/Resume)
+    if key == ord(' '):
+        key = -1
         while key != ord(' '):
             key = win.getch()
         key = prevKey
         continue
 
-    if key not in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, 27]:     # If an invalid key is pressed
+    # If an invalid key is pressed
+    if key not in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, 27]:
         key = prevKey
 
     # Calculates the new coordinates of the head of the snake. NOTE: len(snake) increases.
@@ -84,4 +87,4 @@ while key != 27:
 
 curses.endwin()
 print("\nScore - " + str(score))
-print("http://bitemelater.in\n")
+print("GAME OVER")
