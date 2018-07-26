@@ -6,6 +6,34 @@ from curses import KEY_RIGHT, KEY_LEFT, KEY_UP, KEY_DOWN
 from random import randint
 
 
+## Think these may be needed for simulation
+#-------------------------------------------------------------------------------
+# parse layout file
+
+#print
+#print '    parsing layout file'
+#print
+
+#coordinates = []
+#for item in json.load(open(options.layout)):
+#    if 'point' in item:
+#        coordinates.append(tuple(item['point']))
+
+
+#-------------------------------------------------------------------------------
+# connect to server
+
+#client = opc.Client(options.server)
+#if client.can_connect():
+#    print '    connected to %s' % options.server
+#else:
+    # can't connect, but keep running in case the server appears later
+    #print '    WARNING: could not connect to %s' % options.server
+#print
+
+
+#-------------------------------------------------------------------------------
+
 curses.initscr()
 win = curses.newwin(20, 60, 0, 0)
 win.keypad(1)
@@ -30,8 +58,7 @@ win.addch(food[0], food[1], '*')
 while key != 27:
     win.border(0)
     # Print'Score' and 'SNAKE' strings
-    win.addstr(0, 2, 'Score : ' + str(score) + ' ')
-    win.addstr(0, 27, ' SNAKE ')
+    win.addstr(0, 2, 'Score : ' + str(score) + ' ') # TO BE SHWON IN WEBAPP
     # Increase speed of Snake as length increases
     win.timeout(150 - (len(snake)/5 + len(snake)/10)%120)
 
@@ -87,4 +114,4 @@ while key != 27:
 
 curses.endwin()
 print("\nScore - " + str(score))
-print("GAME OVER")
+print("GAME OVER") # TO BE SHOWN ON WEBAPP
