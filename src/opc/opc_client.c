@@ -44,7 +44,8 @@ int opc_resolve(char  *s, struct sockaddr_in* address, uint16_t default_port) {
   for (ai = addr; ai; ai = ai->ai_next) {
     if (ai->ai_family == PF_INET) {
       memcpy(address, addr->ai_addr, sizeof(struct sockaddr_in));
-      address->sin_port = htons(port ? port : default_port);
+      // Below line caused problems in simulation. Adding the ! fixes it - Tiger
+      address->sin_port = htons(!port ? port : default_port);
       freeaddrinfo(addr);
       return 1;
     }

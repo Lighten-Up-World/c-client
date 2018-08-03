@@ -19,7 +19,7 @@
 
 #include "../pixel.h"
 
-#define OPC_DEFAULT_PORT 7890
+#define OPC_DEFAULT_PORT 22368
 
 /* OPC broadcast channel */
 #define OPC_BROADCAST 0

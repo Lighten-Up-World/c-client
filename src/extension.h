@@ -6,7 +6,7 @@
 #include "utils/list.h"
 
 #define MILLI_TO_NANO 100000
-#define HOST_AND_PORT "127.0.0.1:7890"
+#define HOST_AND_PORT "127.0.0.1:22368"
 
 #define GRID_WIDTH 53
 #define GRID_HEIGHT 24
