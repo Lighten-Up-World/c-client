@@ -11,12 +11,12 @@ PATHGAMES = games/
 PATHLAYOUT = src/layout/
 
 PATHS = ./
-PATHJSON = src/parson/
-PATHUTIL = src/utils/
-PATHEFFECT = src/effects/
+PATHJSON = parson/
+PATHUTIL = utils/
+PATHEFFECT = effects/
 PATHB = build/
 PATHOBJ = build/objs/
-PATHOPENPC = src/opc/
+PATHOPENPC = opc/
 
 BUILD_PATHS = $(PATHB) $(PATHOBJ)
 
@@ -49,7 +49,7 @@ snake: mkdir
 
 server: layout
 	cd $(PATHROOT)$(PATHOPC); make
-	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json
+	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
 layout:
 	python layout/csv_to_layout.py
