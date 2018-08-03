@@ -12,7 +12,7 @@ car.sh
 temp.c
 
 #ignore CLion files
-CMakeLists.txt
+#CMakeLists.txt
 .idea/
 cmake-build-debug/
 
