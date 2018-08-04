@@ -125,6 +125,10 @@ int init_strip(list_t *list) {
   return 0;
 }
 
+int server_has_input(int server) {
+  return 1;
+}
+
 int main(int argc, const char *argv[]) {
   assert(argc > 1);
 
@@ -176,12 +180,20 @@ int main(int argc, const char *argv[]) {
     effect_runner->frame->pixels[p] = WHITE_PIXEL;
   }
 
+  // Set up control server
+  //int server = 1;
+
   // Run the effect
   while (!interrupted) {
     printf("======== %ld =========\n", effect_runner->frame_no);
     nanosleep(&effect_runner->effect->time_delta, NULL);
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
+
+    // Handle server input
+    /*if (server_has_input(server)) {
+      for (int i = 0; i < 1000; i++) nanosleep(&effect_runner->effect->time_delta, NULL);
+    }*/
   }
 
   // Close it all up

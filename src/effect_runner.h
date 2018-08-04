@@ -10,6 +10,7 @@
 #include "opc/opc_client.h"
 #include "utils/csv.h"
 #include "extension.h"
+#include "webctrl/examples/gnuserver.h"
 
 #define PIXEL_FILE "layout/coordinates.txt"
 #define GEOLOC_FILE "layout/geolocation.txt"
