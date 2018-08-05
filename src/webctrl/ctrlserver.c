@@ -97,8 +97,8 @@ int get_latest_input(int client_sock) {
     client_message[i] = '\0';
   }
 
-  // Communicate with client until disconnected
-  // TODO: add button on map to reset connection, go back to listening
+  // Get all waiting data from client
+  // TODO: check we don't get trapped here if data is continuous (DoS vulnerability?)
   while ((read_size = recv(client_sock, client_message, 2000, 0)) > 0) {
     // Send msg back to client
     printf("Msg from client: %s", client_message);
@@ -150,6 +150,7 @@ void sleep_for(uint8_t s) {
 }
 
 // Testing only
+// TODO: add button on map to reset connection (set client = 0), go back to listening
 int main() {
   // Set up Ctrl+C handle
   signal(SIGINT, handle_user_exit);
