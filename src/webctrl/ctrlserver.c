@@ -19,7 +19,7 @@
 #include <time.h>
 #include <fcntl.h>
 
-#define LISTEN_PORT "9999"
+#define LISTEN_PORT "9998"
 #define BUFFER_SIZE 1024
 #define BACKLOG 0
 
@@ -61,19 +61,24 @@ int create_socket() {
 }
 
 // Accept a connection, if there are any waiting
-// TODO: add returns for client connected or no clients waiting
-// TODO: make this non-blocking
-int accept_conn(int sockfd) {
-
+int try_accept_conn(int sockfd) {
   // Accept connection from an incoming client, if there are any waiting
   struct sockaddr_in client_addr;
   size_t size = sizeof(client_addr);
   int client_sock = accept(sockfd, (struct sockaddr *) &client_addr, (socklen_t*) &size);
 
+  // No client is waiting
+  if (errno == EAGAIN || errno ==  EWOULDBLOCK) {
+    return 0;
+  }
+
+  // Other error
   if (client_sock < 0) {
     perror("accept");
     exit(errno);
   }
+
+  // Client connected
   printf("Client connected from host %s, port %hd\n",
          inet_ntoa(client_addr.sin_addr),
          ntohs (client_addr.sin_port));
@@ -82,14 +87,21 @@ int accept_conn(int sockfd) {
 }
 
 // Get the latest input from the current connection
+// Return 0 only if client is disconnected
 int get_latest_input(int client_sock) {
   ssize_t read_size;
   char client_message[2000];
 
+  // Clear buffer
+  for (int i = 0; i < 2000; i++) {
+    client_message[i] = '\0';
+  }
+
   // Communicate with client until disconnected
   // TODO: add button on map to reset connection, go back to listening
-  while ((read_size = recv(client_sock , client_message , 2000 , 0)) > 0 ) {
+  while ((read_size = recv(client_sock, client_message, 2000, 0)) > 0) {
     // Send msg back to client
+    printf("Msg from client: %s", client_message);
     write(client_sock , client_message , strlen(client_message));
 
     // Clear buffer
@@ -98,24 +110,23 @@ int get_latest_input(int client_sock) {
     }
   }
 
-  if (read_size == 0) {
-    printf("Client disconnected\n");
+  // No input is waiting
+  if (errno == EAGAIN || errno == EWOULDBLOCK) {
+    return 1;
   }
-  else if(read_size == -1)
-  {
+
+  // Client disconnected
+  if (read_size == 0) {
+    puts("Client disconnected");
+    return 0;
+  }
+
+  // Other error
+  if (read_size == -1) {
     perror("receive");
     exit(errno);
   }
 
-  return 0;
-}
-
-// Return true if a client is connected
-int has_client(int sockfd) {
-  char buffer[256];
-  if (recv(sockfd, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT) == 0) {
-    return 0;
-  }
   return 1;
 }
 
@@ -124,9 +135,8 @@ int close_socket(int sockfd) {
   return close(sockfd);
 }
 
-int interrupted = 0;
-
 // Set interrupted flag
+int interrupted = 0;
 void handle_user_exit(int _) {
   interrupted = 1;
 }
@@ -147,20 +157,19 @@ int main() {
   // Create socket
   int sock = create_socket();
 
+  int client = 0;
   while (!interrupted) {
-    // Accept an incoming connection from client
-    printf("Waiting for incoming connections...\n");
-    int client;
-    int i = 0;
-    do {
-      printf("try to accept: %d\n", i);
-      client = accept_conn(sock);
-      sleep_for(2);
-      i++;
-    } while (!has_client(client));
-
-    // Get clients input
-    get_latest_input(client);
+    // If client is connected
+    if (client) {
+      // Check for input from client
+      if (!get_latest_input(client)) {
+        client = 0;
+      }
+    } else {
+      // Check if any client is waiting to connect
+      client = try_accept_conn(sock);
+    }
+    sleep_for(1);
   }
 
   close_socket(sock);
