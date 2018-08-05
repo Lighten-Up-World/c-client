@@ -1,30 +1,13 @@
-//#include "ctrlserver.h"
+#include "ctrlserver.h"
 
-#include <stdio.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <resolv.h>
-#include <arpa/inet.h>
-#include <errno.h>
-#include <strings.h>
-#include <stdio.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <time.h>
-#include <fcntl.h>
-
-#define LISTEN_PORT "9998"
-#define BUFFER_SIZE 1024
-#define BACKLOG 0
+typedef struct {
+  int socket_fd;
+  int client_fd;
+  char *buffer;
+} ctrl_server;
 
 // Set up a socket to listen on
-int create_socket() {
+ctrl_server *start_server() {
   struct addrinfo hints;
   struct addrinfo *sock_addr;
   int sockfd;
@@ -57,15 +40,22 @@ int create_socket() {
     exit(errno);
   }
 
-  return sockfd;
+  // Set up server struct
+  char *buffer = calloc(BUFFER, sizeof(char));
+  ctrl_server *server = calloc(1, sizeof(ctrl_server));
+  server->socket_fd = sockfd;
+  server->client_fd = 0;
+  server->buffer = buffer;
+
+  return server;
 }
 
 // Accept a connection, if there are any waiting
-int try_accept_conn(int sockfd) {
+int try_accept_conn(ctrl_server *server) {
   // Accept connection from an incoming client, if there are any waiting
   struct sockaddr_in client_addr;
   size_t size = sizeof(client_addr);
-  int client_sock = accept(sockfd, (struct sockaddr *) &client_addr, (socklen_t*) &size);
+  int client_sock = accept(server->socket_fd, (struct sockaddr *) &client_addr, (socklen_t*) &size);
 
   // No client is waiting
   if (errno == EAGAIN || errno ==  EWOULDBLOCK) {
@@ -79,35 +69,57 @@ int try_accept_conn(int sockfd) {
   }
 
   // Client connected
-  printf("Client connected from host %s, port %hd\n",
+  // TODO: find out why port is not displayed correctly
+  printf("Client connected from host %s, port %hu\n",
          inet_ntoa(client_addr.sin_addr),
          ntohs (client_addr.sin_port));
 
   return client_sock;
 }
 
+// TODO: add error checking
+char *extract_last_cmd(ctrl_server *server) {
+  // Extract last command from buffer, ignore everything before
+  char *last = strrchr(server->buffer, CMD_TERMINATOR);
+  char *prev = server->buffer - 1;
+  char *next = strchr(server->buffer, CMD_TERMINATOR);
+  while (strcmp(next, last) != 0) {
+    prev = next;
+    next = strchr(next + 1, CMD_TERMINATOR);
+  }
+  return prev + 1;
+}
+
+// Handle input from client, after input is read into buffer
+// TODO: in real life this should take commands, and send back an in progress msg so webapp can block
+int handle_input(ctrl_server *server) {
+  printf("Handling client message: %s", server->buffer);
+
+  // Get a pointer to the last command in the buffer
+  char *last_cmd = extract_last_cmd(server);
+  printf("last cmd: %s", last_cmd);
+
+  if (strncmp(last_cmd, "echo\n", 4) == 0) {
+    return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
+  }
+  return 1;
+}
+
 // Get the latest input from the current connection
 // Return 0 only if client is disconnected
-int get_latest_input(int client_sock) {
+int get_latest_input(ctrl_server *server) {
   ssize_t read_size;
-  char client_message[2000];
 
   // Clear buffer
-  for (int i = 0; i < 2000; i++) {
-    client_message[i] = '\0';
+  for (int i = 0; i < BUFFER; i++) {
+    server->buffer[i] = '\0';
   }
 
-  // Get all waiting data from client
+  // Get all waiting data from client in queue
   // TODO: check we don't get trapped here if data is continuous (DoS vulnerability?)
-  while ((read_size = recv(client_sock, client_message, 2000, 0)) > 0) {
-    // Send msg back to client
-    printf("Msg from client: %s", client_message);
-    write(client_sock , client_message , strlen(client_message));
-
-    // Clear buffer
-    for (int i = 0; i < 2000; i++) {
-      client_message[i] = '\0';
-    }
+  // TODO: check we always get a null terminator, what happens if the while loop runs twice?
+  while ((read_size = recv(server->client_fd, server->buffer, BUFFER, MSG_DONTWAIT)) > 0) {
+    handle_input(server);
   }
 
   // No input is waiting
@@ -131,8 +143,15 @@ int get_latest_input(int client_sock) {
 }
 
 // Cleanup code
-int close_socket(int sockfd) {
-  return close(sockfd);
+// TODO: add error checking
+int close_server(ctrl_server *server) {
+  if (server->client_fd) {
+    close(server->client_fd);
+  }
+  close(server->socket_fd);
+  free(server->buffer);
+  free(server);
+  return 0;
 }
 
 // Set interrupted flag
@@ -155,25 +174,28 @@ int main() {
   // Set up Ctrl+C handle
   signal(SIGINT, handle_user_exit);
 
-  // Create socket
-  int sock = create_socket();
+  // Create socket, setup server
+  ctrl_server *server = start_server();
 
-  int client = 0;
+  // Simulates main loop of effect runner
   while (!interrupted) {
+
+    // *** Effect runner code here ***
+
     // If client is connected
-    if (client) {
+    if (server->client_fd) {
       // Check for input from client
-      if (!get_latest_input(client)) {
-        client = 0;
+      if (!get_latest_input(server)) {
+        server->client_fd = 0;
       }
     } else {
       // Check if any client is waiting to connect
-      client = try_accept_conn(sock);
+      server->client_fd = try_accept_conn(server);
     }
     sleep_for(1);
   }
 
-  close_socket(sock);
+  close_server(server);
 }
 
 

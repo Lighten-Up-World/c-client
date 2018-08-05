@@ -18,8 +18,11 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <fcntl.h>
 
-#define LISTEN_PORT 9999
-#define BUFFER_SIZE 1024
+#define LISTEN_PORT "9998"
+#define BUFFER 1024
+#define BACKLOG 0
+#define CMD_TERMINATOR '\n'
 
 #endif //ARM11_22_CTRLSERVER_H
