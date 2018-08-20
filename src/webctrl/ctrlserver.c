@@ -1,5 +1,7 @@
 #include "ctrlserver.h"
 
+// TODO: free up resources on exit failure
+
 typedef struct {
   int socket_fd;
   int client_fd;
@@ -30,13 +32,13 @@ ctrl_server *start_server() {
 
   // Assign port to socket
   if (bind(sockfd, sock_addr->ai_addr, sock_addr->ai_addrlen)) {
-    perror("socket--bind");
+    perror("Socket--bind");
     exit(errno);
   }
 
   // Make it a "listening socket"
   if (listen(sockfd, BACKLOG)) {
-    perror("socket--listen");
+    perror("Socket--listen");
     exit(errno);
   }
 
@@ -93,11 +95,11 @@ char *extract_last_cmd(ctrl_server *server) {
 // Handle input from client, after input is read into buffer
 // TODO: in real life this should take commands, and send back an in progress msg so webapp can block
 int handle_input(ctrl_server *server) {
-  printf("Handling client message: %s", server->buffer);
+  printf("Message queue: %s", server->buffer);
 
   // Get a pointer to the last command in the buffer
   char *last_cmd = extract_last_cmd(server);
-  printf("last cmd: %s", last_cmd);
+  printf("Processing last cmd: %s", last_cmd);
 
   if (strncmp(last_cmd, "echo\n", 4) == 0) {
     return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
@@ -143,12 +145,17 @@ int get_latest_input(ctrl_server *server) {
 }
 
 // Cleanup code
-// TODO: add error checking
 int close_server(ctrl_server *server) {
   if (server->client_fd) {
-    close(server->client_fd);
+    if (close(server->client_fd)) {
+      perror("Closing client fd failed");
+      exit(errno);
+    }
   }
-  close(server->socket_fd);
+  if (close(server->socket_fd)) {
+    perror("Closing socket fd failed");
+    exit(errno);
+  }
   free(server->buffer);
   free(server);
   return 0;
