@@ -98,13 +98,15 @@ int handle_input(ctrl_server *server) {
   printf("Message queue: %s", server->buffer);
 
   // Get a pointer to the last command in the buffer
-  char *last_cmd = extract_last_cmd(server);
-  printf("Processing last cmd: %s", last_cmd);
+  //char *last_cmd = extract_last_cmd(server);
+  //printf("Processing last cmd: %s", last_cmd);
 
-  if (strncmp(last_cmd, "echo\n", 4) == 0) {
-    return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
-  }
-  return 1;
+  //if (strncmp(last_cmd, "echo\n", 4) == 0) {
+  //  return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
+  //}
+
+  //return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
+  return 0;
 }
 
 // Get the latest input from the current connection
@@ -121,7 +123,10 @@ int get_latest_input(ctrl_server *server) {
   // TODO: check we don't get trapped here if data is continuous (DoS vulnerability?)
   // TODO: check we always get a null terminator, what happens if the while loop runs twice?
   while ((read_size = recv(server->client_fd, server->buffer, BUFFER, MSG_DONTWAIT)) > 0) {
-    handle_input(server);
+    if (handle_input(server)) {
+      perror("Handle-input");
+      exit(errno);
+    }
   }
 
   // No input is waiting
