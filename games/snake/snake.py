@@ -34,8 +34,16 @@ from random import randint
 
 #-------------------------------------------------------------------------------
 
+## TODO: Study world map and make window size of world map and
+##       figure out way to restrict/teleport snake
+
+## TODO: Rewrite game so it doesn't use curses library amd iteracts with user.
+
+MAX_HEIGHT = 24
+MAX_WIDTH = 52
+
 curses.initscr()
-win = curses.newwin(20, 60, 0, 0)
+win = curses.newwin(MAX_HEIGHT, MAX_WIDTH, 0, 0)
 win.keypad(1)
 curses.noecho()
 curses.curs_set(0)
@@ -46,10 +54,12 @@ win.nodelay(1)
 key = KEY_RIGHT
 score = 0
 
+snakeHead = [randint(3, MAX_HEIGHT), randint(3, MAX_WIDTH)]
 # Initial snake co-ordinates
-snake = [[4,10], [4,9], [4,8]]
+snake = [[snakeHead[0], snakeHead[1]], [snakeHead[0], snakeHead[1] - 1],
+         [snakeHead[0], snakeHead[1] - 2]]
 # First food co-ordinates
-food = [10,20]
+food = [randint(1, MAX_HEIGHT - 2), randint(1, MAX_WIDTH - 2)]
 
 # Print food
 win.addch(food[0], food[1], '*')
@@ -58,7 +68,7 @@ win.addch(food[0], food[1], '*')
 while key != 27:
     win.border(0)
     # Print'Score' and 'SNAKE' strings
-    win.addstr(0, 2, 'Score : ' + str(score) + ' ') # TO BE SHWON IN WEBAPP
+    win.addstr(0, 2, 'Score : ' + str(score) + ' ') # TO BE SHOWN IN WEBAPP
     # Increase speed of Snake as length increases
     win.timeout(150 - (len(snake)/5 + len(snake)/10)%120)
 
@@ -85,10 +95,10 @@ while key != 27:
     snake.insert(0, [snake[0][0] + (key == KEY_DOWN and 1) + (key == KEY_UP and -1), snake[0][1] + (key == KEY_LEFT and -1) + (key == KEY_RIGHT and 1)])
 
     # If snake crosses the boundaries, make it enter from the other side
-    if snake[0][0] == 0: snake[0][0] = 18
-    if snake[0][1] == 0: snake[0][1] = 58
-    if snake[0][0] == 19: snake[0][0] = 1
-    if snake[0][1] == 59: snake[0][1] = 1
+    if snake[0][0] == 0: snake[0][0] = MAX_HEIGHT - 2
+    if snake[0][1] == 0: snake[0][1] = MAX_WIDTH - 2
+    if snake[0][0] == MAX_HEIGHT - 1: snake[0][0] = 1
+    if snake[0][1] == MAX_WIDTH - 1: snake[0][1] = 1
 
     # Exit if snake crosses the boundaries (Uncomment to enable)
     #if snake[0][0] == 0 or snake[0][0] == 19 or snake[0][1] == 0 or snake[0][1] == 59: break
@@ -103,7 +113,7 @@ while key != 27:
         score += 1
         while food == []:
             # Calculate next food's coordinates
-            food = [randint(1, 18), randint(1, 58)]
+            food = [randint(1, MAX_HEIGHT - 2), randint(1, MAX_WIDTH - 2)]
             if food in snake: food = []
         win.addch(food[0], food[1], '*')
     else:

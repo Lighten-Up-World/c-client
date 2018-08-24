@@ -64,7 +64,7 @@ void increment_current_time(effect_t *eff){
 
 int sun_get_pixel(effect_runner_t *self, int pos){
   sun_state_t *state = self->effect->obj;
-  size_t buf_size = 40;
+  size_t buf_size = 200;
   char buf[buf_size];
   struct tm sunrise;
   struct tm sunset;
