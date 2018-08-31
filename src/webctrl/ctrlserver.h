@@ -19,6 +19,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <fcntl.h>
+#include <openssl/sha.h>
 
 #define LISTEN_PORT "9090"
 #define BUFFER 1024

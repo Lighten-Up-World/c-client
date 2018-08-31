@@ -97,30 +97,7 @@ char *extract_last_cmd(ctrl_server *server) {
 int handle_input(ctrl_server *server) {
   printf("Message queue: %s", server->buffer);
 
-  // Extract client hash
-  char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
-  if (key_header_start == NULL) {
-    perror("Sec-WebSocket-Key not present");
-    exit(errno);
-  }
 
-  char *key_start = strchr(key_header_start, ' ') + 1;
-  if (key_start == NULL || key_start != key_header_start + strlen(WEBSOCKET_KEY_HEADER)) {
-    perror("Sec-WebSocket-Key header is malformed (key start)");
-    exit(errno);
-  }
-
-  char *key_end = strchr(key_start, '\r');
-  if (key_end == NULL) {
-    perror("Sec-WebSocket-Key header is malformed (key end)");
-    exit(errno);
-  }
-
-  // Append magic string to the client provided hash, then take the sha1 hash to send in response
-  size_t key_len = key_end - key_start;
-  char *key = calloc(key_len + strlen(SEC_WEBSOCKET_MAGIC), sizeof(char));
-  memcpy(key, key_start, key_len);
-  memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
   // TODO: need to create buffer and copy into
   char *response = "HTTP/1.1 101 Switching Protocols\r\n"
