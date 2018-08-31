@@ -97,15 +97,49 @@ char *extract_last_cmd(ctrl_server *server) {
 int handle_input(ctrl_server *server) {
   printf("Message queue: %s", server->buffer);
 
+  // Extract client hash
+  char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
+  if (key_header_start == NULL) {
+    perror("Sec-WebSocket-Key not present");
+    exit(errno);
+  }
+
+  char *key_start = strchr(key_header_start, ' ') + 1;
+  if (key_start == NULL || key_start != key_header_start + strlen(WEBSOCKET_KEY_HEADER)) {
+    perror("Sec-WebSocket-Key header is malformed (key start)");
+    exit(errno);
+  }
+
+  char *key_end = strchr(key_start, '\r');
+  if (key_end == NULL) {
+    perror("Sec-WebSocket-Key header is malformed (key end)");
+    exit(errno);
+  }
+
+  // Append magic string to the client provided hash, then take the sha1 hash to send in response
+  size_t key_len = key_end - key_start;
+  char *key = calloc(key_len + strlen(SEC_WEBSOCKET_MAGIC), sizeof(char));
+  memcpy(key, key_start, key_len);
+  memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
+
+  // TODO: need to create buffer and copy into
+  char *response = "HTTP/1.1 101 Switching Protocols\r\n"
+                   "Upgrade: websocket\r\n"
+                   "Connection: Upgrade\r\n"
+                   "Sec-WebSocket-Accept: "
+                   "HASH HERE"
+                   "\r\n\r\n";
+  return (int) write(server->client_fd, response, strlen(response));
+
   // Get a pointer to the last command in the buffer
   //char *last_cmd = extract_last_cmd(server);
   //printf("Processing last cmd: %s", last_cmd);
 
   //if (strncmp(last_cmd, "echo\n", 4) == 0) {
-  //  return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
+  //  return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
   //}
 
-  //return (int) write(server->client_fd , server->buffer , strlen(server->buffer));
+  //return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
   return 0;
 }
 
@@ -131,13 +165,13 @@ int get_latest_input(ctrl_server *server) {
 
   // No input is waiting
   if (errno == EAGAIN || errno == EWOULDBLOCK) {
-    return 1;
+    return 0;
   }
 
   // Client disconnected
   if (read_size == 0) {
     puts("Client disconnected");
-    return 0;
+    return 1;
   }
 
   // Other error
@@ -146,7 +180,7 @@ int get_latest_input(ctrl_server *server) {
     exit(errno);
   }
 
-  return 1;
+  return 0;
 }
 
 // Cleanup code
@@ -196,8 +230,8 @@ int main() {
 
     // If client is connected
     if (server->client_fd) {
-      // Check for input from client
-      if (!get_latest_input(server)) {
+      // Check for input from client,
+      if (get_latest_input(server)) {
         server->client_fd = 0;
       }
     } else {
