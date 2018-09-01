@@ -1,5 +1,28 @@
 #include "ctrlserver.h"
 
+// TODO: figure out how this works and implement error checking?
+// https://gist.github.com/barrysteyn/7308212
+
+int Base64Encode(const unsigned char* buffer, size_t length, char** b64text) { //Encodes a binary safe base 64 string
+  BIO *bio, *b64;
+  BUF_MEM *bufferPtr;
+
+  b64 = BIO_new(BIO_f_base64());
+  bio = BIO_new(BIO_s_mem());
+  bio = BIO_push(b64, bio);
+
+  BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); //Ignore newlines - write everything in one line
+  BIO_write(bio, buffer, length);
+  BIO_flush(bio);
+  BIO_get_mem_ptr(bio, &bufferPtr);
+  BIO_set_close(bio, BIO_NOCLOSE);
+  BIO_free_all(bio);
+
+  *b64text=bufferPtr->data;
+
+  return 0;
+}
+
 // TODO: free up resources on exit failure
 
 typedef struct {
@@ -92,11 +115,9 @@ char *extract_last_cmd(ctrl_server *server) {
   return prev + 1;
 }
 
-// Handle input from client, after input is read into buffer
-// TODO: in real life this should take commands, and send back an in progress msg so webapp can block
-int handle_input(ctrl_server *server) {
-  printf("Message queue: \n%s", server->buffer);
-
+// handle a HTTP upgrade to websocket request
+// TODO: check how to identify this and code it
+int handle_ws_upgrade(ctrl_server *server) {
   // Extract client hash
   char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
   if (key_header_start == NULL) {
@@ -126,32 +147,42 @@ int handle_input(ctrl_server *server) {
   unsigned char *hash = calloc(20, sizeof(char));
   SHA1((const unsigned char *)key, strlen((const char *) key), hash);
 
-  // Print hashed value as raw hex
-  printf("Hash to send back: ");
-  for (int i = 0; i < 20; i++) {
-    printf("%02x", hash[i]);
-  }
-  puts("");
+  // make sure null byte is set, TODO: use strncpy_s above instead??
+  hash[20] = '\0';
+
+  // base64 encode the output
+  char *base64hash;
+  Base64Encode(hash, strlen((const char *) hash), (char **) &base64hash);
 
   // TODO: need to create buffer and copy into
-  char *response = "HTTP/1.1 101 Switching Protocols\r\n"
-                   "Upgrade: websocket\r\n"
-                   "Connection: Upgrade\r\n"
-                   "Sec-WebSocket-Accept: "
-                   "HASH HERE"
-                   "\r\n\r\n";
+  char *response_start = "HTTP/1.1 101 Switching Protocols\r\n"
+                         "Upgrade: websocket\r\n"
+                         "Connection: Upgrade\r\n"
+                         "Sec-WebSocket-Accept: ";
+  char *response_end = "\r\n\r\n";
+  char *response = calloc(sizeof(char), strlen(response_start) + strlen(response_end) + strlen(base64hash) + 1);
+  strcat(response, response_start);
+  strcat(response, base64hash);
+  strcat(response, response_end);
+  printf("%s", response);
+
   return (int) write(server->client_fd, response, strlen(response));
+}
+
+// Handle input from client, after input is read into buffer
+// TODO: in real life this should take commands, and send back an in progress msg so webapp can block
+int handle_input(ctrl_server *server) {
+  printf("Message queue: \n%s", server->buffer);
 
   // Get a pointer to the last command in the buffer
-  //char *last_cmd = extract_last_cmd(server);
-  //printf("Processing last cmd: %s", last_cmd);
+  char *last_cmd = extract_last_cmd(server);
+  printf("Processing last cmd: %s", last_cmd);
 
-  //if (strncmp(last_cmd, "echo\n", 4) == 0) {
-  //  return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
-  //}
+  if (strncmp(last_cmd, "echo\n", 4) == 0) {
+    return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
+  }
 
-  //return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
-  return 0;
+  return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
 }
 
 // Get the latest input from the current connection
@@ -168,7 +199,7 @@ int get_latest_input(ctrl_server *server) {
   // TODO: check we don't get trapped here if data is continuous (DoS vulnerability?)
   // TODO: check we always get a null terminator, what happens if the while loop runs twice?
   while ((read_size = recv(server->client_fd, server->buffer, BUFFER, MSG_DONTWAIT)) > 0) {
-    if (handle_input(server)) {
+    if (handle_ws_upgrade(server)) {
       perror("Handle-input");
       exit(errno);
     }

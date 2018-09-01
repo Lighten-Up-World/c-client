@@ -28,12 +28,10 @@ int Base64Encode(const unsigned char* buffer, size_t length, char** b64text) { /
   BIO_set_close(bio, BIO_NOCLOSE);
   BIO_free_all(bio);
 
-  *b64text=(*bufferPtr).data;
+  *b64text=bufferPtr->data;
 
-  return (0); //success
+  return 0;
 }
-
-// TODO: base64 decode and check against test inputs
 
 int main() {
   char *in = "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n";
