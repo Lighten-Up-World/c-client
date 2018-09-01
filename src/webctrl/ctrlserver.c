@@ -95,7 +95,7 @@ char *extract_last_cmd(ctrl_server *server) {
 // Handle input from client, after input is read into buffer
 // TODO: in real life this should take commands, and send back an in progress msg so webapp can block
 int handle_input(ctrl_server *server) {
-  printf("Message queue: %s", server->buffer);
+  printf("Message queue: \n%s", server->buffer);
 
   // Extract client hash
   char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
@@ -122,10 +122,12 @@ int handle_input(ctrl_server *server) {
   memcpy(key, key_start, key_len);
   memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
+  // TODO: decode from base64 first - doesn't seem like we need to
   unsigned char *hash = calloc(20, sizeof(char));
   SHA1((const unsigned char *)key, strlen((const char *) key), hash);
 
   // Print hashed value as raw hex
+  printf("Hash to send back: ");
   for (int i = 0; i < 20; i++) {
     printf("%02x", hash[i]);
   }
