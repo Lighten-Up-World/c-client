@@ -2,13 +2,10 @@
 #define ARM11_22_CTRLSERVER_H
 
 #include <stdio.h>
-#include <errno.h>
 #include <sys/socket.h>
 #include <resolv.h>
 #include <arpa/inet.h>
-#include <errno.h>
-#include <strings.h>
-#include <stdio.h>
+#include <string.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
