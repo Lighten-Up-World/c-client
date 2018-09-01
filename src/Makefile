@@ -35,6 +35,9 @@ MODE = temp
 simulation: mkdir server $(PATHB)effect_runner.out
 	$(PATHB)effect_runner.out $(MODE)
 
+example: mkdir
+	python $(PATHROOT)$(PATHOPC)python/example.py	
+
 conway: mkdir
 	python $(PATHROOT)$(PATHOPC)python/conway.py
 
@@ -45,7 +48,7 @@ lavalamp: mkdir
 	python $(PATHROOT)$(PATHOPC)python/lava_lamp.py --layout $(PATHROOT)$(PATHLAYOUT)WorldMap.json
 
 snake: mkdir
-	python $(PATHROOT)$(PATHGAMES)snake/snake.py
+	python $(PATHROOT)$(PATHOPC)python/snake.py --layout $(PATHROOT)$(PATHLAYOUT)WorldMap.json
 
 server: layout
 	cd $(PATHROOT)$(PATHOPC); make
