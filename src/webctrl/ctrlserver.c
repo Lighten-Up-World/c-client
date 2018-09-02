@@ -290,18 +290,17 @@ int main() {
 
       // If a connection was accepted, wait until it's upgraded it to a WebSocket
       if (server->client_fd) {
-        bool upgraded = false;
-        while (!upgraded) {
-          ssize_t read_size = get_latest_input(server);
-          if (read_size > 0) {
-            puts("handling upgrade...");
-            handle_ws_upgrade(server);
-            upgraded = true;
-          } else if (read_size == 0) {
-            // Client disconnected, reset
-            server->client_fd = 0;
-          }
-          sleep_for(1);
+        // Block until we have an input from the connection. TODO: add timeout to avoid DoS
+        ssize_t read_size;
+        do {
+          sleep_for(1); //TODO: make this shorter?
+          read_size = get_latest_input(server);
+        } while (read_size < 0);
+
+        if (read_size > 0) {
+          handle_ws_upgrade(server); //TODO: check a WS is actually created, and disconnect if not
+        } else {
+          server->client_fd = 0;
         }
       }
 
