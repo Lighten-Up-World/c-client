@@ -21,7 +21,9 @@
 #include <fcntl.h>
 #include <openssl/sha.h>
 
-#include "server_crypto.h"
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
 
 #define LISTEN_PORT "9090"
 #define BUFFER 1023

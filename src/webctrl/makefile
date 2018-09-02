@@ -5,22 +5,10 @@ LDLIBS =  -L/usr/local/Cellar//openssl/1.0.2o_2/lib/ -lssl -lcrypto
 # $< - The first prerequisite.
 # $ˆ - All prerequisites.
 
-server: ctrl.o crypto.o
-	gcc $(CFLAGS) $(LDLIBS) $^ -o $@
-
-ctrl.o: ctrlserver.c ctrlserver.h server_crypto.h
-	gcc $(CFLAGS) $(CRYPT) $< -o $@
-
-crypto.o: server_crypto.c server_crypto.h
-	gcc $(CFLAGS) $(CRYPT) $< -o $@
-
-sha:
-	gcc sha.c $(CFLAGS) $(CRYPT) -o sha1
+server:
+	gcc ctrlserver.c $(CFLAGS) $(LDLIBS) -o $@
 
 clean:
-	rm -f sha ctrl crypt
+	rm -f server
 
-.PHONY: clean
 .PHONY: server
-.PHONY: sha
-.PHONY: crypt
