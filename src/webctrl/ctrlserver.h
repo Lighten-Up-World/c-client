@@ -21,14 +21,10 @@
 #include <fcntl.h>
 #include <openssl/sha.h>
 
-// base64 decode
-#include <openssl/bio.h>
-#include <openssl/evp.h>
-#include <openssl/buffer.h>
-#include <stdint.h>
+#include "server_crypto.h"
 
 #define LISTEN_PORT "9090"
-#define BUFFER 1024
+#define BUFFER 1023
 #define BACKLOG 0
 #define CMD_TERMINATOR '\n'
 

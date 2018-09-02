@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <openssl/sha.h>
-#include "ctrlserver.h"
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>

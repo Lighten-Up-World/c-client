@@ -1,29 +1,11 @@
 #include "ctrlserver.h"
 
-// TODO: figure out how this works and implement error checking?
-// https://gist.github.com/barrysteyn/7308212
 
-int Base64Encode(const unsigned char* buffer, size_t length, char** b64text) { //Encodes a binary safe base 64 string
-  BIO *bio, *b64;
-  BUF_MEM *bufferPtr;
-
-  b64 = BIO_new(BIO_f_base64());
-  bio = BIO_new(BIO_s_mem());
-  bio = BIO_push(b64, bio);
-
-  BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); //Ignore newlines - write everything in one line
-  BIO_write(bio, buffer, length);
-  BIO_flush(bio);
-  BIO_get_mem_ptr(bio, &bufferPtr);
-  BIO_set_close(bio, BIO_NOCLOSE);
-  BIO_free_all(bio);
-
-  *b64text=bufferPtr->data;
-
-  return 0;
-}
+static int first = 0;
 
 // TODO: free up resources on exit failure
+
+// TODO: handle requests properly
 
 typedef struct {
   int socket_fd;
@@ -65,8 +47,8 @@ ctrl_server *start_server() {
     exit(errno);
   }
 
-  // Set up server struct
-  char *buffer = calloc(BUFFER, sizeof(char));
+  // Set up server struct //TODO: check if we need this +1
+  char *buffer = calloc(BUFFER + 1, sizeof(char));
   ctrl_server *server = calloc(1, sizeof(ctrl_server));
   server->socket_fd = sockfd;
   server->client_fd = 0;
@@ -118,6 +100,8 @@ char *extract_last_cmd(ctrl_server *server) {
 // handle a HTTP upgrade to websocket request
 // TODO: check how to identify this and code it
 int handle_ws_upgrade(ctrl_server *server) {
+  //printf("Message queue: \n%s", server->buffer);
+
   // Extract client hash
   char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
   if (key_header_start == NULL) {
@@ -144,7 +128,7 @@ int handle_ws_upgrade(ctrl_server *server) {
   memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
   // TODO: decode from base64 first - doesn't seem like we need to
-  unsigned char *hash = calloc(20, sizeof(char));
+  unsigned char *hash = calloc(21, sizeof(char));
   SHA1((const unsigned char *)key, strlen((const char *) key), hash);
 
   // make sure null byte is set, TODO: use strncpy_s above instead??
@@ -152,8 +136,9 @@ int handle_ws_upgrade(ctrl_server *server) {
 
   // base64 encode the output
   char *base64hash;
-  Base64Encode(hash, strlen((const char *) hash), (char **) &base64hash);
+  Base64Encode(hash, strlen((const char *) hash), &base64hash);
 
+  printf("hash: %s\n", base64hash);
   // TODO: need to create buffer and copy into
   char *response_start = "HTTP/1.1 101 Switching Protocols\r\n"
                          "Upgrade: websocket\r\n"
@@ -166,13 +151,20 @@ int handle_ws_upgrade(ctrl_server *server) {
   strcat(response, response_end);
   printf("%s", response);
 
-  return (int) write(server->client_fd, response, strlen(response));
+  // TODO: fix error with extra character at end of base64 hash
+
+  // TODO: handle errors here properly
+  // if 0, no bytes written, -1 is error and errno is set
+  return (int) (write(server->client_fd, response, strlen(response)) == 0);
 }
 
 // Handle input from client, after input is read into buffer
 // TODO: in real life this should take commands, and send back an in progress msg so webapp can block
 int handle_input(ctrl_server *server) {
-  printf("Message queue: \n%s", server->buffer);
+  for (int i = 0; i < 128; i++) {
+    printf("%d: %08x ", i, server->buffer[i]);
+  }
+  printf("Message queue: \n%s", server->buffer); // TODO: fix seg fault here
 
   // Get a pointer to the last command in the buffer
   char *last_cmd = extract_last_cmd(server);
@@ -199,9 +191,17 @@ int get_latest_input(ctrl_server *server) {
   // TODO: check we don't get trapped here if data is continuous (DoS vulnerability?)
   // TODO: check we always get a null terminator, what happens if the while loop runs twice?
   while ((read_size = recv(server->client_fd, server->buffer, BUFFER, MSG_DONTWAIT)) > 0) {
-    if (handle_ws_upgrade(server)) {
-      perror("Handle-input");
-      exit(errno);
+    if (first == 0) {
+      first = 1;
+      if (handle_ws_upgrade(server)) {
+        perror("Handle-input");
+        exit(errno);
+      }
+    } else {
+      if (handle_input(server)) {
+        perror("Handle-input");
+        exit(errno);
+      }
     }
   }
 
