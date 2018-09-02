@@ -4,10 +4,6 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <resolv.h>
-//#include <errno.h>
-//#include <strings.h>
-//#include <stdio.h>
-//#include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -19,6 +15,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <openssl/sha.h>
 
 #include <openssl/bio.h>
@@ -32,5 +29,11 @@
 
 #define WEBSOCKET_KEY_HEADER "Sec-WebSocket-Key: "
 #define SEC_WEBSOCKET_MAGIC "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+typedef struct {
+  int socket_fd;
+  int client_fd;
+  char *buffer;
+} ctrl_server;
 
 #endif //ARM11_22_CTRLSERVER_H
