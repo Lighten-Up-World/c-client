@@ -4,7 +4,7 @@
 // https://gist.github.com/barrysteyn/7308212
 // TODO: fix extra character at end of return buffer
 //Encodes a binary safe base 64 string
-int Base64Encode(const unsigned char* buffer, size_t length, char** b64text) {
+int Base64Encode(const unsigned char* buffer, int length, char** b64text) {
   BIO *bio, *b64;
   BUF_MEM *bufferPtr;
 
@@ -187,7 +187,7 @@ int upgrade_to_ws(ctrl_server *server) {
 
   // base64 encode the output
   char *base64hash;
-  Base64Encode(hash, strlen((const char *) hash), &base64hash);
+  Base64Encode(hash, (int) strlen((const char *) hash), &base64hash);
 
   char *response_start = "HTTP/1.1 101 Switching Protocols\r\n"
                          "Upgrade: websocket\r\n"
@@ -213,7 +213,7 @@ int upgrade_to_ws(ctrl_server *server) {
   // TODO: handle errors here properly
   // if 0, no bytes written, -1 is error and errno is set
   return (int) (write(server->client_fd, response, strlen(response)) == 0);
-};
+}
 
 // Upgrade if possible, returning 0 on success
 int try_to_upgrade(ctrl_server *server) {
