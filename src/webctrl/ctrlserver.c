@@ -320,6 +320,7 @@ int main() {
         if (read_size > 0) {
           if (try_to_upgrade(server)) {
             // If upgrade failed, disconnect the client
+            close(server->client_fd);
             server->client_fd = 0;
           }
         } else {
