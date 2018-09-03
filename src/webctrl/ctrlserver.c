@@ -129,7 +129,21 @@ ssize_t get_latest_input(ctrl_server *server) {
   return read_size;
 }
 
+// Return true if the buffer contains a 'valid' HTTP 101, for our purposes
 
+int is_valid_http_upgrade(ctrl_server *server) {
+  // TODO: Check what a valid format looks like online
+
+  // Basics: (check http version)
+  // GET / HTTP/1.1
+  // Connection: Upgrade
+  // Upgrade: websocket
+  // Sec-WebSocket-Key: ...
+
+  // Reject anything else that may or may not be a valid HTTP request
+
+  return 0;
+}
 
 // Handle a valid HTTP upgrade to WebSocket request
 // TODO: check how to identify this and code it
@@ -204,12 +218,9 @@ int upgrade_to_ws(ctrl_server *server) {
 }
 
 // Return 0 on success
-int try_to_upgrade(ctrl_server *server) {
+int try_to_upgrade(ctrl_server *server)
   // Check we received a valid HTTP 101 upgrade to WS
-  if (1) {//valid) {
-    return upgrade_to_ws(server);
-  }
-  return 1;
+  return (is_valid_http_upgrade(server)) ? upgrade_to_ws(server) : 1;
 }
 
 // Handle input from client, after input is read into buffer
