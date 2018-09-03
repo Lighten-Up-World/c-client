@@ -14,6 +14,11 @@ include_directories(src/emulate)
 include_directories(src/utils)
 include_directories(test/lib/json_pure-1.5.3/ext/json/ext/generator)
 include_directories(test/lib/json_pure-1.5.3/ext/json/ext/parser)
+include_directories(/usr/local/Cellar//openssl/1.0.2o_2/include)
+
+add_executable(server
+        src/webctrl/ctrlserver.c
+        src/webctrl/ctrlserver.h)
 
 add_executable(arm11_22
         src/effects/common.c
