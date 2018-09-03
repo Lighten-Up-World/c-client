@@ -26,10 +26,6 @@ int Base64Encode(const unsigned char* buffer, size_t length, char** b64text) {
   return 0;
 }
 
-// TODO: free up resources on exit failure
-
-// TODO: handle requests properly
-
 // Set up a socket to listen on
 ctrl_server *start_server() {
   struct addrinfo hints;
@@ -133,9 +129,11 @@ ssize_t get_latest_input(ctrl_server *server) {
   return read_size;
 }
 
-// handle a HTTP upgrade to websocket request
+
+
+// Handle a valid HTTP upgrade to WebSocket request
 // TODO: check how to identify this and code it
-int handle_ws_upgrade(ctrl_server *server) {
+int upgrade_to_ws(ctrl_server *server) {
   // Extract client hash
   char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
   if (key_header_start == NULL) {
@@ -203,6 +201,15 @@ int handle_ws_upgrade(ctrl_server *server) {
   // TODO: handle errors here properly
   // if 0, no bytes written, -1 is error and errno is set
   return (int) (write(server->client_fd, response, strlen(response)) == 0);
+}
+
+// Return 0 on success
+int try_to_upgrade(ctrl_server *server) {
+  // Check we received a valid HTTP 101 upgrade to WS
+  if (1) {//valid) {
+    return upgrade_to_ws(server);
+  }
+  return 1;
 }
 
 // Handle input from client, after input is read into buffer
@@ -298,7 +305,7 @@ int main() {
         } while (read_size < 0);
 
         if (read_size > 0) {
-          handle_ws_upgrade(server); //TODO: check a WS is actually created, and disconnect if not
+          try_to_upgrade(server); //TODO: check a WS is actually created, and disconnect if not
         } else {
           server->client_fd = 0;
         }
