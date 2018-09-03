@@ -2,7 +2,6 @@
 
 // TODO: figure out how this works and implement error checking?
 // https://gist.github.com/barrysteyn/7308212
-
 // TODO: fix extra character at end of return buffer
 //Encodes a binary safe base 64 string
 int Base64Encode(const unsigned char* buffer, size_t length, char** b64text) {
@@ -130,8 +129,7 @@ ssize_t get_latest_input(ctrl_server *server) {
 }
 
 // Return true if the buffer contains a 'valid' HTTP 101, for our purposes
-
-int is_valid_http_upgrade(ctrl_server *server) {
+bool is_valid_http_upgrade(ctrl_server *server) {
   // TODO: Check what a valid format looks like online
 
   // Basics: (check http version)
@@ -142,7 +140,7 @@ int is_valid_http_upgrade(ctrl_server *server) {
 
   // Reject anything else that may or may not be a valid HTTP request
 
-  return 0;
+  return true;
 }
 
 // Handle a valid HTTP upgrade to WebSocket request
@@ -215,21 +213,21 @@ int upgrade_to_ws(ctrl_server *server) {
   // TODO: handle errors here properly
   // if 0, no bytes written, -1 is error and errno is set
   return (int) (write(server->client_fd, response, strlen(response)) == 0);
-}
+};
 
-// Return 0 on success
-int try_to_upgrade(ctrl_server *server)
+// Upgrade if possible, returning 0 on success
+int try_to_upgrade(ctrl_server *server) {
   // Check we received a valid HTTP 101 upgrade to WS
   return (is_valid_http_upgrade(server)) ? upgrade_to_ws(server) : 1;
 }
 
 // Handle input from client, after input is read into buffer
-// TODO: in real life this should take commands, and send back an in progress msg so webapp can block
+// TODO: his should take commands, and send back an in progress msg so webapp can block
 int handle_input(ctrl_server *server) {
-  for (int i = 0; i < 128; i++) {
+  for (int i = 0; i < 32; i++) {
     printf("%d: %08x ", i, server->buffer[i]);
   }
-  printf("Buffer: \n%s", server->buffer); // TODO: fix seg fault here
+  //printf("Buffer: \n%s", server->buffer); // TODO: fix seg fault here
 
   // Get a pointer to the last command in the buffer
   /*char *last_cmd = extract_last_cmd(server);
@@ -251,17 +249,19 @@ int close_server(ctrl_server *server) {
   if (server->buffer) {
     free(server->buffer);
   }
-  free(server);
   if (server->client_fd) {
     if (close(server->client_fd)) {
       perror("Closing client fd failed");
       exit(errno);
     }
   }
-  if (close(server->socket_fd)) {
-    perror("Closing socket fd failed");
-    exit(errno);
+  if (server->socket_fd) {
+    if (close(server->socket_fd)) {
+      perror("Closing socket fd failed");
+      exit(errno);
+    }
   }
+  free(server);
   return 0;
 }
 
@@ -308,15 +308,20 @@ int main() {
 
       // If a connection was accepted, wait until it's upgraded it to a WebSocket
       if (server->client_fd) {
-        // Block until we have an input from the connection. TODO: add timeout to avoid DoS
+        // Block until we have an input from the connection.
         ssize_t read_size;
+        int tries = 0;
         do {
-          sleep_for(1); //TODO: make this shorter?
+          sleep_for(1); //TODO: make this shorter
           read_size = get_latest_input(server);
-        } while (read_size < 0);
+          tries++;
+        } while (read_size < 0 && tries < 5);
 
         if (read_size > 0) {
-          try_to_upgrade(server); //TODO: check a WS is actually created, and disconnect if not
+          if (try_to_upgrade(server)) {
+            // If upgrade failed, disconnect the client
+            server->client_fd = 0;
+          }
         } else {
           server->client_fd = 0;
         }
