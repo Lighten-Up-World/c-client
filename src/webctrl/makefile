@@ -8,11 +8,11 @@ LDLIBS =  -L/usr/local/Cellar//openssl/1.0.2o_2/lib/ -lssl -lcrypto
 server: ctrlserver.c ctrlserver.h
 	gcc ctrlserver.c $(CFLAGS) $(LDLIBS) -o $@
 
-sha: sha.c
-	gcc sha.c $(CFLAGS) $(LDLIBS) -o $@
+test: tests/test_hash.c
+	gcc $< $(CFLAGS) $(LDLIBS) -o $@
 
 clean:
-	rm -f server sha
+	rm -f server test
 
 .PHONY: server
 .PHONY: sha

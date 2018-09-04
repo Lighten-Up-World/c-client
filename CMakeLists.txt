@@ -17,7 +17,7 @@ include_directories(test/lib/json_pure-1.5.3/ext/json/ext/parser)
 include_directories(/usr/local/Cellar//openssl/1.0.2o_2/include)
 
 add_executable(sha
-        src/webctrl/sha.c)
+        src/webctrl/tests/test_hash.c)
 
 add_executable(server
         src/webctrl/ctrlserver.c

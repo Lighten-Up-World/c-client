@@ -144,7 +144,6 @@ bool is_valid_http_upgrade(ctrl_server *server) {
 }
 
 // Handle a valid HTTP upgrade to WebSocket request
-// TODO: check how to identify this and code it
 int upgrade_to_ws(ctrl_server *server) {
   // Extract client hash
   char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
@@ -175,22 +174,20 @@ int upgrade_to_ws(ctrl_server *server) {
   memcpy(key, key_start, key_len);
   memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
-  // TODO: zero the last byte of key? should be zero because of calloc anyway
-
-
-  unsigned char *hash = calloc(21, sizeof(char));
+  unsigned char *hash = calloc(SHA1_HASH_LEN + 1, sizeof(char));
   if (hash == NULL) {
     perror("Hash alloc");
     exit(errno);
   }
-  SHA1((const unsigned char *)key, strlen((const char *) key), hash);
+  hash = SHA1((const unsigned char *)key, strlen((const char *) key), hash);
 
-  // make sure null byte is set, TODO: use strncpy_s above instead??
-  hash[20] = '\0';
+  // Make sure null byte is set - needed for debugging only
+  hash[SHA1_HASH_LEN] = '\0';
 
-  // base64 encode the output
-  char *base64hash;
-  Base64Encode(hash, (int) strlen((const char *) hash), &base64hash);
+  // Encode the hash in base64 before placing in response
+  char *base64hash = calloc(29, sizeof(char));
+  Base64Encode(hash, SHA1_HASH_LEN, &base64hash);
+  base64hash[28] = '\0'; // just in case, b64 should be 28 chars or less though
 
   char *response_start = "HTTP/1.1 101 Switching Protocols\r\n"
                          "Upgrade: websocket\r\n"
@@ -207,11 +204,11 @@ int upgrade_to_ws(ctrl_server *server) {
   strcat(response, response_end);
   printf("%s", response);
 
-  // TODO: fix error with extra character at end of base64 hash
   // TODO: use buffer instead of response, set buffer to an appropriate size
 
   free(key);
   free(hash);
+  free(base64hash);
 
   // TODO: handle errors here properly
   // if 0, no bytes written, -1 is error and errno is set

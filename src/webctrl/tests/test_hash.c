@@ -8,7 +8,7 @@
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 #include <stdint.h>
-#include "ctrlserver.h"
+#include "../ctrlserver.h"
 
 // TODO: figure out how this works and implement error checking?
 // https://gist.github.com/barrysteyn/7308212
@@ -43,34 +43,22 @@ void calc_hash(char *key) {
   strncpy(to_hash, key, strlen(key));
   strncat(to_hash, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
-  unsigned char *sha1 = calloc(21, sizeof(char));
+  unsigned char *sha1 = calloc(SHA1_HASH_LEN + 1, sizeof(char));
   if (sha1 == NULL) {
     perror("Hash alloc");
     exit(errno);
   }
   sha1 = SHA1((const unsigned char *)to_hash, strlen((const char *) to_hash), sha1);
-  sha1[20] = '\0';
-
-  // TODO: fix problem with sha1 producing null chars in middle of string
-      // fix - don't use strlen in base64 encode
-  /*size_t len = strlen((const char *) sha1);
-  if (len != 20) {
-    printf("hex of sha1: ");
-    for (int i = 0; i < 20; i++) {
-      printf("%02x ", sha1[i]);
-    }
-    puts("");
-  }*/
+  sha1[SHA1_HASH_LEN] = '\0'; // needed for debug only
 
   // Zero the buffer
   char *base64 = calloc(29, sizeof(char));
-  //Base64Encode((const unsigned char *) sha1, (int) strlen((const char *) sha1), &base64);
-  Base64Encode((const unsigned char *) sha1, 20, &base64);
+  Base64Encode((const unsigned char *) sha1, SHA1_HASH_LEN, &base64);
   printf("base64: %s\n", base64);
 }
 
 int main() {
-  FILE *f = fopen("/Users/Matt/Projects/ARM Project/c-client/keys_filt.txt", "r");
+  FILE *f = fopen("/Users/Matt/Projects/ARM Project/c-client/src/webctrl/tests/keys_filt.txt", "r");
 
   size_t len = strlen("3Q7rCgkquNBD3DgkdYDl5Q==");
   char *key = calloc(len + 2, sizeof(char)); // account for '\r\n' at end of line
@@ -80,7 +68,7 @@ int main() {
     exit(errno);
   }
   int n = 0;
-  while (fgets(key, (int) (len + 3), f) != NULL && n < 150) {
+  while (fgets(key, (int) (len + 3), f) != NULL && n < 1) {
     //overwrite '\n' with '\0'
     key[len] = '\0';
     calc_hash(key);
