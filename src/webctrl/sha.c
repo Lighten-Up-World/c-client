@@ -53,14 +53,14 @@ void calc_hash(char *key) {
 
   // TODO: fix problem with sha1 producing null chars in middle of string
       // fix - don't use strlen in base64 encode
-  size_t len = strlen((const char *) sha1);
+  /*size_t len = strlen((const char *) sha1);
   if (len != 20) {
     printf("hex of sha1: ");
     for (int i = 0; i < 20; i++) {
       printf("%02x ", sha1[i]);
     }
     puts("");
-  }
+  }*/
 
   // Zero the buffer
   char *base64 = calloc(29, sizeof(char));

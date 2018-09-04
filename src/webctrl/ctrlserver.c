@@ -175,6 +175,9 @@ int upgrade_to_ws(ctrl_server *server) {
   memcpy(key, key_start, key_len);
   memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
+  // TODO: zero the last byte of key? should be zero because of calloc anyway
+
+
   unsigned char *hash = calloc(21, sizeof(char));
   if (hash == NULL) {
     perror("Hash alloc");
