@@ -48,16 +48,24 @@ void calc_hash(char *key) {
     perror("Hash alloc");
     exit(errno);
   }
-  SHA1((const unsigned char *)to_hash, strlen((const char *) to_hash), (unsigned char *) sha1);
+  sha1 = SHA1((const unsigned char *)to_hash, strlen((const char *) to_hash), sha1);
   sha1[20] = '\0';
 
+  // TODO: fix problem with sha1 producing null chars in middle of string
+      // fix - don't use strlen in base64 encode
   size_t len = strlen((const char *) sha1);
   if (len != 20) {
-    printf("sha1:  %zu\n", len);
+    printf("hex of sha1: ");
+    for (int i = 0; i < 20; i++) {
+      printf("%02x ", sha1[i]);
+    }
+    puts("");
   }
 
-  char *base64;
-  Base64Encode((const unsigned char *) sha1, (int) strlen((const char *) sha1), &base64);
+  // Zero the buffer
+  char *base64 = calloc(29, sizeof(char));
+  //Base64Encode((const unsigned char *) sha1, (int) strlen((const char *) sha1), &base64);
+  Base64Encode((const unsigned char *) sha1, 20, &base64);
   printf("base64: %s\n", base64);
 }
 
@@ -72,7 +80,7 @@ int main() {
     exit(errno);
   }
   int n = 0;
-  while (fgets(key, (int) (len + 3), f) != NULL && n < 15) {
+  while (fgets(key, (int) (len + 3), f) != NULL && n < 150) {
     //overwrite '\n' with '\0'
     key[len] = '\0';
     calc_hash(key);
