@@ -2,9 +2,8 @@
 
 // TODO: figure out how this works and implement error checking?
 // https://gist.github.com/barrysteyn/7308212
-// TODO: fix extra character at end of return buffer
 //Encodes a binary safe base 64 string
-int Base64Encode(const unsigned char* buffer, int length, char** b64text) {
+int base64_encode(const unsigned char* buffer, int length, char** b64text) {
   BIO *bio, *b64;
   BUF_MEM *bufferPtr;
 
@@ -60,7 +59,7 @@ ctrl_server *start_server() {
   }
 
   // Set up server struct //TODO: check if we need this +1
-  char *buffer = calloc(BUFFER + 1, sizeof(char));
+  char *buffer = calloc(TCP_BUFFER + 1, sizeof(char));
   ctrl_server *server = calloc(1, sizeof(ctrl_server));
   if (server == NULL) {
     perror("Server struct");
@@ -71,6 +70,12 @@ ctrl_server *start_server() {
   server->buffer = buffer;
 
   return server;
+}
+
+void clear_buffer(ctrl_server *server) {
+  for (int i = 0; i < TCP_BUFFER; i++) {
+    server->buffer[i] = '\0';
+  }
 }
 
 // Accept connection from an incoming client, if there are any waiting
@@ -102,11 +107,8 @@ int try_accept_conn(ctrl_server *server) {
 // Return the size of the input read, or -1 if no input is waiting. Return 0 for client disconnect as usual
 ssize_t get_latest_input(ctrl_server *server) {
   // Clear buffer and get all waiting data from client in queue (up to buffer size)
-  for (int i = 0; i < BUFFER; i++) {
-    server->buffer[i] = '\0';
-  }
-
-  ssize_t read_size = recv(server->client_fd, server->buffer, BUFFER, MSG_DONTWAIT);
+  clear_buffer(server);
+  ssize_t read_size = recv(server->client_fd, server->buffer, TCP_BUFFER, MSG_DONTWAIT);
 
   // No input is waiting
   if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -128,6 +130,24 @@ ssize_t get_latest_input(ctrl_server *server) {
   return read_size;
 }
 
+// SHA1 hash and return the base64 of a key
+// TODO: check b64 max size given sha1 returns 20 bytes, and b64 returns 28 or less chars
+void sha1_and_encode(char *key, char **b64hashed) {
+  // Calculate the SHA1 hash
+  unsigned char *hash = calloc(SHA1_CHAR_LEN, sizeof(char));
+  if (hash == NULL) {
+    perror("Hash alloc");
+    exit(errno);
+  }
+  hash = SHA1((const unsigned char *)key, strlen((const char *) key), hash);
+
+  // Encode the hash in base64 before placing in response
+  base64_encode(hash, SHA1_CHAR_LEN, b64hashed);
+  (*b64hashed)[SHA1_ENCODED_LEN] = '\0';
+
+  free(hash);
+}
+
 // Return true if the buffer contains a 'valid' HTTP 101, for our purposes
 bool is_valid_http_upgrade(ctrl_server *server) {
   // TODO: Check what a valid format looks like online
@@ -145,7 +165,7 @@ bool is_valid_http_upgrade(ctrl_server *server) {
 
 // Handle a valid HTTP upgrade to WebSocket request
 int upgrade_to_ws(ctrl_server *server) {
-  // Extract client hash
+  // Append magic string to the client provided hash, then take the sha1 hash to send in response
   char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
   if (key_header_start == NULL) {
     perror("Sec-WebSocket-Key not present");
@@ -164,7 +184,6 @@ int upgrade_to_ws(ctrl_server *server) {
     exit(errno);
   }
 
-  // Append magic string to the client provided hash, then take the sha1 hash to send in response
   size_t key_len = key_end - key_start;
   char *key = calloc(key_len + strlen(SEC_WEBSOCKET_MAGIC), sizeof(char));
   if (key == NULL) {
@@ -174,45 +193,21 @@ int upgrade_to_ws(ctrl_server *server) {
   memcpy(key, key_start, key_len);
   memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
 
-  unsigned char *hash = calloc(SHA1_HASH_LEN + 1, sizeof(char));
-  if (hash == NULL) {
-    perror("Hash alloc");
-    exit(errno);
-  }
-  hash = SHA1((const unsigned char *)key, strlen((const char *) key), hash);
-
-  // Make sure null byte is set - needed for debugging only
-  hash[SHA1_HASH_LEN] = '\0';
-
-  // Encode the hash in base64 before placing in response
-  char *base64hash = calloc(29, sizeof(char));
-  Base64Encode(hash, SHA1_HASH_LEN, &base64hash);
-  base64hash[28] = '\0'; // just in case, b64 should be 28 chars or less though
-
-  char *response_start = "HTTP/1.1 101 Switching Protocols\r\n"
-                         "Upgrade: websocket\r\n"
-                         "Connection: Upgrade\r\n"
-                         "Sec-WebSocket-Accept: ";
-  char *response_end = "\r\n\r\n";
-  char *response = calloc(sizeof(char), strlen(response_start) + strlen(response_end) + strlen(base64hash) + 1);
-  if (response == NULL) {
-    perror("Response alloc");
-    exit(errno);
-  }
-  strcat(response, response_start);
-  strcat(response, base64hash);
-  strcat(response, response_end);
-  printf("%s", response);
-
-  // TODO: use buffer instead of response, set buffer to an appropriate size
-
+  char *b64hashed = calloc(SHA1_ENCODED_LEN + 1, sizeof(char));
+  sha1_and_encode(key, &b64hashed);
+  printf("key: %s\n", key);
+  printf("b64: %s\n", b64hashed);
   free(key);
-  free(hash);
-  free(base64hash);
+
+  clear_buffer(server);
+  strcat(server->buffer, RESPONSE_START);
+  strncat(server->buffer, b64hashed, SHA1_ENCODED_LEN);
+  strcat(server->buffer, RESPONSE_END);
+  free(b64hashed);
 
   // TODO: handle errors here properly
   // if 0, no bytes written, -1 is error and errno is set
-  return (int) (write(server->client_fd, response, strlen(response)) == 0);
+  return (int) (write(server->client_fd, server->buffer, strlen(server->buffer)) == 0);
 }
 
 // Upgrade if possible, returning 0 on success
@@ -222,7 +217,6 @@ int try_to_upgrade(ctrl_server *server) {
 }
 
 // Handle input from client, after input is read into buffer
-// TODO: his should take commands, and send back an in progress msg so webapp can block
 int handle_input(ctrl_server *server) {
   for (int i = 0; i < 32; i++) {
     printf("%d: %08x ", i, server->buffer[i]);
@@ -281,6 +275,7 @@ void handle_user_exit(int _) {
 
 // Testing only
 // TODO: add button on map to reset connection (set client = 0), go back to listening
+// TODO: check why message is only displayed after ctrl-c
 int main() {
   // Set up Ctrl+C handle
   signal(SIGINT, handle_user_exit);
@@ -298,8 +293,10 @@ int main() {
       // Handle input from client if any was received
       ssize_t read_size = get_latest_input(server);
       if (read_size > 0) {
+        puts("Handling...");
         handle_input(server);
-      } else if (read_size == 0) {
+      } else if (read_size == 0) { //TODO: handle websocket disconnect message
+        puts("Disconnected");
         server->client_fd = 0;
       }
     } else {
@@ -318,6 +315,7 @@ int main() {
         } while (read_size < 0 && tries < 5);
 
         if (read_size > 0) {
+          puts("Upgrading to websocket...");
           if (try_to_upgrade(server)) {
             // If upgrade failed, disconnect the client
             close(server->client_fd);
