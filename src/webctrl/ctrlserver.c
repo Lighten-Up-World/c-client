@@ -1,5 +1,26 @@
 #include "ctrlserver.h"
 
+#include <stdint.h>
+#include <assert.h>
+
+/**
+ *  Get the specified interval of bits from an instruction, left padding with zeros
+ *  Limits are inclusive.
+ *
+ *  @param inst: instruction to get bits from
+ *  @param x: MSb of interval to return
+ *  @param y: LSb of interval to return
+ *  @return: word containing the specified bits, right aligned
+ */
+uint8_t bits_from_byte(char inst, uint8_t x, uint8_t y) {
+  assert(x <= 7);
+  assert(x >= y);
+  assert(y >= 0);
+  assert(!(x == 7 && y == 0));
+
+  return (inst >> y) & ~(~(uint8_t) 0 << (x + 1 - y));
+}
+
 // TODO: figure out how this works and implement error checking?
 // https://gist.github.com/barrysteyn/7308212
 //Encodes a binary safe base 64 string
@@ -117,7 +138,6 @@ ssize_t get_latest_input(ctrl_server *server) {
 
   // Client disconnected
   if (read_size == 0) {
-    puts("Client disconnected");
     return 0;
   }
 
@@ -218,9 +238,10 @@ int try_to_upgrade(ctrl_server *server) {
 
 // Handle input from client, after input is read into buffer
 int handle_input(ctrl_server *server) {
-  for (int i = 0; i < 32; i++) {
+  /*for (int i = 0; i < 32; i++) {
     printf("%d: %08x ", i, server->buffer[i]);
-  }
+  }*/
+
   //printf("Buffer: \n%s", server->buffer); // TODO: fix seg fault here
 
   // Get a pointer to the last command in the buffer
@@ -232,6 +253,35 @@ int handle_input(ctrl_server *server) {
   }
 
   return (int) write(server->client_fd, server->buffer, strlen(server->buffer));*/
+
+  return 0;
+}
+
+int handle_ws_frame(ctrl_server *server) {
+  for (int i = 0; i < 32; i++) {
+    printf("%d: %08x ", i, server->buffer[i]);
+  }
+  puts("");
+
+  //unsigned char frame[7] = {0b11010001, 0b11111111, 0x0, 0x0, 0x0, 0x0, 0x0};
+  unsigned char *frame = (unsigned char *) server->buffer; // TODO: check signed/unsigned?
+
+  uint8_t fin = bits_from_byte(frame[0], 0, 0);
+  printf("FIN:         0x%01x\n", fin);
+
+  uint8_t opcode = bits_from_byte(frame[0], 7, 4);
+  printf("OPCODE:      0x%01x\n", opcode);
+
+  uint8_t mask = bits_from_byte(frame[1], 0, 0);
+  printf("MASK:        0x%01x\n", mask);
+
+  uint8_t payload_len = bits_from_byte(frame[1], 7, 1);
+  printf("PAYLOAD LEN: 0x%02x\n", payload_len);
+
+  printf("KEY:         0x%02x 0x%02x 0x%02x 0x%02x\n", frame[2], frame[3], frame[4], frame[5]);
+
+  printf("PAYLOAD:     0x%02x\n", frame[6]);
+
   return 0;
 }
 
@@ -294,9 +344,9 @@ int main() {
       ssize_t read_size = get_latest_input(server);
       if (read_size > 0) {
         puts("Handling...");
-        handle_input(server);
-      } else if (read_size == 0) { //TODO: handle websocket disconnect message
-        puts("Disconnected");
+        handle_ws_frame(server); // TODO: read in bit by bit what we need? -SUGGESTED
+      } else if (read_size == 0) { // TODO: handle websocket disconnect message
+        puts("Client disconnected");
         server->client_fd = 0;
       }
     } else {
