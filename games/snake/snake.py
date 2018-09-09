@@ -1,3 +1,4 @@
+from __future__ import division
 # SNAKE GAME
 # Use ARROW KEYS to play, SPACE BAR for pausing/resuming and Esc Key for exiting
 
@@ -63,37 +64,43 @@ else:
 print
 
 #-------------------------------------------------------------------------------
+# function to translate snake coordinates
+
+def translate_snake_coords(snake_coords) :
+    coords = ((snake_coords[1] - 25) / 10 , 0, (snake_coords[0] - 10) / 10)
+    return coords
+
+#-------------------------------------------------------------------------------
 # render snake on world map
 
 print '    sending pixels forever (control-c to exit)...'
 print
 
+# Initialise white background
 WHITE_PIXEL = (255, 255, 255);
-SNAKE_COLOUR = (92,180,0);
 pixels = [WHITE_PIXEL for coords in enumerate(coordinates)];
+SNAKE_COLOUR = (92,180,0);
 
-pixels[coordinates.index(translate_snake_coords)] = SNAKE_COLOUR;
+#
+snake_coords = [0, 0];
+if translate_snake_coords(snake_coords) in coordinates:
+    pixels[coordinates.index(translate_snake_coords(snake_coords))] = SNAKE_COLOUR;
 
 while True:
     client.put_pixels(pixels, channel=0);
 
 #-------------------------------------------------------------------------------
-# function to translate snake coordinates
 
-def translate_snake_coords(snake_coords) :
-    coords = (0, 0, 0)
-    return coords
-
-#-------------------------------------------------------------------------------
-
-
+## Need corect dimensions of world map
+## HEIGHT = 22
+## WIDTH = 54
 curses.initscr()
 win = curses.newwin(20, 60, 0, 0)
-win.keypad(1)
+win.keypad(true)
 curses.noecho()
-curses.curs_set(0)
-win.border(0)
-win.nodelay(1)
+curses.curs_set(false)
+win.border(false)
+win.nodelay(true)
 
 # Initialise values
 key = KEY_RIGHT
