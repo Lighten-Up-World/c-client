@@ -65,7 +65,26 @@ else:
 print
 
 #-------------------------------------------------------------------------------
+# function to translate snake coordinates
 
+def translate_snake_coords(snake_coords):
+    coords = ((snake_coords[1] - 25) / 10, 0, (snake_coords[0] - 10) / 10)
+    return coords
+
+
+#-------------------------------------------------------------------------------
+# Initialise pixels and define colours
+
+WHITE_PIXEL = (255, 255, 255)
+SNAKE_COLOUR = (92,180,0)
+FOOD_COLOUR = (234,64,53)
+
+# Pixels to be displayed on world map - (snake and food added later)
+pixels = [WHITE_PIXEL for coords in enumerate(coordinates)]
+
+#-------------------------------------------------------------------------------
+
+print("Playing snake game - press space to pause, Esc to exit")
 
 HEIGHT = 22
 WIDTH = 53
@@ -105,7 +124,7 @@ def game(win):
         key = key if event == -1 else event
 
         if key == ord(' '):  # If SPACE BAR is pressed, wait for another
-            key = -1  # one (Pause/Resume)
+            key = -1         # one (Pause/Resume)
             while key != ord(' '):
                 key = win.getch()
             key = prevKey
@@ -116,17 +135,17 @@ def game(win):
 
         # Calculates the new coordinates of the head of the snake. NOTE: len(snake) increases.
         # This is taken care of later at [1].
-        snake.insert(0, [snake[0][0] + (key == KEY_DOWN and 1) + (key == KEY_UP and -1),
-                         snake[0][1] + (key == KEY_LEFT and -1) + (key == KEY_RIGHT and 1)])
+        snake.insert(0, [snake[0][0] + (key == KEY_DOWN and -1) + (key == KEY_UP and 1),
+                         snake[0][1] + (key == KEY_LEFT and 1) + (key == KEY_RIGHT and -1)])
 
         # If snake crosses the boundaries, make it enter from the other side
-        if snake[0][0] == 0: snake[0][0] = HEIGHT - 2
-        if snake[0][1] == 0: snake[0][1] = WIDTH - 2
-        if snake[0][0] == HEIGHT - 1: snake[0][0] = 1
-        if snake[0][1] == WIDTH - 1: snake[0][1] = 1
+        #if snake[0][0] == 0: snake[0][0] = HEIGHT - 2
+        #if snake[0][1] == 0: snake[0][1] = WIDTH - 2
+        #if snake[0][0] == HEIGHT - 1: snake[0][0] = 1
+        #if snake[0][1] == WIDTH - 1: snake[0][1] = 1
 
         # Exit if snake crosses the boundaries (Uncomment to enable)
-        # if snake[0][0] == 0 or snake[0][0] == HEIGHT - 1 or snake[0][1] == 0 or snake[0][1] == WIDTH - 1: break
+        if snake[0][0] == 0 or snake[0][0] == HEIGHT - 1 or snake[0][1] == 0 or snake[0][1] == WIDTH - 1: break
 
         # If snake runs over itself
         if snake[0] in snake[1:]: break
@@ -145,51 +164,37 @@ def game(win):
             last = snake.pop()
             win.addch(last[0], last[1], ' ')
             win.addch(snake[0][0], snake[0][1], '#')
+            # remove end of snake so it appears to move
+            if(translate_snake_coords(last)) in coordinates:
+                pixels[coordinates.index(translate_snake_coords(last))] = WHITE_PIXEL
+
+        # Get map coords of snake and add to pixels
+        map_snake_coords = [translate_snake_coords(s_coord) for s_coord in snake]
+
+        for mapped_s_coord in map_snake_coords:
+            if mapped_s_coord in coordinates:
+                pixels[coordinates.index(mapped_s_coord)] = SNAKE_COLOUR
+
+
+        # Get map coordinates for food and add to pixels
+        food_coord = translate_snake_coords(food)
+
+        if food_coord in coordinates:
+            pixels[coordinates.index(food_coord)] = FOOD_COLOUR
+
+
+        # Display pixels on world map
+        client.put_pixels(pixels, channel=0)
+
 
 wrapper(game)
 
+# everything goes red when dies
+pixels = [FOOD_COLOUR for coords in enumerate(coordinates)]
+client.put_pixels(pixels, channel=0)
+
 curses.endwin()
 
-print("\nScore - " + str(score))
+# print("\nScore - " + str(score))
 
-
-#-------------------------------------------------------------------------------
-# function to translate snake coordinates
-
-def translate_snake_coords(snake_coords) :
-    coords = ((snake_coords[1] - 25) / 10 , 0, (snake_coords[0] - 10) / 10)
-    return coords
-
-#-------------------------------------------------------------------------------
-# render snake on world map
-
-print '    sending pixels forever (control-c to exit)...'
-print
-
-# Initialise white background
-WHITE_PIXEL = (255, 255, 255)
-pixels = [WHITE_PIXEL for coords in enumerate(coordinates)]
-
-SNAKE_COLOUR = (92,180,0)
-
-snake.pyFOOD_COLOUR = (234,64,53)
-
-
-while True:
-
-    map_snake_coords = [translate_snake_coords(s_coord) for s_coord in snake]
-
-    for mapped_s_coord in map_snake_coords:
-        if mapped_s_coord in coordinates:
-            pixels[coordinates.index(mapped_s_coord)] = SNAKE_COLOUR
-
-
-    food_coord = translate_snake_coords(food)
-
-    if food_coord in coordinates:
-        pixels[coordinates.index(food_coord)] = FOOD_COLOUR
-
-
-    client.put_pixels(pixels, channel=0)
-
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
