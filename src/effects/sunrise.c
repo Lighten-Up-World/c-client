@@ -102,7 +102,7 @@ int sun_get_pixel(effect_runner_t *self, int pos){
       double before_sunset = get_time_difference(&sunset, state->current_time);
       if (before_sunset > 0) {
         //Current is before sunset
-        printf("Set in greyscale: %d",set);
+        printf("Set in greyscale: %d\n",set);
         set = (before_sunset / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
         set = (set > PIXEL_COLOUR_MAX) ? (PIXEL_COLOUR_MAX) - set : set;
       }
@@ -115,14 +115,15 @@ int sun_get_pixel(effect_runner_t *self, int pos){
       daylight += (3600 * 24);
       set = (before_sunset / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
       set = (set > PIXEL_COLOUR_MAX) ? (PIXEL_COLOUR_MAX) - set : set;
-      printf("Set in greyscale: %d",set);
+      printf("Set in greyscale: %d\n",set);
     }else{
       double before_sunrise = get_time_difference(&sunrise, state->current_time);
       if (before_sunrise < 0){
         //Current is after sunrise
+        daylight += (3600 * 24);
         set = (-before_sunrise / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
         set = (set > PIXEL_COLOUR_MAX) ? (PIXEL_COLOUR_MAX) - set : set;
-        printf("Set in greyscale: %d",set);
+        printf("Set in greyscale: %d\n",set);
       }
     }
   }
