@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <math.h>
+#include <sys/ioctl.h>
 #include <openssl/sha.h>
 
 #include <openssl/bio.h>
@@ -37,6 +38,7 @@
 
 #define WEBSOCKET_KEY_HEADER "Sec-WebSocket-Key: "
 #define SEC_WEBSOCKET_MAGIC "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+#define MASKING_KEY_LEN 4
 
 #define RESPONSE_START "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: "
 #define RESPONSE_END "\r\n\r\n"

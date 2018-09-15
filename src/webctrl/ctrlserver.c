@@ -93,9 +93,9 @@ ctrl_server *start_server() {
   return server;
 }
 
-void clear_buffer(ctrl_server *server) {
-  for (int i = 0; i < TCP_BUFFER; i++) {
-    server->buffer[i] = '\0';
+void clear_buffer(char *buffer, size_t len) {
+  for (int i = 0; i < len; i++) {
+    buffer[i] = '\0';
   }
 }
 
@@ -126,10 +126,10 @@ int try_accept_conn(ctrl_server *server) {
 
 // Read the latest input from the current connection into the buffer
 // Return the size of the input read, or -1 if no input is waiting. Return 0 for client disconnect as usual
-ssize_t get_latest_input(ctrl_server *server) {
+ssize_t get_latest_input(ctrl_server *server, char *buffer, size_t buffer_len) {
   // Clear buffer and get all waiting data from client in queue (up to buffer size)
-  clear_buffer(server);
-  ssize_t read_size = recv(server->client_fd, server->buffer, TCP_BUFFER, MSG_DONTWAIT);
+  clear_buffer(buffer, buffer_len);
+  ssize_t read_size = recv(server->client_fd, buffer, buffer_len, MSG_DONTWAIT);
 
   // No input is waiting
   if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -219,7 +219,7 @@ int upgrade_to_ws(ctrl_server *server) {
   printf("b64: %s\n", b64hashed);
   free(key);
 
-  clear_buffer(server);
+  clear_buffer(server->buffer, TCP_BUFFER);
   strcat(server->buffer, RESPONSE_START);
   strncat(server->buffer, b64hashed, SHA1_ENCODED_LEN);
   strcat(server->buffer, RESPONSE_END);
@@ -285,6 +285,74 @@ int handle_ws_frame(ctrl_server *server) {
   return 0;
 }
 
+// Read in a WS frame
+// Pre: there must be  a valid WS frame waiting
+// Return -1 on error, or 0 if none or not enough data was waiting
+int read_ws_frame(ctrl_server *server) {
+  // Data is received in network order
+  ssize_t read;
+  char byte;
+
+  // FIN, RSV 123, OPCODE
+  read = get_latest_input(server, &byte, 1);
+  if (read <= 0) {
+    return (int) read;
+  }
+  int fin = byte & 0x80 ? 1 : 0;
+  int rsv_zero = byte & 0x70; // For actual value, shift right
+  int opcode = byte & 0xf;
+  if (rsv_zero != 0) {
+    perror("rsv was not 1");
+    exit(EXIT_FAILURE);
+  }
+  printf("fin: %d\n", fin);
+  printf("rsv: %d\n", rsv_zero);
+  printf("opcode: 0x%x\n", opcode);
+
+  // MASK, PAYLOAD LENGTH
+  read = get_latest_input(server, &byte, 1);
+  if (read <= 0) {
+    return (int) read;
+  }
+  int mask = byte & 0x80 ? 1 : 0;
+  int payload_len = byte & 0x7f;
+  if (mask != 1) {
+    perror("mask bit was not 1");
+    exit(EXIT_FAILURE);
+  }
+  if (payload_len > 125) {
+    perror("payload length unexpectedly long");
+    exit(EXIT_FAILURE);
+  }
+  printf("mask: %d\n", mask);
+  printf("payload length: %d\n", payload_len);
+
+  // MASKING KEY
+  char *masking_key = calloc(MASKING_KEY_LEN, sizeof(char));
+  read = get_latest_input(server, masking_key, MASKING_KEY_LEN);
+  if (read <= 0) {
+    return (int) read;
+  }
+
+  // PAYLOAD
+  char *payload = calloc((size_t) payload_len, sizeof(char));
+  read = get_latest_input(server, payload, (size_t) payload_len);
+  if (read <= 0) {
+    return (int) read;
+  }
+
+  // Apply mask to payload
+  char *decoded = calloc((size_t) payload_len + 1, sizeof(char));
+  for(int i = 0; i < payload_len; ++i) {
+    decoded[i] = (unsigned char)payload[i] ^ masking_key[i%4];
+  }
+  decoded[payload_len] = '\0';
+  printf("payload: %s\n", decoded);
+
+  free(decoded);
+  return 1;
+}
+
 // Cleanup code
 int close_server(ctrl_server *server) {
   if (server == NULL) {
@@ -332,6 +400,7 @@ int main() {
 
   // Create socket, setup server
   ctrl_server *server = start_server();
+  int read;
 
   // Simulates main loop of effect runner
   while (!interrupted) {
@@ -340,15 +409,16 @@ int main() {
 
     // If client is connected
     if (server->client_fd) {
-      // Handle input from client if any was received
-      ssize_t read_size = get_latest_input(server);
-      if (read_size > 0) {
-        puts("Handling...");
-        handle_ws_frame(server); // TODO: read in bit by bit what we need? -SUGGESTED
-      } else if (read_size == 0) { // TODO: handle websocket disconnect message
+
+      read = read_ws_frame(server); // TODO: handle websocket disconnect message
+      if (read < 0) {
+        puts("No frame read");
+      }
+      if (read == 0) {
         puts("Client disconnected");
         server->client_fd = 0;
       }
+
     } else {
       // Check if any client is waiting to connect
       server->client_fd = try_accept_conn(server);
@@ -360,7 +430,7 @@ int main() {
         int tries = 0;
         do {
           sleep_for(1); //TODO: make this shorter
-          read_size = get_latest_input(server);
+          read_size = get_latest_input(server, server->buffer, TCP_BUFFER);
           tries++;
         } while (read_size < 0 && tries < 5);
 
