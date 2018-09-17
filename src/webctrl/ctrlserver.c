@@ -295,9 +295,7 @@ int read_ws_frame(ctrl_server *server) {
 
   // FIN, RSV 123, OPCODE
   read = get_latest_input(server, &byte, 1);
-  if (read <= 0) {
-    return (int) read;
-  }
+  if (read <= 0) return (int) read;
   int fin = byte & 0x80 ? 1 : 0;
   int rsv_zero = byte & 0x70; // For actual value, shift right
   int opcode = byte & 0xf;
@@ -311,9 +309,7 @@ int read_ws_frame(ctrl_server *server) {
 
   // MASK, PAYLOAD LENGTH
   read = get_latest_input(server, &byte, 1);
-  if (read <= 0) {
-    return (int) read;
-  }
+  if (read <= 0) return (int) read;
   int mask = byte & 0x80 ? 1 : 0;
   int payload_len = byte & 0x7f;
   if (mask != 1) {
@@ -330,27 +326,34 @@ int read_ws_frame(ctrl_server *server) {
   // MASKING KEY
   char *masking_key = calloc(MASKING_KEY_LEN, sizeof(char));
   read = get_latest_input(server, masking_key, MASKING_KEY_LEN);
-  if (read <= 0) {
-    return (int) read;
-  }
+  if (read <= 0) return (int) read;
 
   // PAYLOAD
+  if (payload_len <= 0) return opcode;
   char *payload = calloc((size_t) payload_len, sizeof(char));
   read = get_latest_input(server, payload, (size_t) payload_len);
-  if (read <= 0) {
-    return (int) read;
-  }
+  if (read <= 0) return (int) read;
 
   // Apply mask to payload
   char *decoded = calloc((size_t) payload_len + 1, sizeof(char));
-  for(int i = 0; i < payload_len; ++i) {
-    decoded[i] = (unsigned char)payload[i] ^ masking_key[i%4];
+  for (int i = 0; i < payload_len; i++) {
+    decoded[i] = payload[i] ^ masking_key[i%4];
   }
   decoded[payload_len] = '\0';
   printf("payload: %s\n", decoded);
 
   free(decoded);
-  return 1;
+  return opcode;
+}
+
+// Ensure a client is disconnected, for whatever reason
+void close_client(ctrl_server *server) {
+  if (close(server->client_fd)) {
+    // TODO: review, may be too harsh
+    perror("Client close");
+    exit(EXIT_FAILURE);
+  }
+  server->client_fd = 0;
 }
 
 // Cleanup code
@@ -393,12 +396,11 @@ void handle_user_exit(int _) {
 
 // Testing only
 // TODO: add button on map to reset connection (set client = 0), go back to listening
-// TODO: check why message is only displayed after ctrl-c
 int main() {
   // Set up Ctrl+C handle
   signal(SIGINT, handle_user_exit);
 
-  // Create socket, setup server
+  // Create listening socket, setup server
   ctrl_server *server = start_server();
   int read;
 
@@ -409,27 +411,40 @@ int main() {
 
     // If client is connected
     if (server->client_fd) {
-
-      read = read_ws_frame(server); // TODO: handle websocket disconnect message
-      if (read < 0) {
-        puts("No frame read");
-      }
-      if (read == 0) {
+      read = read_ws_frame(server);
+      if (read > 0) {
+        switch (read) {
+          case 0x1:
+            //puts("Payload");
+            break;
+          case 0x8:
+            puts("Terminate");
+            close_client(server);
+            break;
+          case 0x9:
+            puts("Ping");
+            break;
+          default:
+            puts("Unexpected");
+            close_client(server);
+        }
+      } else if (read == 0) {
         puts("Client disconnected");
-        server->client_fd = 0;
+        close_client(server);
+      } else {
+        //puts("No frame read");
       }
 
     } else {
       // Check if any client is waiting to connect
       server->client_fd = try_accept_conn(server);
 
-      // If a connection was accepted, wait until it's upgraded it to a WebSocket
+      // If a connection was accepted, block until it's upgraded it to a WebSocket
       if (server->client_fd) {
-        // Block until we have an input from the connection.
         ssize_t read_size;
         int tries = 0;
         do {
-          sleep_for(1); //TODO: make this shorter
+          //sleep_for(1); //TODO: make this shorter
           read_size = get_latest_input(server, server->buffer, TCP_BUFFER);
           tries++;
         } while (read_size < 0 && tries < 5);
@@ -437,12 +452,10 @@ int main() {
         if (read_size > 0) {
           puts("Upgrading to websocket...");
           if (try_to_upgrade(server)) {
-            // If upgrade failed, disconnect the client
-            close(server->client_fd);
-            server->client_fd = 0;
+            close_client(server);
           }
         } else {
-          server->client_fd = 0;
+          close_client(server);
         }
       }
 
