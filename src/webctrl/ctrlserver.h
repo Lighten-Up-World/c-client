@@ -28,13 +28,8 @@
 #define TCP_BUFFER 4095
 #define BACKLOG 0
 
-// 20 bytes // 160 bits
-//#define SHA1_CHAR_LEN (160 / (sizeof(char) * 8))
-#define SHA1_CHAR_LEN 20
-
-// 29 bytes // based on calculation using SHA1_CHAR_LEN
-//#define SHA1_ENCODED_LEN ((size_t) ceil((double)(4 * SHA1_CHAR_LEN) / 3))
-#define SHA1_ENCODED_LEN 28
+#define SHA1_CHAR_LEN 20    // 20 bytes // 160 bits
+#define SHA1_ENCODED_LEN 28 // 28 characters // calculated using SHA1_CHAR_LEN
 
 #define WEBSOCKET_KEY_HEADER "Sec-WebSocket-Key: "
 #define SEC_WEBSOCKET_MAGIC "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"

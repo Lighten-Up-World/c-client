@@ -151,7 +151,6 @@ ssize_t get_latest_input(ctrl_server *server, char *buffer, size_t buffer_len) {
 }
 
 // SHA1 hash and return the base64 of a key
-// TODO: check b64 max size given sha1 returns 20 bytes, and b64 returns 28 or less chars
 void sha1_and_encode(char *key, char **b64hashed) {
   // Calculate the SHA1 hash
   unsigned char *hash = calloc(SHA1_CHAR_LEN, sizeof(char));
@@ -234,55 +233,6 @@ int upgrade_to_ws(ctrl_server *server) {
 int try_to_upgrade(ctrl_server *server) {
   // Check we received a valid HTTP 101 upgrade to WS
   return (is_valid_http_upgrade(server)) ? upgrade_to_ws(server) : 1;
-}
-
-// Handle input from client, after input is read into buffer
-int handle_input(ctrl_server *server) {
-  /*for (int i = 0; i < 32; i++) {
-    printf("%d: %08x ", i, server->buffer[i]);
-  }*/
-
-  //printf("Buffer: \n%s", server->buffer); // TODO: fix seg fault here
-
-  // Get a pointer to the last command in the buffer
-  /*char *last_cmd = extract_last_cmd(server);
-  printf("Processing last cmd: %s", last_cmd);
-
-  if (strncmp(last_cmd, "echo\n", 4) == 0) {
-    return (int) write(server->client_fd, server->buffer, strlen(server->buffer));
-  }
-
-  return (int) write(server->client_fd, server->buffer, strlen(server->buffer));*/
-
-  return 0;
-}
-
-int handle_ws_frame(ctrl_server *server) {
-  for (int i = 0; i < 32; i++) {
-    printf("%d: %08x ", i, server->buffer[i]);
-  }
-  puts("");
-
-  //unsigned char frame[7] = {0b11010001, 0b11111111, 0x0, 0x0, 0x0, 0x0, 0x0};
-  unsigned char *frame = (unsigned char *) server->buffer; // TODO: check signed/unsigned?
-
-  uint8_t fin = bits_from_byte(frame[0], 0, 0);
-  printf("FIN:         0x%01x\n", fin);
-
-  uint8_t opcode = bits_from_byte(frame[0], 7, 4);
-  printf("OPCODE:      0x%01x\n", opcode);
-
-  uint8_t mask = bits_from_byte(frame[1], 0, 0);
-  printf("MASK:        0x%01x\n", mask);
-
-  uint8_t payload_len = bits_from_byte(frame[1], 7, 1);
-  printf("PAYLOAD LEN: 0x%02x\n", payload_len);
-
-  printf("KEY:         0x%02x 0x%02x 0x%02x 0x%02x\n", frame[2], frame[3], frame[4], frame[5]);
-
-  printf("PAYLOAD:     0x%02x\n", frame[6]);
-
-  return 0;
 }
 
 // Read in a WS frame
@@ -444,7 +394,6 @@ int main() {
         ssize_t read_size;
         int tries = 0;
         do {
-          //sleep_for(1); //TODO: make this shorter
           read_size = get_latest_input(server, server->buffer, TCP_BUFFER);
           tries++;
         } while (read_size < 0 && tries < 5);
@@ -465,10 +414,3 @@ int main() {
 
   close_server(server);
 }
-
-
-
-
-
-
-
