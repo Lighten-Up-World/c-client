@@ -79,8 +79,6 @@ ctrl_server *start_server() {
     exit(errno);
   }
 
-  // Set up server struct //TODO: check if we need this +1
-  char *buffer = calloc(TCP_BUFFER + 1, sizeof(char));
   ctrl_server *server = calloc(1, sizeof(ctrl_server));
   if (server == NULL) {
     perror("Server struct");
@@ -88,7 +86,6 @@ ctrl_server *start_server() {
   }
   server->socket_fd = sockfd;
   server->client_fd = 0;
-  server->buffer = buffer;
 
   return server;
 }
@@ -167,32 +164,22 @@ void sha1_and_encode(char *key, char **b64hashed) {
   free(hash);
 }
 
-// Return true if the buffer contains a 'valid' HTTP 101, for our purposes
-bool is_valid_http_upgrade(ctrl_server *server) {
-  // TODO: Check what a valid format looks like online
-
-  // Basics: (check http version)
-  // GET / HTTP/1.1
-  // Connection: Upgrade
-  // Upgrade: websocket
-  // Sec-WebSocket-Key: ...
-
-  // Reject anything else that may or may not be a valid HTTP request
-
+// Return true if the buffer contains a 'valid' HTTP upgrade to WS request, for our purposes
+// TODO: Reject anything else that may or may not be a valid HTTP request?
+bool is_valid_http_upgrade(char *request) {
+  if (strstr(request, REQUEST_METHOD) != request) return false;
+  if (strstr(request, REQUEST_UPGRADE) == NULL) return false;
+  if (strstr(request, UPGRADE_TO_WS) == NULL) return false;
+  if (strstr(request, WS_KEY_HEADER) == NULL) return false;
   return true;
 }
 
 // Handle a valid HTTP upgrade to WebSocket request
-int upgrade_to_ws(ctrl_server *server) {
-  // Append magic string to the client provided hash, then take the sha1 hash to send in response
-  char *key_header_start = strstr(server->buffer, WEBSOCKET_KEY_HEADER);
-  if (key_header_start == NULL) {
-    perror("Sec-WebSocket-Key not present");
-    exit(errno);
-  }
-
+// Append magic string to the client provided hash, then take the sha1 hash to send in response
+int upgrade_to_ws(ctrl_server *server, char *request) {
+  char *key_header_start = strstr(request, WS_KEY_HEADER);
   char *key_start = strchr(key_header_start, ' ') + 1;
-  if (key_start == NULL || key_start != key_header_start + strlen(WEBSOCKET_KEY_HEADER)) {
+  if (key_start == NULL || key_start != key_header_start + strlen(WS_KEY_HEADER)) {
     perror("Sec-WebSocket-Key header is malformed (key start)");
     exit(errno);
   }
@@ -204,40 +191,36 @@ int upgrade_to_ws(ctrl_server *server) {
   }
 
   size_t key_len = key_end - key_start;
-  char *key = calloc(key_len + strlen(SEC_WEBSOCKET_MAGIC), sizeof(char));
+  char *key = calloc(key_len + strlen(WS_KEY_MAGIC), sizeof(char));
   if (key == NULL) {
     perror("Key alloc");
     exit(errno);
   }
   memcpy(key, key_start, key_len);
-  memcpy(key + key_len, SEC_WEBSOCKET_MAGIC, strlen(SEC_WEBSOCKET_MAGIC));
+  memcpy(key + key_len, WS_KEY_MAGIC, strlen(WS_KEY_MAGIC));
 
   char *b64hashed = calloc(SHA1_ENCODED_LEN + 1, sizeof(char));
   sha1_and_encode(key, &b64hashed);
-  printf("key: %s\n", key);
-  printf("b64: %s\n", b64hashed);
   free(key);
 
-  clear_buffer(server->buffer, TCP_BUFFER);
-  strcat(server->buffer, RESPONSE_START);
-  strncat(server->buffer, b64hashed, SHA1_ENCODED_LEN);
-  strcat(server->buffer, RESPONSE_END);
+  clear_buffer(request, HTTP_BUFFER);
+  strcat(request, RESPONSE_START);
+  strncat(request, b64hashed, SHA1_ENCODED_LEN);
+  strcat(request, RESPONSE_END);
   free(b64hashed);
 
-  // TODO: handle errors here properly
-  // if 0, no bytes written, -1 is error and errno is set
-  return (int) (write(server->client_fd, server->buffer, strlen(server->buffer)) == 0);
+  // 0: no bytes written, -1: error and errno is set
+  return (int) (write(server->client_fd, request, strlen(request)) <= 0);
 }
 
-// Upgrade if possible, returning 0 on success
-int try_to_upgrade(ctrl_server *server) {
-  // Check we received a valid HTTP 101 upgrade to WS
-  return (is_valid_http_upgrade(server)) ? upgrade_to_ws(server) : 1;
+// Check we received a valid HTTP upgrade to WS request, then try to upgrade to a WS, returning 0 on success
+int try_to_upgrade(ctrl_server *server, char *request) {
+  return (is_valid_http_upgrade(request)) ? upgrade_to_ws(server, request) : 1;
 }
 
-// Read in a WS frame
+// TODO: review errors and return codes
 // Pre: there must be  a valid WS frame waiting
-// Return -1 on error, or 0 if none or not enough data was waiting
+// Return -1 on error, or 0 if none or not enough data was waiting for a valid WS frame
 int read_ws_frame(ctrl_server *server) {
   // Data is received in network order
   ssize_t read;
@@ -274,8 +257,8 @@ int read_ws_frame(ctrl_server *server) {
   printf("payload length: %d\n", payload_len);
 
   // MASKING KEY
-  char *masking_key = calloc(MASKING_KEY_LEN, sizeof(char));
-  read = get_latest_input(server, masking_key, MASKING_KEY_LEN);
+  char *masking_key = calloc(WS_MASKING_KEY_LEN, sizeof(char));
+  read = get_latest_input(server, masking_key, WS_MASKING_KEY_LEN);
   if (read <= 0) return (int) read;
 
   // PAYLOAD
@@ -299,7 +282,6 @@ int read_ws_frame(ctrl_server *server) {
 // Ensure a client is disconnected, for whatever reason
 void close_client(ctrl_server *server) {
   if (close(server->client_fd)) {
-    // TODO: review, may be too harsh
     perror("Client close");
     exit(EXIT_FAILURE);
   }
@@ -310,9 +292,6 @@ void close_client(ctrl_server *server) {
 int close_server(ctrl_server *server) {
   if (server == NULL) {
     return 0;
-  }
-  if (server->buffer) {
-    free(server->buffer);
   }
   if (server->client_fd) {
     if (close(server->client_fd)) {
@@ -393,19 +372,22 @@ int main() {
       if (server->client_fd) {
         ssize_t read_size;
         int tries = 0;
+        char *http_buffer = calloc(HTTP_BUFFER + 1, sizeof(char));
         do {
-          read_size = get_latest_input(server, server->buffer, TCP_BUFFER);
+          read_size = get_latest_input(server, http_buffer, HTTP_BUFFER);
           tries++;
         } while (read_size < 0 && tries < 5);
 
         if (read_size > 0) {
-          puts("Upgrading to websocket...");
-          if (try_to_upgrade(server)) {
+          puts("Upgrading to WebSocket...");
+          if (try_to_upgrade(server, http_buffer)) {
             close_client(server);
           }
         } else {
           close_client(server);
         }
+
+        free(http_buffer);
       }
 
     }
