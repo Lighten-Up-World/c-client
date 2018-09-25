@@ -222,6 +222,8 @@ int try_to_upgrade(ctrl_server *server, char *request) {
 // Pre: there must be  a valid WS frame waiting
 // Return -1 on error, or 0 if none or not enough data was waiting for a valid WS frame
 int read_ws_frame(ctrl_server *server) {
+  puts("Frame:");
+
   // Data is received in network order
   ssize_t read;
   char byte;
@@ -236,9 +238,9 @@ int read_ws_frame(ctrl_server *server) {
     perror("rsv was not 1");
     exit(EXIT_FAILURE);
   }
-  printf("fin: %d\n", fin);
-  printf("rsv: %d\n", rsv_zero);
-  printf("opcode: 0x%x\n", opcode);
+  printf("\tfin: %d\n", fin);
+  printf("\trsv: %d\n", rsv_zero);
+  printf("\topcode: 0x%x\n", opcode);
 
   // MASK, PAYLOAD LENGTH
   read = get_latest_input(server, &byte, 1);
@@ -253,8 +255,8 @@ int read_ws_frame(ctrl_server *server) {
     perror("payload length unexpectedly long");
     exit(EXIT_FAILURE);
   }
-  printf("mask: %d\n", mask);
-  printf("payload length: %d\n", payload_len);
+  printf("\tmask: %d\n", mask);
+  printf("\tpayload length: %d\n", payload_len);
 
   // MASKING KEY
   char *masking_key = calloc(WS_MASKING_KEY_LEN, sizeof(char));
@@ -273,7 +275,7 @@ int read_ws_frame(ctrl_server *server) {
     decoded[i] = payload[i] ^ masking_key[i%4];
   }
   decoded[payload_len] = '\0';
-  printf("payload: %s\n", decoded);
+  printf("\tpayload: %s\n", decoded);
 
   free(decoded);
   return opcode;
