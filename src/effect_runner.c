@@ -183,7 +183,7 @@ int run_effect(const char *effect_arg) {
   // Initialise api manager
   effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info, sink);
   if (effect_runner == NULL) {
-    fprintf(stderr, "Api_manager failed to initialise with effect %s\n", argv[1]);
+    fprintf(stderr, "Api_manager failed to initialise with effect %s\n", effect_arg);
     free(effect);
     opc_close(sink);
     list_delete(pixel_info);
@@ -195,23 +195,78 @@ int run_effect(const char *effect_arg) {
     effect_runner->frame->pixels[p] = WHITE_PIXEL;
   }
 
-  // Set up control server
-  //int server = 1;
-
   // Run the effect
   while (!interrupted) {
     printf("======== %ld =========\n", effect_runner->frame_no);
     nanosleep(&effect_runner->effect->time_delta, NULL);
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
-
-    // Handle server input
-    /*if (server_has_input(server)) {
-      for (int i = 0; i < 1000; i++) nanosleep(&effect_runner->effect->time_delta, NULL);
-    }*/
   }
 
   // Close it all up
   effect_runner_delete(effect_runner);
   return EXIT_SUCCESS;
+}
+
+int web_server(void) {
+  // Create listening socket, setup server
+  ctrl_server *server = start_server();
+  char *read;
+  printf("Server started on %s\n", LISTEN_PORT);
+  // Simulates main loop of effect runner
+  while (!interrupted) {
+
+    // *** Effect runner code here ***
+    //printf("Looking for a client with %i\n", server->client_fd);
+    // If client is connected
+    if (server->client_fd) {
+      read = read_ws_frame(server);
+      run_effect(read);
+      free(read);
+    } else {
+      // Check if any client is waiting to connect
+      server->client_fd = try_accept_conn(server);
+
+      // If a connection was accepted, block until it's upgraded it to a WebSocket
+      if (server->client_fd) {
+        ssize_t read_size;
+        int tries = 0;
+        char *http_buffer = calloc(HTTP_BUFFER + 1, sizeof(char));
+        do {
+          read_size = get_latest_input(server, http_buffer, HTTP_BUFFER);
+          tries++;
+        } while (read_size < 0 && tries < 5);
+
+        if (read_size > 0) {
+          puts("Upgrading to WebSocket...");
+          if (try_to_upgrade(server, http_buffer)) {
+            close_client(server);
+          }
+        } else {
+          close_client(server);
+        }
+
+        free(http_buffer);
+      }
+
+    }
+    sleep_for(1);
+  }
+
+  close_server(server);
+
+  return EXIT_SUCCESS;
+}
+
+int main(int argc, const char *argv[]) {
+  assert(argc > 1);
+
+  // Set up Ctrl+C handle
+  signal(SIGINT, handle_user_exit);
+
+  if (strcmp(argv[1], "-ws") == 0) {
+    web_server();
+  }
+
+  run_effect(argv[1]);
 }
