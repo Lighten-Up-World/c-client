@@ -20,6 +20,18 @@ const string_to_constructor effects[] = {
     {"test0", &get_test0_effect}
 };
 
+typedef struct {
+  char *key;
+  char *value;
+} string_to_string;
+
+const string_to_string cmds[] = {
+  {"raverplaid", "python ../openpixelcontrol/python/raver_plaid.py"},
+  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout ../layout/WorldMap.json"},
+  {"conway", "python ../openpixelcontrol/python/conway.py"},
+  {"snake", "python ../games/snake/snake.py"}
+};
+
 void handle_user_exit(int _) {
   perror("Interrupted, cleaning up\n");
   interrupted = 1;
@@ -129,11 +141,14 @@ int server_has_input(int server) {
   return 1;
 }
 
-int main(int argc, const char *argv[]) {
-  assert(argc > 1);
+int run_effect(const char *effect_arg) {
 
-  // Set up Ctrl+C handle
-  signal(SIGINT, handle_user_exit);
+  // Check for aliased commands
+  for (int i = 0; i < sizeof(cmds) / sizeof(string_to_string); i++) {
+    if (strcmp(cmds[i].key, effect_arg) == 0) {
+      return system(cmds[i].value);
+    }
+  }
 
   // Open connection
   opc_sink sink = opc_new_sink(HOST_AND_PORT);
@@ -154,12 +169,12 @@ int main(int argc, const char *argv[]) {
   // Find effect from argument
   effect_t *effect = NULL;
   for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
-    if (strcmp(effects[i].str, argv[1]) == 0) {
+    if (strcmp(effects[i].str, effect_arg) == 0) {
       effect = effects[i].new(pixel_info);
     }
   }
   if (effect == NULL) {
-    fprintf(stderr, "Failed to construct effect using argument %s\n", argv[1]);
+    fprintf(stderr, "Failed to construct effect using argument %s\n", effect_arg);
     opc_close(sink);
     list_delete(pixel_info);
     exit(EXIT_FAILURE);
