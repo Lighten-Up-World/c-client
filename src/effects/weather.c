@@ -100,7 +100,6 @@ void set_windspeed_pixel_colour(opc_pixel_t *pixel, double val) {
 void set_temp_pixel_colour(opc_pixel_t *pixel, double val) {
   assert(pixel != NULL);
   val -= 273.0;
-  printf("Temperature: %f ", val);
   int red = PIXEL_COLOUR_MIN;
   int blue = PIXEL_COLOUR_MIN;
   int green = PIXEL_COLOUR_MIN;
