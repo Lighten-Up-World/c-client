@@ -35,6 +35,9 @@ MODE = temp
 simulation: mkdir server $(PATHB)effect_runner.out
 	$(PATHB)effect_runner.out $(MODE)
 
+demo: mkdir $(PATHB)effect_runner.out
+	$(PATHS)demo.sh
+
 conway: mkdir
 	python $(PATHROOT)$(PATHOPC)python/conway.py
 
