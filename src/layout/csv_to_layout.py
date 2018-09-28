@@ -12,7 +12,7 @@ height = 24
 x_offset = -26
 y_offset = -12
 
-with open('layout/csv/WorldMap.csv', 'rb') as csvfile:
+with open('csv/WorldMap.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile)
     y = 0
     count = 0
@@ -36,11 +36,11 @@ with open('layout/csv/WorldMap.csv', 'rb') as csvfile:
             count+=1
             x += 1
         y += 1
-with open('layout/strip_config.txt', 'w') as sf:
+with open('strip_config.txt', 'w') as sf:
     sf.write('\n'.join(strip))
-with open('layout/coordinates.txt', 'w') as ci:
+with open('coordinates.txt', 'w') as ci:
     ci.write('\n'.join(mappings))
-with open('layout/WorldMap.json', 'w') as f:
+with open('WorldMap.json', 'w') as f:
     f.write('[\n')
     flatten = [item for sublist in pixel_channels for item in sublist if item != ""]
     f.write(',\n'.join(flatten))
