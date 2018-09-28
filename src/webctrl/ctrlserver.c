@@ -382,7 +382,6 @@ int main() {
         int tries = 0;
         char *http_buffer = calloc(HTTP_BUFFER + 1, sizeof(char));
         do {
-          puts("reading...");
           read_size = get_latest_input(server, http_buffer, HTTP_BUFFER);
           tries++;
           sleep_for(1);
