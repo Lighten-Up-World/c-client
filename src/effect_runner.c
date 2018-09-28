@@ -197,7 +197,6 @@ int run_effect(const char *effect_arg) {
 
   // Run the effect
   while (!interrupted) {
-    printf("======== %ld =========\n", effect_runner->frame_no);
     nanosleep(&effect_runner->effect->time_delta, NULL);
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
