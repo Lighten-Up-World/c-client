@@ -21,7 +21,7 @@ do
      $i > /dev/null &
      # Get its PID
      PID=$!
-     # Wait for 2 seconds
+     # Wait for $delay seconds
      sleep $delay
      # Kill it
      kill $PID
