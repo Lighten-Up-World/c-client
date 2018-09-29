@@ -67,7 +67,7 @@ black:
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
-$(PATHB)ctrlserver.out: $(PATHOBJ)cntrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
+$(PATHB)ctrlserver.out: $(PATHOBJ)ctrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
 	$(LINK) -o $@ $^ -lm
 
 $(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
