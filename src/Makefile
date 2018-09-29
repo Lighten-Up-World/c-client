@@ -30,6 +30,10 @@ LINK = gcc -lssl -lcrypto
 DEBUG = -DDEBUG -g
 CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
 
+## Below filepaths change depending on OS, current ones are for mac ##
+SERVERFLAGS = -I/usr/local/Cellar//openssl/1.0.2o_2/include
+LDLIBS = -L/usr/local/Cellar//openssl/1.0.2o_2/lib/ -lssl -lcrypto
+
 MODE = temp
 
 simulation: mkdir server $(PATHB)effect_runner.out
@@ -68,7 +72,7 @@ run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
 $(PATHB)ctrlserver.out: $(PATHOBJ)ctrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ -lm
 
 $(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
 	$(LINK) -o $@ $^ -lm
