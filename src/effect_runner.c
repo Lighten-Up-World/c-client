@@ -16,8 +16,8 @@ const string_to_constructor effects[] = {
     {"temp_timelapse", &get_temp_timelapse_effect},
     {"image", &get_image_effect},
     {"sun", &get_sun_effect},
-    {"test", &get_test_effect},
-    {"test0", &get_test0_effect}
+    {"alltest", &get_alltest_effect},
+    {"1test", &get_test1_effect}
 };
 
 typedef struct {
@@ -169,7 +169,7 @@ int run_effect(const char *effect_arg) {
   // Find effect from argument
   effect_t *effect = NULL;
   for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
-    if (strcmp(effects[i].str, effect_arg) == 0) {
+    if (strncmp(effects[i].str, effect_arg, strlen(effects[i].str)) == 0) {
       effect = effects[i].new(pixel_info);
     }
   }
