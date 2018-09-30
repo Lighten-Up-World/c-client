@@ -102,15 +102,15 @@ int try_accept_conn(ctrl_server *server) {
   size_t size = sizeof(client_addr);
   int client_sock = accept(server->socket_fd, (struct sockaddr *) &client_addr, (socklen_t*) &size);
 
-  // No client is waiting
-  if (errno == EAGAIN || errno ==  EWOULDBLOCK) {
-    return 0;
-  }
-
-  // Other error
   if (client_sock < 0) {
-    perror("accept");
-    exit(errno);
+    // No client is waiting
+    if (errno == EAGAIN || errno ==  EWOULDBLOCK) {
+      return 0;
+      // Other error
+    } else {
+      perror("accept");
+      exit(errno);
+    }
   }
 
   // Client connected
@@ -129,8 +129,13 @@ ssize_t get_latest_input(ctrl_server *server, char *buffer, size_t buffer_len) {
   ssize_t read_size = recv(server->client_fd, buffer, buffer_len, MSG_DONTWAIT);
 
   // No input is waiting
-  if (errno == EAGAIN || errno == EWOULDBLOCK) {
-    return -1;
+  if (read_size == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return -1;
+    } else {
+      perror("recv");
+      exit(EXIT_FAILURE);
+    }
   }
 
   // Client disconnected
