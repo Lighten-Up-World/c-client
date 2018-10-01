@@ -54,6 +54,9 @@ server: layout
 	cd $(PATHROOT)$(PATHOPC); make
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
+1by1:
+	python ../../fadecandy/examples/python/one-by-one.oy
+
 old_layout:
 	cp layout/csv/WorldMap_old.csv layout/csv/WorldMap.csv
 	python layout/csv_to_layout.py
