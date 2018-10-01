@@ -54,7 +54,12 @@ server: layout
 	cd $(PATHROOT)$(PATHOPC); make
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
-layout:
+old_layout:
+	cp layout/csv/WorldMap_old.csv layout/csv/WorldMap.csv
+	python layout/csv_to_layout.py
+
+new_layout:
+	cp layout/csv/WorldMap_new.csv layout/csv/WorldMap.csv
 	python layout/csv_to_layout.py
 
 run_bones: mkdir $(PATHB)bare_bones_test.out

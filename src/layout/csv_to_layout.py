@@ -19,9 +19,9 @@ with open('layout/csv/WorldMap.csv', 'rb') as csvfile:
     for row in list(reader):
         x = 0
         for cell in list(row):
+            # if no pixel in this cell, skip
             if str(cell) == "":
                 x += 1
-                #ie. no pixel in this cell
                 continue
             cell = str(cell).split("-");
             cell_channel = int(cell[0])
@@ -32,6 +32,7 @@ with open('layout/csv/WorldMap.csv', 'rb') as csvfile:
             pixel_channels[cell_channel][cell_num] = pixels[-1]
 
             mappings.append('%d %d %d' % (x, y, count))
+
             strip.append('%d %s %d' % (cell_channel, cell_num, count))
             count+=1
             x += 1

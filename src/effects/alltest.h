@@ -12,7 +12,7 @@
 #include "../extension.h"
 #include "../pixel.h"
 
-int test_run(effect_runner_t* self);
-effect_t *get_test_effect(void * obj);
+int alltest_run(effect_runner_t* self);
+effect_t *get_alltest_effect(void * obj);
 
 #endif

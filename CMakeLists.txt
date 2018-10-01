@@ -35,10 +35,10 @@ add_executable(arm11_22
         src/effects/scroller.h
         src/effects/sunrise.c
         src/effects/sunrise.h
-        src/effects/test.c
-        src/effects/test.h
-        src/effects/test0.c
-        src/effects/test0.h
+        src/effects/alltest.c
+        src/effects/alltest.h
+        src/effects/1test.c
+        src/effects/1test.h
         src/effects/weather.c
         src/effects/weather.h
         src/layout/csv_to_layout.c
