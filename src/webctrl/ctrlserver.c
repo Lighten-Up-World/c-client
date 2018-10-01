@@ -183,8 +183,6 @@ bool is_valid_http_upgrade(char *request) {
 // Handle a valid HTTP upgrade to WebSocket request
 // Append magic string to the client provided hash, then take the sha1 hash to send in response
 int upgrade_to_ws(ctrl_server *server, char *request) {
-  printf("request: %s", request);
-
   char *key_header_start = strstr(request, WS_KEY_HEADER);
   char *key_start = strchr(key_header_start, ' ') + 1;
   if (key_start == NULL || key_start != key_header_start + strlen(WS_KEY_HEADER)) {
@@ -215,8 +213,6 @@ int upgrade_to_ws(ctrl_server *server, char *request) {
   strcat(request, RESPONSE_START);
   strncat(request, b64hashed, SHA1_ENCODED_LEN);
   strcat(request, RESPONSE_END);
-
-  printf("response: %s", request);
 
   free(b64hashed);
 
