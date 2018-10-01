@@ -154,6 +154,8 @@ ssize_t get_latest_input(ctrl_server *server, char *buffer, size_t buffer_len) {
 
 // SHA1 hash and return the base64 of a key
 void sha1_and_encode(char *key, char **b64hashed) {
+  printf("key: %s\n", key);
+  
   // Calculate the SHA1 hash
   unsigned char *hash = calloc(SHA1_CHAR_LEN, sizeof(char));
   if (hash == NULL) {
@@ -162,9 +164,21 @@ void sha1_and_encode(char *key, char **b64hashed) {
   }
   hash = SHA1((const unsigned char *)key, strlen((const char *) key), hash);
 
+  puts("hash:");
+  for (int i=0; i < 20; i++) {
+    printf("%02x ", hash[i]);
+  }
+  puts("");
+
   // Encode the hash in base64 before placing in response
   base64_encode(hash, SHA1_CHAR_LEN, b64hashed);
   (*b64hashed)[SHA1_ENCODED_LEN] = '\0';
+ 
+  puts("encoded:");
+  for (int i=0; i < 28; i++) {
+    printf("%c", (*b64hashed)[i]);
+  }
+  puts("");
 
   free(hash);
 }
@@ -182,6 +196,8 @@ bool is_valid_http_upgrade(char *request) {
 // Handle a valid HTTP upgrade to WebSocket request
 // Append magic string to the client provided hash, then take the sha1 hash to send in response
 int upgrade_to_ws(ctrl_server *server, char *request) {
+  printf("request: %s", request);
+
   char *key_header_start = strstr(request, WS_KEY_HEADER);
   char *key_start = strchr(key_header_start, ' ') + 1;
   if (key_start == NULL || key_start != key_header_start + strlen(WS_KEY_HEADER)) {
@@ -196,13 +212,15 @@ int upgrade_to_ws(ctrl_server *server, char *request) {
   }
 
   size_t key_len = key_end - key_start;
-  char *key = calloc(key_len + strlen(WS_KEY_MAGIC), sizeof(char));
+  char *key = calloc(key_len + strlen(WS_KEY_MAGIC) + 1, sizeof(char));
   if (key == NULL) {
     perror("Key alloc");
     exit(errno);
   }
   memcpy(key, key_start, key_len);
   memcpy(key + key_len, WS_KEY_MAGIC, strlen(WS_KEY_MAGIC));
+
+  printf("key: %s\n", key);
 
   char *b64hashed = calloc(SHA1_ENCODED_LEN + 1, sizeof(char));
   sha1_and_encode(key, &b64hashed);
@@ -212,6 +230,9 @@ int upgrade_to_ws(ctrl_server *server, char *request) {
   strcat(request, RESPONSE_START);
   strncat(request, b64hashed, SHA1_ENCODED_LEN);
   strcat(request, RESPONSE_END);
+
+  printf("response: %s", request);
+
   free(b64hashed);
 
   // 0: no bytes written, -1: error and errno is set
