@@ -25,7 +25,7 @@ UTIL_O = $(patsubst $(PATHUTIL)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHUTIL)*.c))
 EFFECT_O = $(patsubst $(PATHEFFECT)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHEFFECT)*.c))
 
 COMPILE = gcc -c
-LINK = gcc
+LINK = gcc -lssl -lcrypto
 
 DEBUG = -DDEBUG -g
 CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
@@ -66,6 +66,9 @@ black:
 
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
+
+$(PATHB)ctrlserver.out: $(PATHOBJ)ctrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
+	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ -lm
 
 $(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
 	$(LINK) -o $@ $^ -lm

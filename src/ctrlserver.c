@@ -90,7 +90,7 @@ ctrl_server *start_server() {
   return server;
 }
 
-void clear_buffer(char *buffer, size_t len) {
+void clear_buff(char *buffer, size_t len) {
   for (int i = 0; i < len; i++) {
     buffer[i] = '\0';
   }
@@ -103,14 +103,14 @@ int try_accept_conn(ctrl_server *server) {
   int client_sock = accept(server->socket_fd, (struct sockaddr *) &client_addr, (socklen_t*) &size);
 
   if (client_sock < 0) {
-      // No client is waiting
-      if (errno == EAGAIN || errno ==  EWOULDBLOCK) {
-          return 0;
+    // No client is waiting
+    if (errno == EAGAIN || errno ==  EWOULDBLOCK) {
+      return 0;
       // Other error
-      } else {
-          perror("accept");
-          exit(errno);
-      }
+    } else {
+      perror("accept");
+      exit(errno);
+    }
   }
 
   // Client connected
@@ -125,19 +125,18 @@ int try_accept_conn(ctrl_server *server) {
 // Return the size of the input read, or -1 if no input is waiting. Return 0 for client disconnect as usual
 ssize_t get_latest_input(ctrl_server *server, char *buffer, size_t buffer_len) {
   // Clear buffer and get all waiting data from client in queue (up to buffer size)
-  clear_buffer(buffer, buffer_len);
+  clear_buff(buffer, buffer_len);
   ssize_t read_size = recv(server->client_fd, buffer, buffer_len, MSG_DONTWAIT);
 
   // No input is waiting
   if (read_size == -1) {
-      if (errno == EAGAIN || errno == EWOULDBLOCK) {
-          return -1;
-      } else {
-          perror("recv");
-          exit(EXIT_FAILURE);
-      }
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return -1;
+    } else {
+      perror("recv");
+      exit(EXIT_FAILURE);
+    }
   }
-
 
   // Client disconnected
   if (read_size == 0) {
@@ -209,7 +208,7 @@ int upgrade_to_ws(ctrl_server *server, char *request) {
   sha1_and_encode(key, &b64hashed);
   free(key);
 
-  clear_buffer(request, HTTP_BUFFER);
+  clear_buff(request, HTTP_BUFFER);
   strcat(request, RESPONSE_START);
   strncat(request, b64hashed, SHA1_ENCODED_LEN);
   strcat(request, RESPONSE_END);
@@ -227,7 +226,7 @@ int try_to_upgrade(ctrl_server *server, char *request) {
 // TODO: review errors and return codes
 // Pre: there must be  a valid WS frame waiting
 // Return -1 on error, or 0 if none or not enough data was waiting for a valid WS frame
-int read_ws_frame(ctrl_server *server) {
+char *read_ws_frame(ctrl_server *server) {
   puts("Frame:");
 
   // Data is received in network order
@@ -236,7 +235,7 @@ int read_ws_frame(ctrl_server *server) {
 
   // FIN, RSV 123, OPCODE
   read = get_latest_input(server, &byte, 1);
-  if (read <= 0) return (int) read;
+  if (read <= 0) return NULL;
   int fin = byte & 0x80 ? 1 : 0;
   int rsv_zero = byte & 0x70; // For actual value, shift right
   int opcode = byte & 0xf;
@@ -250,7 +249,7 @@ int read_ws_frame(ctrl_server *server) {
 
   // MASK, PAYLOAD LENGTH
   read = get_latest_input(server, &byte, 1);
-  if (read <= 0) return (int) read;
+  if (read <= 0) return NULL;
   int mask = byte & 0x80 ? 1 : 0;
   int payload_len = byte & 0x7f;
   if (mask != 1) {
@@ -267,13 +266,13 @@ int read_ws_frame(ctrl_server *server) {
   // MASKING KEY
   char *masking_key = calloc(WS_MASKING_KEY_LEN, sizeof(char));
   read = get_latest_input(server, masking_key, WS_MASKING_KEY_LEN);
-  if (read <= 0) return (int) read;
+  if (read <= 0) return NULL;
 
   // PAYLOAD
-  if (payload_len <= 0) return opcode;
+  if (payload_len <= 0) return NULL;
   char *payload = calloc((size_t) payload_len, sizeof(char));
   read = get_latest_input(server, payload, (size_t) payload_len);
-  if (read <= 0) return (int) read;
+  if (read <= 0) return NULL;
 
   // Apply mask to payload
   char *decoded = calloc((size_t) payload_len + 1, sizeof(char));
@@ -283,8 +282,27 @@ int read_ws_frame(ctrl_server *server) {
   decoded[payload_len] = '\0';
   printf("\tpayload: %s\n", decoded);
 
-  free(decoded);
-  return opcode;
+  if (opcode > 0) {
+    switch (opcode) {
+      case 0x1:
+        break;
+      case 0x8:
+        puts("Terminate");
+        close_client(server);
+        break;
+      case 0x9:
+        puts("Ping");
+        break;
+      default:
+        puts("Unexpected");
+        close_client(server);
+    }
+  } else if (opcode == 0) {
+    puts("Client disconnected");
+    close_client(server);
+  }
+
+  return decoded;
 }
 
 // Ensure a client is disconnected, for whatever reason
@@ -323,85 +341,4 @@ void sleep_for(uint8_t s) {
   sleep.tv_nsec = 0;
   sleep.tv_sec = s;
   nanosleep(&sleep, NULL);
-}
-
-// Set interrupted flag
-int interrupted = 0;
-void handle_user_exit(int _) {
-  interrupted = 1;
-}
-
-// Testing only
-// TODO: add button on map to reset connection (set client = 0), go back to listening
-int main() {
-  // Set up Ctrl+C handle
-  signal(SIGINT, handle_user_exit);
-
-  // Create listening socket, setup server
-  ctrl_server *server = start_server();
-  int read;
-
-  // Simulates main loop of effect runner
-  while (!interrupted) {
-
-    // *** Effect runner code here ***
-
-    // If client is connected
-    if (server->client_fd) {
-      read = read_ws_frame(server);
-      if (read > 0) {
-        switch (read) {
-          case 0x1:
-            //puts("Payload");
-            break;
-          case 0x8:
-            puts("Terminate");
-            close_client(server);
-            break;
-          case 0x9:
-            puts("Ping");
-            break;
-          default:
-            puts("Unexpected");
-            close_client(server);
-        }
-      } else if (read == 0) {
-        puts("Client disconnected");
-        close_client(server);
-      } else {
-        //puts("No frame read");
-      }
-
-    } else {
-      // Check if any client is waiting to connect
-      server->client_fd = try_accept_conn(server);
-
-      // If a connection was accepted, block until it's upgraded it to a WebSocket
-      if (server->client_fd) {
-        ssize_t read_size;
-        int tries = 0;
-        char *http_buffer = calloc(HTTP_BUFFER + 1, sizeof(char));
-        do {
-          read_size = get_latest_input(server, http_buffer, HTTP_BUFFER);
-          tries++;
-          sleep_for(1);
-        } while (read_size < 0 && tries < 5);
-
-        if (read_size > 0) {
-          puts("Upgrading to WebSocket...");
-          if (try_to_upgrade(server, http_buffer)) {
-            close_client(server);
-          }
-        } else {
-          close_client(server);
-        }
-
-        free(http_buffer);
-      }
-
-    }
-    sleep_for(1);
-  }
-
-  close_server(server);
 }
