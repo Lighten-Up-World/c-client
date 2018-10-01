@@ -55,7 +55,7 @@ server: layout
 	$(PATHROOT)$(PATHOPC)bin/gl_server -l $(PATHROOT)$(PATHLAYOUT)WorldMap.json &
 
 1by1:
-	python ../../fadecandy/examples/python/one-by-one.oy
+	python ../fadecandy/examples/python/one-by-one.py
 
 old_layout:
 	cp layout/csv/WorldMap_old.csv layout/csv/WorldMap.csv
@@ -69,8 +69,7 @@ run_bones: mkdir $(PATHB)bare_bones_test.out
 	./build/bare_bones_test.out
 
 black:
-	python ../../fadecandy/examples/python/solid-black.py
-
+	python ../fadecandy/examples/python/solid-black.py
 
 run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
