@@ -18,13 +18,13 @@ static opc_sink_info opc_sinks[OPC_MAX_SINKS];
 static opc_sink opc_next_sink = 0;
 
 static int strip_size[] = {
-  64,
-  60,
-  52,
-  64,
   63,
+  60,
+  64,
   44,
   60,
+  64,
+  52,
   64
 };
 
