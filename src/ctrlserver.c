@@ -1,26 +1,5 @@
 #include "ctrlserver.h"
 
-#include <stdint.h>
-#include <assert.h>
-
-/**
- *  Get the specified interval of bits from an instruction, left padding with zeros
- *  Limits are inclusive.
- *
- *  @param inst: instruction to get bits from
- *  @param x: MSb of interval to return
- *  @param y: LSb of interval to return
- *  @return: word containing the specified bits, right aligned
- */
-uint8_t bits_from_byte(char inst, uint8_t x, uint8_t y) {
-  assert(x <= 7);
-  assert(x >= y);
-  assert(y >= 0);
-  assert(!(x == 7 && y == 0));
-
-  return (inst >> y) & ~(~(uint8_t) 0 << (x + 1 - y));
-}
-
 // TODO: figure out how this works and implement error checking?
 // https://gist.github.com/barrysteyn/7308212
 //Encodes a binary safe base 64 string

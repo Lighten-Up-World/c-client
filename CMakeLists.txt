@@ -50,6 +50,8 @@ add_executable(arm11_22
         src/utils/csv.h
         src/utils/list.c
         src/utils/list.h
+        src/ctrlserver.h
+        src/ctrlserver.c
         src/apimanager.c
         src/apimanager.h
         src/bare_bones_test.c
