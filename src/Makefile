@@ -24,8 +24,8 @@ ROOT_O = $(patsubst $(PATHS)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHS)*.c))
 UTIL_O = $(patsubst $(PATHUTIL)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHUTIL)*.c))
 EFFECT_O = $(patsubst $(PATHEFFECT)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHEFFECT)*.c))
 
-COMPILE = gcc -c
-LINK = gcc -lssl -lcrypto
+COMPILE = gcc -c -g
+LINK = gcc -g -lssl -lcrypto
 
 DEBUG = -DDEBUG -g
 CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)

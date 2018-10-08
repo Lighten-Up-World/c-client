@@ -1,6 +1,6 @@
 #include "effect_runner.h"
 
-volatile int interrupted = 0;
+volatile static server_args sa;
 
 typedef struct {
   char *str;
@@ -32,9 +32,22 @@ const string_to_string cmds[] = {
   {"snake", "python ../games/snake/snake.py"}
 };
 
+const char *commands[] = {
+  "temp",
+  "temp_timelapse",
+  "temp_log",
+  "windspeed",
+  "scroll",
+  "temp_timelapse",
+  "image",
+  "sun",
+  "alltest",
+  "1test",
+};
+
 void handle_user_exit(int _) {
   perror("Interrupted, cleaning up\n");
-  interrupted = 1;
+  sa.interrupted = 1;
 }
 
 effect_runner_t *effect_runner_new(void) {
@@ -74,7 +87,6 @@ void effect_runner_delete(effect_runner_t *self) {
   free(self);
 }
 
-// TODO: change this to generic init, abstract set effect
 effect_t *init_effect(const char *arg, void *pixel_info, opc_sink sink) {
   effect_t *effect = NULL;
   for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
@@ -154,10 +166,6 @@ int init_strip(list_t *list) {
   return 0;
 }
 
-int server_has_input(int server) {
-  return 1;
-}
-
 // TODO: add generic cleanup code
 int main(int argc, const char *argv[]) {
   assert(argc > 1);
@@ -181,8 +189,18 @@ int main(int argc, const char *argv[]) {
   init_geo(pixel_info);
   init_strip(pixel_info);
 
-  // Set up control server
-  int server = 1;
+  // Set up control server thread and lock
+  pthread_t server_thread_id;
+  if (pthread_create(&server_thread_id,
+                 NULL,
+                 server,
+                 (void *) &sa)) {
+    perror("thread create");
+  }
+//  printf("mt: %p\n", sa.mutex);
+  if (pthread_mutex_init((pthread_mutex_t *) &sa.mutex, NULL)) {
+    perror("mutex create");
+  }
 
   // Initialise the effect
   effect_t *effect = init_effect(argv[1], pixel_info, sink);
@@ -198,25 +216,28 @@ int main(int argc, const char *argv[]) {
   }
 
   // Clear Pixels
-  for (int p = 0; p < NUM_PIXELS; p++) {
-    effect_runner->frame->pixels[p] = WHITE_PIXEL;
-  }
+  CLEAR_PIXELS;
 
   // Run the effect
-  while (!interrupted) {
+  while (!(sa.interrupted)) {
     nanosleep(&effect_runner->effect->time_delta, NULL);
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
 
-    // TODO: Handle server input
-    if (server_has_input(server)) {
-      argv[1] = "sun";
-      goto end;
+    // Handle server input
+    pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
+    if (sa.shared_cmd) {
+      if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
+        effect_runner->effect = init_effect(commands[sa.shared_cmd], pixel_info, sink);
+        effect_runner->frame_no = 0;
+      }
     }
+    pthread_mutex_unlock((pthread_mutex_t *) &sa.mutex);
   }
 
-end:
   // Close it all up
   effect_runner_delete(effect_runner);
+  pthread_join(server_thread_id, NULL);
+
   return EXIT_SUCCESS;
 }

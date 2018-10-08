@@ -223,10 +223,19 @@ int try_to_upgrade(ctrl_server *server, char *request) {
   return (is_valid_http_upgrade(request)) ? upgrade_to_ws(server, request) : 1;
 }
 
+// Ensure a client is disconnected, for whatever reason
+void close_client(ctrl_server *server) {
+  if (close(server->client_fd)) {
+    perror("Client close");
+    exit(EXIT_FAILURE);
+  }
+  server->client_fd = 0;
+}
+
 // TODO: review errors and return codes
 // Pre: there must be  a valid WS frame waiting
 // Return -1 on error, or 0 if none or not enough data was waiting for a valid WS frame
-char *read_ws_frame(ctrl_server *server) {
+int read_ws_frame(ctrl_server *server) {
   puts("Frame:");
 
   // Data is received in network order
@@ -235,7 +244,7 @@ char *read_ws_frame(ctrl_server *server) {
 
   // FIN, RSV 123, OPCODE
   read = get_latest_input(server, &byte, 1);
-  if (read <= 0) return NULL;
+  if (read <= 0) return -1;
   int fin = byte & 0x80 ? 1 : 0;
   int rsv_zero = byte & 0x70; // For actual value, shift right
   int opcode = byte & 0xf;
@@ -249,7 +258,7 @@ char *read_ws_frame(ctrl_server *server) {
 
   // MASK, PAYLOAD LENGTH
   read = get_latest_input(server, &byte, 1);
-  if (read <= 0) return NULL;
+  if (read <= 0) return -1;
   int mask = byte & 0x80 ? 1 : 0;
   int payload_len = byte & 0x7f;
   if (mask != 1) {
@@ -266,13 +275,13 @@ char *read_ws_frame(ctrl_server *server) {
   // MASKING KEY
   char *masking_key = calloc(WS_MASKING_KEY_LEN, sizeof(char));
   read = get_latest_input(server, masking_key, WS_MASKING_KEY_LEN);
-  if (read <= 0) return NULL;
+  if (read <= 0) return -1;
 
   // PAYLOAD
-  if (payload_len <= 0) return NULL;
+  if (payload_len <= 0) return -1;
   char *payload = calloc((size_t) payload_len, sizeof(char));
   read = get_latest_input(server, payload, (size_t) payload_len);
-  if (read <= 0) return NULL;
+  if (read <= 0) return -1;
 
   // Apply mask to payload
   char *decoded = calloc((size_t) payload_len + 1, sizeof(char));
@@ -302,22 +311,18 @@ char *read_ws_frame(ctrl_server *server) {
     close_client(server);
   }
 
-  return decoded;
-}
-
-// Ensure a client is disconnected, for whatever reason
-void close_client(ctrl_server *server) {
-  if (close(server->client_fd)) {
-    perror("Client close");
-    exit(EXIT_FAILURE);
+  long conv = strtol(decoded, NULL, 0);
+  if (conv == LONG_MIN || conv == LONG_MAX || conv == 0) {
+    exit(errno);
   }
-  server->client_fd = 0;
+
+  return (int) (conv - 1);
 }
 
 // Cleanup code
-int close_server(ctrl_server *server) {
+void close_server(ctrl_server *server) {
   if (server == NULL) {
-    return 0;
+    return;
   }
   if (server->client_fd) {
     if (close(server->client_fd)) {
@@ -332,7 +337,6 @@ int close_server(ctrl_server *server) {
     }
   }
   free(server);
-  return 0;
 }
 
 // Sleep for s seconds
@@ -341,4 +345,52 @@ void sleep_for(uint8_t s) {
   sleep.tv_nsec = 0;
   sleep.tv_sec = s;
   nanosleep(&sleep, NULL);
+}
+
+void *server(void *as) {
+  // Set up the server
+  server_args *args = (server_args *) as;
+  ctrl_server *server = start_server();
+  int read;
+
+  // Run forever
+  while (!args->interrupted) {
+    // If client is connected
+    if (server->client_fd) {
+      read = read_ws_frame(server);
+      if (read > 0) {
+        args->shared_cmd = (uint8_t) read;
+      } else if (read == 0) {
+        puts("Client disconnected");
+        close_client(server);
+      }
+    } else {
+      // Check if any client is waiting to connect
+      server->client_fd = try_accept_conn(server);
+
+      // If a connection was accepted, block until it's upgraded it to a WebSocket
+      if (server->client_fd) {
+        ssize_t read_size;
+        int tries = 0;
+        char *http_buffer = calloc(HTTP_BUFFER + 1, sizeof(char));
+        do {
+          read_size = get_latest_input(server, http_buffer, HTTP_BUFFER);
+          tries++;
+        } while (read_size < 0 && tries < 5);
+
+        if (read_size > 0) {
+          puts("Upgrading to WebSocket...");
+          if (try_to_upgrade(server, http_buffer)) {
+            close_client(server);
+          }
+        } else {
+          close_client(server);
+        }
+        free(http_buffer);
+      }
+    }
+    sleep_for(1);
+  }
+  close_server(server);
+  return NULL;
 }
