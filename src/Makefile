@@ -24,11 +24,13 @@ ROOT_O = $(patsubst $(PATHS)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHS)*.c))
 UTIL_O = $(patsubst $(PATHUTIL)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHUTIL)*.c))
 EFFECT_O = $(patsubst $(PATHEFFECT)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHEFFECT)*.c))
 
-COMPILE = gcc -c -g
-LINK = gcc -g -lssl -lcrypto
+COMPILE = gcc -c
+LINK = gcc
 
 DEBUG = -DDEBUG -g
-CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
+CFLAGS = -Wall -Werror -pedantic -pthread -O0 -std=gnu99 $(DEBUG)
+
+LDLIBS = -lssl -lcrypto -lpthread -lm
 
 MODE = temp
 
@@ -75,16 +77,16 @@ run: mkdir $(PATHB)effect_runner.out
 	./build/effect_runner.out $(MODE)
 
 $(PATHB)ctrlserver.out: $(PATHOBJ)ctrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
-	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ -lm
+	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ $(LDLIBS)
 
 $(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) -o $@ $^ $(LDLIBS)
 
 $(PATHB)effect_runner.out: $(ROOT_O) $(UTIL_O) $(EFFECT_O) $(PATHOBJ)opc_client.o $(PATHOBJ)parson.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) -o $@ $^ $(LDLIBS)
 
 $(PATHB)%.out: $(PATHOBJ)%.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) -o $@ $^ $(LDLIBS)
 
 $(PATHOBJ)%.o: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@
