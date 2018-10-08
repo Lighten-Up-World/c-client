@@ -236,8 +236,6 @@ void close_client(ctrl_server *server) {
 // Pre: there must be  a valid WS frame waiting
 // Return -1 on error, or 0 if none or not enough data was waiting for a valid WS frame
 int read_ws_frame(ctrl_server *server) {
-  puts("Frame:");
-
   // Data is received in network order
   ssize_t read;
   char byte;
@@ -297,18 +295,17 @@ int read_ws_frame(ctrl_server *server) {
         break;
       case 0x8:
         puts("Terminate");
-        close_client(server);
-        break;
+        return 0;
       case 0x9:
         puts("Ping");
-        break;
+        return 0;
       default:
         puts("Unexpected");
-        close_client(server);
+        return 0;
     }
   } else if (opcode == 0) {
     puts("Client disconnected");
-    close_client(server);
+    return 0;
   }
 
   long conv = strtol(decoded, NULL, 0);
