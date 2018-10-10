@@ -28,7 +28,7 @@ COMPILE = gcc -c
 LINK = gcc
 
 DEBUG = -DDEBUG -g
-CFLAGS = -Wall -Werror -pedantic -pthread -O0 -std=gnu99 $(DEBUG)
+CFLAGS = -Wall -Werror -pedantic -pthread -O0 -std=gnu99
 
 LDLIBS = -lssl -lcrypto -lpthread -lm
 

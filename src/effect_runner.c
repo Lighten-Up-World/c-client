@@ -184,7 +184,14 @@ int main() {
   init_geo(pixel_info);
   init_strip(pixel_info);
 
-  // Set up control server thread and lock
+  // Initialise server args
+  sa.shared_cmd = 0;
+  sa.interrupted = 0;
+  if (pthread_mutex_init((pthread_mutex_t *) &sa.mutex, NULL)) {
+    perror("mutex create");
+  }
+
+  // Set up control server thread
   pthread_t server_thread_id;
   if (pthread_create(&server_thread_id,
                  NULL,
@@ -192,8 +199,15 @@ int main() {
                  (void *) &sa)) {
     perror("thread create");
   }
-  if (pthread_mutex_init((pthread_mutex_t *) &sa.mutex, NULL)) {
-    perror("mutex create");
+
+  // Set up basic server (for command line run args)
+  // use the same args struct to write to the same shared command
+  pthread_t basic_server_thread_id;
+  if (pthread_create(&basic_server_thread_id,
+                     NULL,
+                     basic_server,
+                     (void *) &sa)) {
+    perror("thread create");
   }
 
   // Initialise the effect

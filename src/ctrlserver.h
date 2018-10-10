@@ -25,9 +25,12 @@
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 #include <pthread.h>
+#include <sys/_types/_socklen_t.h>
 
-#define LISTEN_PORT "9090"
+#define CTRL_LISTEN_PORT "9090"
+#define BASIC_LISTEN_PORT "9091"
 #define HTTP_BUFFER 4095
+#define BASIC_TCP_BUFFER 16
 #define BACKLOG 0
 
 #define SHA1_CHAR_LEN 20    // 20 bytes // 160 bits
@@ -54,19 +57,7 @@ typedef struct {
   pthread_mutex_t mutex;
 } server_args;
 
-//int base64_encode(const unsigned char* buffer, int length, char** b64text);
-//ctrl_server *start_server();
-//void clear_buff(char *buffer, size_t len);
-//int try_accept_conn(ctrl_server *server);
-//ssize_t get_latest_input(ctrl_server *server, char *buffer, size_t buffer_len);
-//void sha1_and_encode(char *key, char **b64hashed);
-//bool is_valid_http_upgrade(char *request);
-//int upgrade_to_ws(ctrl_server *server, char *request);
-//int try_to_upgrade(ctrl_server *server, char *request);
-//char *read_ws_frame(ctrl_server *server);
-//void close_client(ctrl_server *server);
-//int close_server(ctrl_server *server);
-//void sleep_for(uint8_t s);
+void *basic_server(void *);
 void *server(void *);
 
 #endif //ARM11_22_CTRLSERVER_H

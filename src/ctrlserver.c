@@ -25,7 +25,7 @@ int base64_encode(const unsigned char* buffer, int length, char** b64text) {
 }
 
 // Set up a socket to listen on
-ctrl_server *start_server() {
+ctrl_server *start_server(const char *listen_port) {
   struct addrinfo hints;
   struct addrinfo *sock_addr;
   int sockfd;
@@ -35,7 +35,7 @@ ctrl_server *start_server() {
   hints.ai_family = AF_INET;        // IPv4
   hints.ai_socktype = SOCK_STREAM;  // TCP
   hints.ai_flags = AI_PASSIVE;      // Auto fill computers IP
-  getaddrinfo(NULL, LISTEN_PORT, &hints, &sock_addr);
+  getaddrinfo(NULL, listen_port, &hints, &sock_addr);
 
   // Create socket
   if ((sockfd = socket(sock_addr->ai_family, sock_addr->ai_socktype, sock_addr->ai_protocol)) < 0) {
@@ -79,7 +79,7 @@ void clear_buff(char *buffer, size_t len) {
 int try_accept_conn(ctrl_server *server) {
   struct sockaddr_in client_addr;
   size_t size = sizeof(client_addr);
-  int client_sock = accept(server->socket_fd, (struct sockaddr *) &client_addr, (socklen_t*) &size);
+  int client_sock = accept(server->socket_fd, (struct sockaddr *) &client_addr, (socklen_t *) &size);
 
   if (client_sock < 0) {
     // No client is waiting
@@ -344,10 +344,40 @@ void sleep_for(uint8_t s) {
   nanosleep(&sleep, NULL);
 }
 
+void *basic_server(void *as) {
+  // Set up the server
+  server_args *args = (server_args *) as;
+  ctrl_server *server = start_server(BASIC_LISTEN_PORT);
+  ssize_t read;
+  char *cmd = calloc(sizeof(char), BASIC_TCP_BUFFER);
+
+  // Run forever
+  while (!args->interrupted) {
+    // If client is connected
+    if (server->client_fd) {
+      read = get_latest_input(server, cmd, BASIC_TCP_BUFFER);
+      if (read == 0) {
+        close_client(server);
+      } else if (read > 0) {
+        pthread_mutex_lock(&args->mutex);
+        args->shared_cmd = (uint8_t) strtol(cmd, NULL, 0);
+        printf("command: %d\n", args->shared_cmd);
+        pthread_mutex_unlock(&args->mutex);
+      }
+      clear_buff(cmd, BASIC_TCP_BUFFER);
+    } else {
+      server->client_fd = try_accept_conn(server);
+    }
+    sleep_for(1);
+  }
+  close_server(server);
+  return NULL;
+}
+
 void *server(void *as) {
   // Set up the server
   server_args *args = (server_args *) as;
-  ctrl_server *server = start_server();
+  ctrl_server *server = start_server(CTRL_LISTEN_PORT);
   int read;
 
   // Run forever
@@ -356,7 +386,9 @@ void *server(void *as) {
     if (server->client_fd) {
       read = read_ws_frame(server);
       if (read > 0) {
+        pthread_mutex_lock(&args->mutex);
         args->shared_cmd = (uint8_t) read;
+        pthread_mutex_unlock(&args->mutex);
       } else if (read == 0) {
         puts("Client disconnected");
         close_client(server);
