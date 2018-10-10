@@ -242,6 +242,8 @@ int main() {
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
 
+    printf("frame number: %lil\n", effect_runner->frame_no);
+
     // Handle server input
     pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
     if (sa.shared_cmd >= 0) {
