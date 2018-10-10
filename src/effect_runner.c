@@ -17,7 +17,11 @@ const string_to_constructor effects[] = {
     {"image", &get_image_effect},
     {"sun", &get_sun_effect},
     {"alltest", &get_alltest_effect},
-    {"1test", &get_test1_effect}
+    {"1test", &get_test1_effect},
+};
+
+const string_to_constructor python[] = {
+  {"python", &get_dummy_python_effect}
 };
 
 typedef struct {
@@ -40,6 +44,9 @@ const char *commands[] = {
   "sun",
   "alltest",
   "1test",
+  "raverplaid",
+  "lavalamp",
+  "conway"
 };
 
 void handle_user_exit(int _) {
@@ -85,6 +92,15 @@ void effect_runner_delete(effect_runner_t *self) {
 }
 
 effect_t *init_effect(const char *arg, void *pixel_info, opc_sink sink) {
+  // Check for aliased commands
+  for (int i = 0; i < sizeof(cmds) / sizeof(string_to_string); i++) {
+    if (strcmp(cmds[i].key, arg) == 0) {
+      // Execute OS command - THIS NEEDS KILLING BEFORE THE NEXT EFFECT RUNS
+      system(cmds[i].value);
+      return python[0].new(pixel_info);
+    }
+  }
+
   effect_t *effect = NULL;
   for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
     if (strcmp(effects[i].str, arg) == 0) {
@@ -229,6 +245,10 @@ int main() {
     pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
     if (sa.shared_cmd >= 0) {
       if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
+        printf("Cleaning up current effect...");
+        // TODO: need to add code here to close effect.
+        effect_runner->effect->remove(effect_runner->effect);
+
         printf("Running effect: %s\n", commands[sa.shared_cmd]);
         effect_runner->effect = init_effect(commands[sa.shared_cmd], pixel_info, sink);
         effect_runner->frame_no = 0;

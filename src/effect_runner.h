@@ -11,6 +11,7 @@
 #include "utils/csv.h"
 #include "extension.h"
 #include "ctrlserver.h"
+#include "effects/python.h"
 
 #define PIXEL_FILE "layout/coordinates.txt"
 #define GEOLOC_FILE "layout/geolocation.txt"

@@ -1,6 +1,6 @@
 #include "common.h"
 
-void free_effect(effect_t *self){
+void free_effect(effect_t *self) {
   free(self);
 }
 

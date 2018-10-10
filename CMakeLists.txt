@@ -34,6 +34,8 @@ add_executable(arm11_22
         src/effects/1test.h
         src/effects/weather.c
         src/effects/weather.h
+        src/effects/python.h
+        src/effects/python.c
         src/layout/csv_to_layout.c
         src/opc/opc_client.c
         src/opc/opc_client.h
