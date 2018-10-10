@@ -232,10 +232,29 @@ void close_client(ctrl_server *server) {
   server->client_fd = 0;
 }
 
+// Try to convert a string command to an int command
+int8_t try_get_command(char *cmd_string, int8_t default_cmd) {
+  char *end;
+  long cmd = strtol(cmd_string, &end, 0);
+
+  if (end == cmd_string) {
+    printf("%s: not a decimal number\n", cmd_string);
+    cmd = default_cmd;
+  } else if ('\0' != *end) {
+    printf("%s: extra characters at end of input: %s\n", cmd_string, end);
+    cmd = default_cmd;
+  }
+
+  return (int8_t) cmd;
+}
+
 // TODO: review errors and return codes
 // Pre: there must be  a valid WS frame waiting
-// Return -1 on error, or 0 if none or not enough data was waiting for a valid WS frame
-int read_ws_frame(ctrl_server *server) {
+// Return -1 for client disconnect
+// Return -2 if none or not enough data was waiting for a valid WS frame
+// Return -3 for invalid conversion to int
+// Otherwise return the command given
+int8_t read_ws_frame(ctrl_server *server) {
   // Data is received in network order
   ssize_t read;
   char byte;
@@ -308,12 +327,7 @@ int read_ws_frame(ctrl_server *server) {
     return 0;
   }
 
-  long conv = strtol(decoded, NULL, 0);
-  if (conv == LONG_MIN || conv == LONG_MAX || conv == 0) {
-    exit(errno);
-  }
-
-  return (int) (conv - 1);
+  return try_get_command(decoded, -3);
 }
 
 // Cleanup code
@@ -360,8 +374,7 @@ void *basic_server(void *as) {
         close_client(server);
       } else if (read > 0) {
         pthread_mutex_lock(&args->mutex);
-        args->shared_cmd = (int8_t) strtol(cmd, NULL, 0);
-        printf("command: %d\n", args->shared_cmd);
+        args->shared_cmd = try_get_command(cmd, args->shared_cmd);
         pthread_mutex_unlock(&args->mutex);
       }
       clear_buff(cmd, BASIC_TCP_BUFFER);
@@ -378,7 +391,7 @@ void *server(void *as) {
   // Set up the server
   server_args *args = (server_args *) as;
   ctrl_server *server = start_server(CTRL_LISTEN_PORT);
-  int read;
+  int8_t read;
 
   // Run forever
   while (!args->interrupted) {
@@ -389,7 +402,7 @@ void *server(void *as) {
         pthread_mutex_lock(&args->mutex);
         args->shared_cmd = (int8_t) read;
         pthread_mutex_unlock(&args->mutex);
-      } else if (read == 0) {
+      } else if (read == -1) {
         puts("Client disconnected");
         close_client(server);
       }
