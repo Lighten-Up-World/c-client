@@ -30,10 +30,10 @@ typedef struct {
 } string_to_string;
 
 const string_to_string cmds[] = {
-  {"raverplaid", "python ../openpixelcontrol/python/raver_plaid.py"},
-  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout ../layout/WorldMap.json"},
-  {"conway", "python ../openpixelcontrol/python/conway.py"},
-  {"snake", "python ../games/snake/snake.py"}
+  {"raverplaid", "python ../openpixelcontrol/python/raver_plaid.py &"},
+  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout ../layout/WorldMap.json &"},
+  {"conway", "python ../openpixelcontrol/python/conway.py &"},
+  {"snake", "python ../games/snake/snake.py &"}
 };
 
 const char *commands[] = {
