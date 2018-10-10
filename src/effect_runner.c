@@ -167,9 +167,7 @@ int init_strip(list_t *list) {
 }
 
 // TODO: add generic cleanup code
-int main(int argc, const char *argv[]) {
-  assert(argc > 1);
-
+int main() {
   // Set up Ctrl+C handle
   signal(SIGINT, handle_user_exit);
 
@@ -197,23 +195,15 @@ int main(int argc, const char *argv[]) {
                  (void *) &sa)) {
     perror("thread create");
   }
-//  printf("mt: %p\n", sa.mutex);
   if (pthread_mutex_init((pthread_mutex_t *) &sa.mutex, NULL)) {
     perror("mutex create");
   }
 
   // Initialise the effect
-  effect_t *effect = init_effect(argv[1], pixel_info, sink);
+  effect_t *effect = init_effect("scroll", pixel_info, sink);
 
-  // Initialise api manager
+  // Initialise api manager (should now never fail)
   effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info, sink);
-  if (effect_runner == NULL) {
-    fprintf(stderr, "Api_manager failed to initialise with effect %s\n", argv[1]);
-    free(effect);
-    opc_close(sink);
-    list_delete(pixel_info);
-    exit(EXIT_FAILURE);
-  }
 
   // Clear Pixels
   CLEAR_PIXELS;

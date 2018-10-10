@@ -30,10 +30,8 @@ LINK = gcc -g -lssl -lcrypto
 DEBUG = -DDEBUG -g
 CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
 
-MODE = temp
-
 simulation: mkdir server $(PATHB)effect_runner.out
-	$(PATHB)effect_runner.out $(MODE)
+	$(PATHB)effect_runner.out
 
 demo: mkdir $(PATHB)effect_runner.out
 	$(PATHS)demo.sh
@@ -72,7 +70,7 @@ black:
 	python ../fadecandy/examples/python/solid-black.py
 
 run: mkdir $(PATHB)effect_runner.out
-	./build/effect_runner.out $(MODE)
+	./build/effect_runner.out
 
 $(PATHB)ctrlserver.out: $(PATHOBJ)ctrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
 	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ -lm
