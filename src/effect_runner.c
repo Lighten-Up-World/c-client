@@ -97,6 +97,7 @@ effect_t *init_effect(const char *arg, void *pixel_info, opc_sink sink) {
     if (strcmp(cmds[i].key, arg) == 0) {
       // Execute OS command - THIS NEEDS KILLING BEFORE THE NEXT EFFECT RUNS
       system(cmds[i].value);
+      puts("system returned");
       return python[0].new(pixel_info);
     }
   }
@@ -240,8 +241,6 @@ int main() {
     nanosleep(&effect_runner->effect->time_delta, NULL);
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
-
-    printf("frame num: %li\n", effect_runner->frame_no);
 
     // Handle server input
     pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
