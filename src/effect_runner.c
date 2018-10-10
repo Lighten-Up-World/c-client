@@ -33,12 +33,9 @@ const string_to_string cmds[] = {
 };
 
 const char *commands[] = {
-  "temp",
   "temp_timelapse",
   "temp_log",
-  "windspeed",
   "scroll",
-  "temp_timelapse",
   "image",
   "sun",
   "alltest",

@@ -6,8 +6,8 @@ cd /home/pi/c-client/src
 
 ## declare an array variable
 runner="/home/pi/c-client/src/build/effect_runner.out"
-declare -a arr=("$runner temp_timelapse" "$runner sun")
-declare -a arr2=("$runner raverplaid" "$runner conway")
+declare -a arr=("temp_timelapse" "sun")
+declare -a arr2=("raverplaid" "conway" "lavalamp")
 delay=20
 
 while true
@@ -21,7 +21,7 @@ do
      echo ""
      echo ""
      # Launch script in background
-     $i > /dev/null &
+     $runner $i > /dev/null &
      # Get its PID
      PID=$!
      # Wait for $delay seconds
@@ -39,7 +39,7 @@ do
     echo ""
     echo ""
     # Launch script in background
-    $i > /dev/null &
+    $runner $i > /dev/null &
     # Get its PID
     PID=$!
     # Wait for $delay seconds
