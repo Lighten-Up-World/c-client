@@ -360,7 +360,7 @@ void *basic_server(void *as) {
         close_client(server);
       } else if (read > 0) {
         pthread_mutex_lock(&args->mutex);
-        args->shared_cmd = (uint8_t) strtol(cmd, NULL, 0);
+        args->shared_cmd = (int8_t) strtol(cmd, NULL, 0);
         printf("command: %d\n", args->shared_cmd);
         pthread_mutex_unlock(&args->mutex);
       }
@@ -387,7 +387,7 @@ void *server(void *as) {
       read = read_ws_frame(server);
       if (read > 0) {
         pthread_mutex_lock(&args->mutex);
-        args->shared_cmd = (uint8_t) read;
+        args->shared_cmd = (int8_t) read;
         pthread_mutex_unlock(&args->mutex);
       } else if (read == 0) {
         puts("Client disconnected");

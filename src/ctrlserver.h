@@ -52,7 +52,7 @@ typedef struct {
 } ctrl_server;
 
 typedef struct {
-  uint8_t shared_cmd;
+  int8_t shared_cmd;
   int interrupted;
   pthread_mutex_t mutex;
 } server_args;

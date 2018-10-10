@@ -227,10 +227,12 @@ int main() {
 
     // Handle server input
     pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
-    if (sa.shared_cmd) {
+    if (sa.shared_cmd >= 0) {
       if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
+        printf("Running effect: %s\n", commands[sa.shared_cmd]);
         effect_runner->effect = init_effect(commands[sa.shared_cmd], pixel_info, sink);
         effect_runner->frame_no = 0;
+        sa.shared_cmd = -1;
       }
     }
     pthread_mutex_unlock((pthread_mutex_t *) &sa.mutex);
