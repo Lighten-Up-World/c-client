@@ -31,7 +31,7 @@ typedef struct {
 
 const string_to_string cmds[] = {
   {"raverplaid", "python ../openpixelcontrol/python/raver_plaid.py &"},
-  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout ../layout/WorldMap.json &"},
+  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout layout/WorldMap.json &"},
   {"conway", "python ../openpixelcontrol/python/conway.py &"},
   {"snake", "python ../games/snake/snake.py &"}
 };
@@ -97,7 +97,6 @@ effect_t *init_effect(const char *arg, void *pixel_info, opc_sink sink) {
     if (strcmp(cmds[i].key, arg) == 0) {
       // Execute OS command - THIS NEEDS KILLING BEFORE THE NEXT EFFECT RUNS
       system(cmds[i].value);
-      puts("system returned");
       return python[0].new(pixel_info);
     }
   }
