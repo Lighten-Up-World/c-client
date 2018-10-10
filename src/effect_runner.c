@@ -13,7 +13,6 @@ const string_to_constructor effects[] = {
     {"temp_log", &get_temp_log_effect},
     {"windspeed", &get_windspeed_effect},
     {"scroll", &get_scroller_effect},
-    {"temp_timelapse", &get_temp_timelapse_effect},
     {"image", &get_image_effect},
     {"sun", &get_sun_effect},
     {"alltest", &get_alltest_effect},
@@ -38,15 +37,15 @@ const string_to_string cmds[] = {
 
 const char *commands[] = {
   "temp_timelapse",
-  "temp_log",
   "scroll",
-  "image",
   "sun",
-  "alltest",
-  "1test",
   "raverplaid",
   "lavalamp",
-  "conway"
+  "conway",
+  "alltest",
+  "1test",
+  "temp_log",
+  "image"
 };
 
 void handle_user_exit(int _) {
