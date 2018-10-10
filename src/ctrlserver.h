@@ -25,7 +25,6 @@
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 #include <pthread.h>
-#include <sys/_types/_socklen_t.h>
 
 #define CTRL_LISTEN_PORT "9090"
 #define BASIC_LISTEN_PORT "9091"
