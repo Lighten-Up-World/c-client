@@ -241,11 +241,13 @@ int main() {
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
 
+    printf("frame num: %li\n", effect_runner->frame_no);
+
     // Handle server input
     pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
     if (sa.shared_cmd >= 0) {
       if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
-        printf("Cleaning up current effect...");
+        puts("Cleaning up current effect...");
         // TODO: need to add code here to close effect.
         effect_runner->effect->remove(effect_runner->effect);
 
