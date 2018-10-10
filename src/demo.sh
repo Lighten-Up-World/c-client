@@ -16,8 +16,7 @@ do
     for i in {0..5};
     do
         # Open netcat connection and send a command
-        sleep $delay
-        echo "Playing effect number: " $i
         echo $i | nc -w0 localhost $basic_cmd_port
+        sleep $delay
     done
 done
