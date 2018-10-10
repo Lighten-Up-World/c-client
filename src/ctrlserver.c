@@ -370,6 +370,12 @@ void *basic_server(void *as) {
     // If client is connected
     if (server->client_fd) {
       read = get_latest_input(server, cmd, BASIC_TCP_BUFFER);
+
+      // Account for \n from nc connection
+      size_t len = strnlen(cmd, BASIC_TCP_BUFFER);
+      cmd[len - 1] = '\0';
+      cmd[len - 2] = '\0';
+
       if (read == 0) {
         close_client(server);
       } else if (read > 0) {
