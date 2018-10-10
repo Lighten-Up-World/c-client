@@ -1,54 +1,22 @@
 #!/bin/bash
-# A simple demo script that executes effects in sequence, should be precompiled
-# and the server running
+# A simple demo script that executes effects in sequence,
+# effect_runner should be precompiled and the opc server running
 
 cd /home/pi/c-client/src
 
-## declare an array variable
 runner="/home/pi/c-client/src/build/effect_runner.out"
-declare -a arr=("temp_timelapse" "sun")
-declare -a arr2=("raverplaid" "conway" "lavalamp")
 delay=20
+basic_cmd_port=9091
+
+$runner >/dev/null &
 
 while true
 do
-  for i in "${arr[@]}"
-  do
-     echo ""
-     echo "============================="
-     echo "Running $i for $delay seconds"
-     echo "============================="
-     echo ""
-     echo ""
-     # Launch script in background
-     $runner $i > /dev/null &
-     # Get its PID
-     PID=$!
-     # Wait for $delay seconds
-     sleep $delay
-     # Kill it
-     kill $PID
-  done
-
-  for i in "${arr2[@]}"
-  do
-    echo ""
-    echo "============================="
-    echo "Running $i for $delay seconds"
-    echo "============================="
-    echo ""
-    echo ""
-    # Launch script in background
-    $runner $i > /dev/null &
-    # Get its PID
-    PID=$!
-    # Wait for $delay seconds
-    sleep $delay
-    # Kill it
-    kill $PID
-
-    # Get the PID of python and kill it
-    ps | grep python | awk '{print $1}' | xargs kill 
-  done
-
+    # Currently commands has 7 items
+    for i in {0..6};
+    do
+        # Open netcat connection and send a command
+        echo $i | nc localhost $basic_cmd_port
+        sleep 1
+    done
 done
