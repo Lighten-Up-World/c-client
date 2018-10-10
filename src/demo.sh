@@ -16,7 +16,7 @@ do
     for i in {0..6};
     do
         # Open netcat connection and send a command
-        echo $i | nc localhost $basic_cmd_port
-        sleep 1
+        echo $i | nc -N localhost $basic_cmd_port
+        sleep $delay
     done
 done
