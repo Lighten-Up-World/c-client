@@ -374,7 +374,6 @@ void *basic_server(void *as) {
       // Account for \n from nc connection
       size_t len = strnlen(cmd, BASIC_TCP_BUFFER);
       cmd[len - 1] = '\0';
-      cmd[len - 2] = '\0';
 
       if (read == 0) {
         close_client(server);
