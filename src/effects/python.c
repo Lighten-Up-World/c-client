@@ -3,7 +3,9 @@
 
 void python_kill_process(effect_t *self) {
   // Kill python process here
+  puts("b4 kill python");
   system("ps | grep python | awk '{print $1}' | xargs kill ");
+  puts("python killed");
 }
 
 int dummy_python_run(effect_runner_t* self) {

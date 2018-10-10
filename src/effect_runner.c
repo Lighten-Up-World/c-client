@@ -97,6 +97,7 @@ effect_t *init_effect(const char *arg, void *pixel_info, opc_sink sink) {
     if (strcmp(cmds[i].key, arg) == 0) {
       // Execute OS command - THIS NEEDS KILLING BEFORE THE NEXT EFFECT RUNS
       system(cmds[i].value);
+      puts("python returned");
       return python[0].new(pixel_info);
     }
   }
