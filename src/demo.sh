@@ -12,7 +12,7 @@ $runner >/dev/null &
 
 while true
 do
-    # Currently commands has 7 items
+    # Currently commands has 6 items
     for i in {0..5};
     do
         # Open netcat connection and send a command
