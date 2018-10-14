@@ -25,15 +25,15 @@ UTIL_O = $(patsubst $(PATHUTIL)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHUTIL)*.c))
 EFFECT_O = $(patsubst $(PATHEFFECT)%.c,$(PATHOBJ)%.o,$(wildcard $(PATHEFFECT)*.c))
 
 COMPILE = gcc -c
-LINK = gcc -lssl -lcrypto
+LINK = gcc
 
 DEBUG = -DDEBUG -g
-CFLAGS = -Wall -Werror -pedantic -O0 -std=gnu99 $(DEBUG)
+CFLAGS = -Wall -Werror -pedantic -pthread -O0 -std=gnu99
 
-MODE = temp
+LDLIBS = -lssl -lcrypto -lpthread -lm
 
 simulation: mkdir server $(PATHB)effect_runner.out
-	$(PATHB)effect_runner.out $(MODE)
+	$(PATHB)effect_runner.out
 
 demo: mkdir $(PATHB)effect_runner.out
 	$(PATHS)demo.sh
@@ -72,19 +72,19 @@ black:
 	python ../fadecandy/examples/python/solid-black.py
 
 run: mkdir $(PATHB)effect_runner.out
-	./build/effect_runner.out $(MODE)
+	./build/effect_runner.out
 
 $(PATHB)ctrlserver.out: $(PATHOBJ)ctrlserver.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
-	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ -lm
+	$(LINK) $(LDLIBS) $(SERVERFLAGS)-o $@ $^ $(LDLIBS)
 
 $(PATHB)bare_bones_test.out: $(PATHOBJ)bare_bones_test.o $(PATHOBJ)pixel.o $(PATHOBJ)list.o $(PATHOBJ)opc_client.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) -o $@ $^ $(LDLIBS)
 
 $(PATHB)effect_runner.out: $(ROOT_O) $(UTIL_O) $(EFFECT_O) $(PATHOBJ)opc_client.o $(PATHOBJ)parson.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) -o $@ $^ $(LDLIBS)
 
 $(PATHB)%.out: $(PATHOBJ)%.o
-	$(LINK) -o $@ $^ -lm
+	$(LINK) -o $@ $^ $(LDLIBS)
 
 $(PATHOBJ)%.o: $(PATHS)%.c
 	$(COMPILE) $(CFLAGS) $< -o $@

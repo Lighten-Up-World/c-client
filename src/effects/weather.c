@@ -1,6 +1,3 @@
-//
-// Created by User on 14/06/2018.
-//
 #include "weather.h"
 
 #define API_DELAY 5000
@@ -235,7 +232,7 @@ int temp_timelapse_get_pixel(effect_runner_t *self, int pos){
   return 0;
 }
 
-effect_t *get_temp_timelapse_effect(void *obj){
+effect_t *get_temp_timelapse_effect(void *obj) {
   effect_t *effect = calloc(1, sizeof(effect_t));
   if(effect == NULL){
     return NULL;

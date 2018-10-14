@@ -1,6 +1,6 @@
 #include "effect_runner.h"
 
-volatile int interrupted = 0;
+volatile static server_args sa;
 
 typedef struct {
   char *str;
@@ -13,11 +13,14 @@ const string_to_constructor effects[] = {
     {"temp_log", &get_temp_log_effect},
     {"windspeed", &get_windspeed_effect},
     {"scroll", &get_scroller_effect},
-    {"temp_timelapse", &get_temp_timelapse_effect},
     {"image", &get_image_effect},
     {"sun", &get_sun_effect},
     {"alltest", &get_alltest_effect},
-    {"1test", &get_test1_effect}
+    {"1test", &get_test1_effect},
+};
+
+const string_to_constructor python[] = {
+  {"python", &get_dummy_python_effect}
 };
 
 typedef struct {
@@ -26,15 +29,28 @@ typedef struct {
 } string_to_string;
 
 const string_to_string cmds[] = {
-  {"raverplaid", "python ../openpixelcontrol/python/raver_plaid.py"},
-  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout ../layout/WorldMap.json"},
-  {"conway", "python ../openpixelcontrol/python/conway.py"},
-  {"snake", "python ../games/snake/snake.py"}
+  {"raverplaid", "python ../openpixelcontrol/python/raver_plaid.py &"},
+  {"lavalamp", "python ../openpixelcontrol/python/lava_lamp.py  --layout layout/WorldMap.json &"},
+  {"conway", "python ../openpixelcontrol/python/conway.py &"},
+  {"snake", "python ../games/snake/snake.py &"}
+};
+
+const char *commands[] = {
+  "temp_timelapse",
+  "scroll",
+  "sun",
+  "raverplaid",
+  "lavalamp",
+  "conway",
+  "alltest",
+  "1test",
+  "temp_log",
+  "image"
 };
 
 void handle_user_exit(int _) {
   perror("Interrupted, cleaning up\n");
-  interrupted = 1;
+  sa.interrupted = 1;
 }
 
 effect_runner_t *effect_runner_new(void) {
@@ -72,6 +88,32 @@ void effect_runner_delete(effect_runner_t *self) {
     free(self->frame);
   }
   free(self);
+}
+
+effect_t *init_effect(const char *arg, void *pixel_info, opc_sink sink) {
+  // Check for aliased commands
+  for (int i = 0; i < sizeof(cmds) / sizeof(string_to_string); i++) {
+    if (strcmp(cmds[i].key, arg) == 0) {
+      // Execute OS command - THIS NEEDS KILLING BEFORE THE NEXT EFFECT RUNS
+      system(cmds[i].value);
+      puts("python returned");
+      return python[0].new(pixel_info);
+    }
+  }
+
+  effect_t *effect = NULL;
+  for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
+    if (strcmp(effects[i].str, arg) == 0) {
+      effect = effects[i].new(pixel_info);
+    }
+  }
+  if (effect == NULL) {
+    fprintf(stderr, "Failed to construct effect using argument %s\n", arg);
+    opc_close(sink);
+    list_delete(pixel_info);
+    exit(EXIT_FAILURE);
+  }
+  return effect;
 }
 
 int init_grid(list_t *list) {
@@ -137,18 +179,10 @@ int init_strip(list_t *list) {
   return 0;
 }
 
-int server_has_input(int server) {
-  return 1;
-}
-
-int run_effect(const char *effect_arg) {
-
-  // Check for aliased commands
-  for (int i = 0; i < sizeof(cmds) / sizeof(string_to_string); i++) {
-    if (strcmp(cmds[i].key, effect_arg) == 0) {
-      return system(cmds[i].value);
-    }
-  }
+// TODO: add generic cleanup code
+int main() {
+  // Set up Ctrl+C handle
+  signal(SIGINT, handle_user_exit);
 
   // Open connection
   opc_sink sink = opc_new_sink(HOST_AND_PORT);
@@ -166,106 +200,67 @@ int run_effect(const char *effect_arg) {
   init_geo(pixel_info);
   init_strip(pixel_info);
 
-  // Find effect from argument
-  effect_t *effect = NULL;
-  for (int i = 0; i < sizeof(effects) / sizeof(string_to_constructor); i++) {
-    if (strncmp(effects[i].str, effect_arg, strlen(effects[i].str)) == 0) {
-      effect = effects[i].new(pixel_info);
-    }
-  }
-  if (effect == NULL) {
-    fprintf(stderr, "Failed to construct effect using argument %s\n", effect_arg);
-    opc_close(sink);
-    list_delete(pixel_info);
-    exit(EXIT_FAILURE);
+  // Initialise server args
+  sa.shared_cmd = 0;
+  sa.interrupted = 0;
+  if (pthread_mutex_init((pthread_mutex_t *) &sa.mutex, NULL)) {
+    perror("mutex create");
   }
 
-  // Initialise api manager
-  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info, sink);
-  if (effect_runner == NULL) {
-    fprintf(stderr, "Api_manager failed to initialise with effect %s\n", effect_arg);
-    free(effect);
-    opc_close(sink);
-    list_delete(pixel_info);
-    exit(EXIT_FAILURE);
+  // Set up control server thread
+  pthread_t server_thread_id;
+  if (pthread_create(&server_thread_id,
+                 NULL,
+                 server,
+                 (void *) &sa)) {
+    perror("thread create");
   }
+
+  // Set up basic server (for command line run args)
+  // use the same args struct to write to the same shared command
+  pthread_t basic_server_thread_id;
+  if (pthread_create(&basic_server_thread_id,
+                     NULL,
+                     basic_server,
+                     (void *) &sa)) {
+    perror("thread create");
+  }
+
+  // Initialise the effect
+  effect_t *effect = init_effect("scroll", pixel_info, sink);
+
+  // Initialise api manager (should now never fail)
+  effect_runner_t *effect_runner = effect_runner_init(NULL, effect, pixel_info, sink);
 
   // Clear Pixels
-  for (int p = 0; p < NUM_PIXELS; p++) {
-    effect_runner->frame->pixels[p] = WHITE_PIXEL;
-  }
+  CLEAR_PIXELS;
 
   // Run the effect
-  while (!interrupted) {
+  while (!(sa.interrupted)) {
     nanosleep(&effect_runner->effect->time_delta, NULL);
     effect_runner->effect->run(effect_runner);
     effect_runner->frame_no++;
+
+    // Handle server input
+    pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
+    if (sa.shared_cmd >= 0) {
+      if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
+        puts("Cleaning up current effect...");
+        // TODO: need to add code here to close effect.
+        effect_runner->effect->remove(effect_runner->effect);
+
+        printf("Running effect: %s\n", commands[sa.shared_cmd]);
+        effect_runner->effect = init_effect(commands[sa.shared_cmd], pixel_info, sink);
+        effect_runner->frame_no = 0;
+        sa.shared_cmd = -1;
+      }
+    }
+    pthread_mutex_unlock((pthread_mutex_t *) &sa.mutex);
   }
 
   // Close it all up
   effect_runner_delete(effect_runner);
-  return EXIT_SUCCESS;
-}
-
-int web_server(void) {
-  // Create listening socket, setup server
-  ctrl_server *server = start_server();
-  char *read;
-  printf("Server started on %s\n", LISTEN_PORT);
-  // Simulates main loop of effect runner
-  while (!interrupted) {
-
-    // *** Effect runner code here ***
-    //printf("Looking for a client with %i\n", server->client_fd);
-    // If client is connected
-    if (server->client_fd) {
-      read = read_ws_frame(server);
-      run_effect(read);
-      free(read);
-    } else {
-      // Check if any client is waiting to connect
-      server->client_fd = try_accept_conn(server);
-
-      // If a connection was accepted, block until it's upgraded it to a WebSocket
-      if (server->client_fd) {
-        ssize_t read_size;
-        int tries = 0;
-        char *http_buffer = calloc(HTTP_BUFFER + 1, sizeof(char));
-        do {
-          read_size = get_latest_input(server, http_buffer, HTTP_BUFFER);
-          tries++;
-        } while (read_size < 0 && tries < 5);
-
-        if (read_size > 0) {
-          puts("Upgrading to WebSocket...");
-          if (try_to_upgrade(server, http_buffer)) {
-            close_client(server);
-          }
-        } else {
-          close_client(server);
-        }
-
-        free(http_buffer);
-      }
-
-    }
-    sleep_for(1);
-  }
-
-  close_server(server);
+  pthread_join(server_thread_id, NULL);
 
   return EXIT_SUCCESS;
-}
-
-int main(int argc, const char *argv[]) {
-  assert(argc > 1);
-
-  // Set up Ctrl+C handle
-  signal(SIGINT, handle_user_exit);
-
-  if (strcmp(argv[1], "-ws") == 0) {
-    web_server();
-  }
-
-  run_effect(argv[1]);
 }

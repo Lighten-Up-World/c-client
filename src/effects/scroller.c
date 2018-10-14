@@ -75,8 +75,6 @@ int scroller_run(effect_runner_t* self) {  //
 
   // Write the pixels to the display
   opc_put_pixel_list(self->sink, self->frame->pixels, self->pixel_info);
-  // opc_put_pixels(self->sink, 0, NUM_PIXELS, self->frame->pixels);
-  nanosleep(&self->effect->time_delta, NULL);
 
   // Scroll along 1
   shift_columns(storage->pixel_grid, storage->buff);

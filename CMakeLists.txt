@@ -17,14 +17,7 @@ include_directories(test/lib/json_pure-1.5.3/ext/json/ext/parser)
 include_directories(/usr/local/Cellar//openssl/1.0.2o_2/include)
 
 add_executable(tmp
-        src/webctrl/tests/temp.c)
-
-add_executable(sha
-        src/webctrl/tests/test_hash.c)
-
-add_executable(server
-        src/webctrl/ctrlserver.c
-        src/webctrl/ctrlserver.h)
+        src/temp.c)
 
 add_executable(arm11_22
         src/effects/common.c
@@ -41,6 +34,8 @@ add_executable(arm11_22
         src/effects/1test.h
         src/effects/weather.c
         src/effects/weather.h
+        src/effects/python.h
+        src/effects/python.c
         src/layout/csv_to_layout.c
         src/opc/opc_client.c
         src/opc/opc_client.h
