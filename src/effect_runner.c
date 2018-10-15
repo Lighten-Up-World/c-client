@@ -246,8 +246,8 @@ int main() {
     if (sa.shared_cmd > 0) {
       if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
         puts("Cleaning up current effect...");
-        // TODO: need to add code here to close effect.
         effect_runner->effect->remove(effect_runner->effect);
+        CLEAR_PIXELS;
 
         printf("Running effect: %s\n", commands[sa.shared_cmd]);
         effect_runner->effect = init_effect(commands[sa.shared_cmd], pixel_info, sink);
