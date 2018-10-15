@@ -16,9 +16,6 @@ include_directories(test/lib/json_pure-1.5.3/ext/json/ext/generator)
 include_directories(test/lib/json_pure-1.5.3/ext/json/ext/parser)
 include_directories(/usr/local/Cellar//openssl/1.0.2o_2/include)
 
-add_executable(tmp
-        src/temp.c)
-
 add_executable(arm11_22
         src/effects/common.c
         src/effects/common.h
