@@ -72,7 +72,7 @@ int sun_get_pixel(effect_runner_t *self, int pos){
     fseek(state->sun_file, 0, SEEK_SET);
     fgets(buf, buf_size, state->sun_file);
   }
-  printf("%s \n", buf);
+  //printf("%s \n", buf);
   int loc = atoi(strtok(buf, " "));
   sunrise.tm_hour = atoi(strtok(NULL, ":"));
   sunrise.tm_min = atoi(strtok(NULL, ":"));
