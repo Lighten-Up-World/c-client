@@ -12,10 +12,10 @@ buffer_t *buffer_new(int cols) {
   return b;
 }
 
-void clear_buffer(buffer_t *b) {
-  for (uint8_t x = 0; x < b->width; x++) {
+void clear_buffer(buffer_t *b, int width) {
+  for (uint8_t x = 0; x < width; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      b->grid[0][y] = (opc_pixel_t) {255, 255, 255};
+      b->grid[0][y] = (opc_pixel_t) {255, 0, 255};
     }
   }
 }
@@ -100,20 +100,35 @@ effect_t *get_scroller_effect(void *obj) {
   if (effect == NULL) {
     return NULL;
   }
-  effect->time_delta = (struct timespec) {0, 50 * MILLI_TO_NANO};
+  effect->time_delta = (struct timespec) {0, 75 * MILLI_TO_NANO};
   effect->run = &scroller_run;
   effect->remove = &free_effect;
 
   // Create a buffer pixel grid to contain data about to be displayed
-  int buff_width = 5;
+  int buff_width = 100;
   buffer_t *buff = buffer_new(buff_width);
-  clear_buffer(buff);
+  clear_buffer(buff, 100);
 
   // Set a shaded buffer
-  for (uint8_t x = 0; x < buff_width; x++) {
+  for (uint8_t x = 60; x < buff_width; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      int c = x * (255 / buff_width);
-      buff->grid[x][y] = (opc_pixel_t) {c, c, c};
+      //int c = ((x - 60) / (buff_width - 60)) * 255;
+      int c = x * (255 / (buff_width - 60));
+      buff->grid[x][y] = (opc_pixel_t) {255, 0, c};
+    }
+  }
+
+  // Set background buffer
+  for (uint8_t x = 0; x < 60; x++) {
+    for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
+      buff->grid[x][y] = (opc_pixel_t) {255, 0, 255};
+    }
+  }
+
+  // COMPLETE hack but I am way too tired
+  for (uint8_t x = 85; x < 100; x++) {
+    for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
+      buff->grid[x][y] = (opc_pixel_t) {255, 0, 255};
     }
   }
 
@@ -122,7 +137,7 @@ effect_t *get_scroller_effect(void *obj) {
   // Set opc_pixel_t grid to all white
   for (uint8_t x = 0; x < GRID_WIDTH; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
-      pixel_grid[x][y] = WHITE_PIXEL;
+      pixel_grid[x][y] = (opc_pixel_t) {255, 0, 255};
     }
   }
 
