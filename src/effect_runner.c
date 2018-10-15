@@ -36,13 +36,13 @@ const string_to_string cmds[] = {
 };
 
 const char *commands[] = {
+  "alltest",
   "temp_timelapse",
-  "scroll",
   "sun",
   "raverplaid",
   "lavalamp",
   "conway",
-  "alltest",
+  "scroll",
   "1test",
   "temp_log",
   "image"
@@ -243,7 +243,7 @@ int main() {
 
     // Handle server input
     pthread_mutex_lock((pthread_mutex_t *) &sa.mutex);
-    if (sa.shared_cmd >= 0) {
+    if (sa.shared_cmd > 0) {
       if (sa.shared_cmd < sizeof(commands) / sizeof(char *)) {
         puts("Cleaning up current effect...");
         // TODO: need to add code here to close effect.

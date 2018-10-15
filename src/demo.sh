@@ -12,11 +12,11 @@ $runner >/dev/null &
 
 while true
 do
-    # Currently commands has 6 items
-    for i in {0..5};
+    # Currently commands has 7 items
+    for i in {1..6};
     do
+        sleep $delay
         # Open netcat connection and send a command
         echo $i | nc -w0 localhost $basic_cmd_port
-        sleep $delay
     done
 done
