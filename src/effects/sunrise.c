@@ -85,13 +85,13 @@ int sun_get_pixel(effect_runner_t *self, int pos){
     return -1;
   }
 
-  printf("SUNRISE IS: %d:%d:%d SUNSET IS: %d:%d:%d\n", sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec);
+  //printf("SUNRISE IS: %d:%d:%d SUNSET IS: %d:%d:%d\n", sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec);
 
-  printf("CURRENT: %d:%d:%d\n", state->current_time->tm_hour, state->current_time->tm_min, state->current_time->tm_sec);
+  //printf("CURRENT: %d:%d:%d\n", state->current_time->tm_hour, state->current_time->tm_min, state->current_time->tm_sec);
   int set = PIXEL_COLOUR_MIN;
 
   double daylight = get_time_difference(&sunset, &sunrise);
-  printf("DAYLIGHT: %f\n", daylight);
+  //printf("DAYLIGHT: %f\n", daylight);
   if (daylight == 0){
     set = 0;
   }else if (daylight > 0){
@@ -102,7 +102,7 @@ int sun_get_pixel(effect_runner_t *self, int pos){
       double before_sunset = get_time_difference(&sunset, state->current_time);
       if (before_sunset > 0) {
         //Current is before sunset
-        printf("Set in greyscale: %d",set);
+        //printf("Set in greyscale: %d",set);
         set = (before_sunset / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
         set = (set > PIXEL_COLOUR_MAX) ? (PIXEL_COLOUR_MAX) - set : set;
       }
@@ -115,7 +115,7 @@ int sun_get_pixel(effect_runner_t *self, int pos){
       daylight += (3600 * 24);
       set = (before_sunset / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
       set = (set > PIXEL_COLOUR_MAX) ? (PIXEL_COLOUR_MAX) - set : set;
-      printf("Set in greyscale: %d",set);
+      //printf("Set in greyscale: %d",set);
     }else{
       double before_sunrise = get_time_difference(&sunrise, state->current_time);
       if (before_sunrise < 0){
@@ -123,12 +123,12 @@ int sun_get_pixel(effect_runner_t *self, int pos){
         daylight += (3600 * 24);
         set = (-before_sunrise / (daylight / 2.0)) * PIXEL_COLOUR_MAX;
         set = (set > PIXEL_COLOUR_MAX) ? (PIXEL_COLOUR_MAX) - set : set;
-        printf("Set in greyscale: %d",set);
+        //printf("Set in greyscale: %d",set);
       }
     }
   }
 
-  printf("set: %d\n", set);
+  //printf("set: %d\n", set);
 
   opc_pixel_t *px = self->frame->pixels+pos;
   px->r = (uint8_t) set;
@@ -157,7 +157,7 @@ int load_sun_data(list_t *pixel_info){
 
     geolocation_t geoloc = ((pixel_info_t *)list_get(pixel_info, i))->geo;
 
-    printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
+    //printf("Latitude: %f, Longitude: %f, ", geoloc.latitude, geoloc.longitude);
 
     size_t buf_size = 600;
     char buff[buf_size];
@@ -191,7 +191,7 @@ int load_sun_data(list_t *pixel_info){
 
     parse_time_string(time, &sunset);
 
-    printf("%d\n", fprintf(sun_file, "%d %d:%d:%d %d:%d:%d\n", i, sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec));
+    //printf("%d\n", fprintf(sun_file, "%d %d:%d:%d %d:%d:%d\n", i, sunrise.tm_hour, sunrise.tm_min, sunrise.tm_sec, sunset.tm_hour, sunset.tm_min, sunset.tm_sec));
 
     socket_close(sockfd);
     sleep(1);
