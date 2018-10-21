@@ -69,7 +69,6 @@ void shift_columns(opc_pixel_t **pixel_grid, buffer_t *buff) {
 int scroller_run(effect_runner_t *self) {  //
   scroller_storage_t *storage = self->effect->obj;
 
-  // Assign interrupt handler to close connection and cleanup after early exit
   // Update the opc_pixel_t list
   read_grid_to_list(self->frame->pixels, storage->pixel_grid, self->pixel_info);
 
@@ -113,7 +112,7 @@ effect_t *get_scroller_effect(void *obj) {
   for (uint8_t x = 60; x < buff_width; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
       //int c = ((x - 60) / (buff_width - 60)) * 255;
-      int c = x * (255 / (buff_width - 60));
+      uint8_t c = (uint8_t) (x * (255 / (buff_width - 60)));
       buff->grid[x][y] = (opc_pixel_t) {255, 0, c};
     }
   }
@@ -134,7 +133,7 @@ effect_t *get_scroller_effect(void *obj) {
 
   opc_pixel_t **pixel_grid = pixel_grid_new();
 
-  // Set opc_pixel_t grid to all white
+  // Set opc_pixel_t grid to all purple
   for (uint8_t x = 0; x < GRID_WIDTH; x++) {
     for (uint8_t y = 0; y < GRID_HEIGHT; y++) {
       pixel_grid[x][y] = (opc_pixel_t) {255, 0, 255};
