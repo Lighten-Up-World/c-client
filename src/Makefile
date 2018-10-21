@@ -32,7 +32,7 @@ CFLAGS = -Wall -Werror -pedantic -pthread -O0 -std=gnu99
 
 LDLIBS = -lssl -lcrypto -lpthread -lm
 
-simulation: mkdir server $(PATHB)effect_runner.out
+simulate: mkdir server $(PATHB)effect_runner.out
 	$(PATHB)effect_runner.out
 
 demo: mkdir $(PATHB)effect_runner.out
