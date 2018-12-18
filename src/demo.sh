@@ -13,7 +13,7 @@ $runner >/dev/null &
 while true
 do
     # Currently commands has 7 items
-    for i in {1..6};
+    for i in {0..6};
     do
         sleep $delay
         # Open netcat connection and send a command
